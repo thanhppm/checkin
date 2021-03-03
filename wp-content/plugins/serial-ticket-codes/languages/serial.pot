@@ -1,0 +1,83 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Project-Id-Version: Tickera - serial ticket codes\n"
+"POT-Creation-Date: 2018-08-28 11:37+0200\n"
+"PO-Revision-Date: 2018-08-28 11:37+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.1.1\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: index.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+
+#: includes/admin-pages/settings-tickera_serial_ticket_codes.php:21
+msgid "Settings data has been successfully saved."
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_serial_ticket_codes.php:23
+msgid "You do not have required permissions for this action."
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_serial_ticket_codes.php:74
+msgid ""
+"<strong>IMPORTANT: </strong> before going to production, if you're using bar "
+"codes on the tickets, please make sure that your chosen barcode type accepts "
+"this kind of formatting."
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_serial_ticket_codes.php:79
+msgid "Save Settings"
+msgstr ""
+
+#: includes/classes/class.settings_serial_tickets.php:22 index.php:21
+#: index.php:82
+msgid "Serial Tickets"
+msgstr ""
+
+#: includes/classes/class.settings_serial_tickets.php:38
+msgid "Next number of the serial ticket"
+msgstr ""
+
+#: includes/classes/class.settings_serial_tickets.php:50
+msgid "Serial ticket code prefix"
+msgstr ""
+
+#: includes/classes/class.settings_serial_tickets.php:62
+msgid "Serial ticket code suffix"
+msgstr ""
+
+#: includes/classes/class.settings_serial_tickets.php:74
+msgid "Serial ticket code minimum length"
+msgstr ""
+
+#: includes/classes/class.settings_serial_tickets.php:95
+msgid "Pad character / replace empty character"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Tickera - serial ticket codes"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+#. Author URI of the plugin/theme
+msgid "https://tickera.com/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Generate serial ticket codes"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Tickera.com"
+msgstr ""

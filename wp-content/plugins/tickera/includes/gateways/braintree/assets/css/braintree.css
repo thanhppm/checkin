@@ -1,0 +1,115 @@
+.hd-hidden {
+    display: none;
+}
+
+.hd-shown {
+    display: block;
+}
+
+#braintree_3ds2 {
+    position: relative;
+}
+
+#braintree_preload img {
+    margin: auto;
+}
+
+#braintree_overlay {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: 0.6;
+    z-index: 9;
+}
+
+#braintree_overlay img {
+    margin: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+table#tbl_braintree {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+table#tbl_braintree tr > td:first-child {
+    width: 40%;
+}
+
+table#tbl_braintree tr > td:last-child div {
+    padding: 7px 0px;
+}
+
+table#tbl_braintree td {
+    padding: 7px 12px;
+}
+
+table#tbl_braintree label {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 0;
+}
+
+table#tbl_braintree,
+table#tbl_braintree ~ p {
+    display: none;
+}
+
+table#tbl_braintree .help-block {
+    color: red;
+    float: right;
+    margin-right: 5px;
+}
+
+
+table#tbl_braintree td.has-error input {
+    display: initial;
+}
+
+table#tbl_braintree .predefined {
+    text-align: center;
+}
+
+table#tbl_braintree .help-block,
+table#tbl_braintree tr > td:last-child,
+table#tbl_braintree input {
+    font-size: 12px;
+}
+
+table#tbl_braintree input {
+    padding: 7px;
+    border-radius: 3px;
+}
+
+#pay-btn-3ds2,
+table#tbl_braintree input {
+    width: 100%;
+}
+
+#payment_method_errors {
+    font-size: 18px;
+    color: red;
+    text-align: center;
+}
+
+.tc_transaction_errors {
+    font-size: 16px;
+    text-align: center;
+    color: #721c24;
+    background: #f8d7da;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.select2-results__options li {
+    margin: 0;
+    padding-left: 1em;
+}

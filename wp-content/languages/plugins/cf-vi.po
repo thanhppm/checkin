@@ -1,0 +1,350 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Project-Id-Version: Tickera - Custom Forms Add-on\n"
+"POT-Creation-Date: 2019-10-03 16:08+0200\n"
+"PO-Revision-Date: 2020-06-18 10:31+0000\n"
+"Last-Translator: \n"
+"Language-Team: Tiếng Việt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: tickera-custom-forms.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: vi\n"
+"X-Loco-Version: 2.4.0; wp-5.4.2"
+
+#: includes/admin-pages/tc_custom_fields.php:13
+msgid "Form data has been successfully saved."
+msgstr "Form dữ liệu đã được lưu lại"
+
+#: includes/admin-pages/tc_custom_fields.php:15
+#: includes/admin-pages/tc_custom_fields.php:35
+msgid "You do not have required permissions for this action."
+msgstr "Bạn không được phép thực hiện thao tác này"
+
+#: includes/admin-pages/tc_custom_fields.php:33
+msgid "Form has been successfully deleted."
+msgstr "Form dữ liệu đã được xóa."
+
+#: includes/admin-pages/tc_custom_fields.php:66
+#, php-format
+msgid ""
+"You have %d attendee forms. However, \"Show Ticket Owner Fields\" option is "
+"set to \"No\" which means that these forms won't be visible on the front-end."
+" You can change that %shere%s"
+msgstr ""
+"Bạn có %d form người tham dự. Tuy nhiên tùy chọn \"Hiển thị trường trên vé "
+"người tham dự\" đang được chọn là \"Không\" nghĩa là những form đó sẽ không "
+"thể hiển thị ở front-end. Có thể thay đổi tại %sđây%s"
+
+#: includes/admin-pages/tc_custom_fields.php:72 tickera-custom-forms.php:968
+#: tickera-custom-forms.php:969
+msgid "Custom Forms"
+msgstr "Form tùy chỉnh "
+
+#: includes/admin-pages/tc_custom_fields.php:72
+msgid "Back"
+msgstr "Quay lại"
+
+#: includes/admin-pages/tc_custom_fields.php:72
+msgid "Add New"
+msgstr "Thêm mới"
+
+#: includes/admin-pages/tc_custom_fields.php:88
+#: includes/admin-pages/tc_custom_fields.php:90 tickera-custom-forms.php:952
+msgid "Search Forms"
+msgstr "Tìm form"
+
+#: includes/admin-pages/tc_custom_fields.php:130
+#: includes/classes/class.forms.php:148 tickera-custom-forms.php:949
+#: tickera-custom-forms.php:973
+msgid "Edit"
+msgstr "Sửa"
+
+#: includes/admin-pages/tc_custom_fields.php:135
+#: includes/classes/class.forms.php:149
+msgid "Delete"
+msgstr "Xóa"
+
+#: includes/admin-pages/tc_custom_fields.php:156
+msgid "No forms found."
+msgstr "Không tìm thấy form "
+
+#: includes/admin-pages/tc_custom_fields.php:191
+#: includes/classes/class.forms.php:109
+msgid "Form Title"
+msgstr "Tiêu đề form"
+
+#: includes/admin-pages/tc_custom_fields.php:197
+#: includes/classes/class.forms.php:125
+msgid "Form Type"
+msgstr "Loại form"
+
+#: includes/admin-pages/tc_custom_fields.php:217
+msgid "Buyer Form"
+msgstr "Form người mua"
+
+#: includes/admin-pages/tc_custom_fields.php:219
+msgid ""
+"Buyer form will be shown for each order in the cart. Only one buyer form "
+"could be created and used."
+msgstr ""
+"Form người mua sẽ hiển thị trên mỗi đơn hàng trong giỏ hàng. Chỉ một form "
+"người mua có thể tạo và được sử dụng"
+
+#: includes/admin-pages/tc_custom_fields.php:225 tickera-custom-forms.php:216
+msgid "Attendee Form"
+msgstr "Form người tham dự"
+
+#: includes/admin-pages/tc_custom_fields.php:227
+msgid ""
+"Attendee form will be shown for each ticket in the cart for selected ticket "
+"types / ticket products. You can created multiple different attendee forms."
+msgstr ""
+"Form người tham dự sẽ hiển thị trên mỗi vé trong đơn hàng theo từng loại vé. "
+"Có thể tạo nhiều form người tham dự"
+
+#: includes/admin-pages/tc_custom_fields.php:231
+msgid "Form"
+msgstr "Form"
+
+#: includes/admin-pages/tc_custom_fields.php:282
+msgid "Form Elements"
+msgstr "Thành phần form"
+
+#: includes/admin-pages/tc_custom_fields.php:313
+msgid "Save"
+msgstr "Lưu"
+
+#: includes/classes/class.form_elements.php:83
+msgid "Field Label"
+msgstr "Nhãn trường"
+
+#: includes/classes/class.form_elements.php:95
+msgid "Field Name"
+msgstr "Tên trường"
+
+#: includes/classes/class.form_elements.php:106
+msgid "Field Placeholder"
+msgstr "Giá trị mẫu"
+
+#: includes/classes/class.form_elements.php:117
+msgid "Field Description"
+msgstr "Mô tả nội dung trường"
+
+#: includes/classes/class.form_elements.php:137
+msgid "Required Input"
+msgstr "Yêu cầu nhập"
+
+#: includes/classes/class.form_elements.php:161
+msgid "Allow Field Export"
+msgstr "Cho phép xuất dữ liệu"
+
+#: includes/classes/class.form_elements.php:185
+msgid "Show in check-in app"
+msgstr "Hiển thị ở app Check-in"
+
+#: includes/classes/class.form_elements.php:209
+msgid "Create Ticket Template Element"
+msgstr "Tạo thành phần cho mẫu vé"
+
+#: includes/classes/class.form_elements.php:224
+msgid "Values (separated by comma)"
+msgstr "Giá trị (phân cách bằng dấu phẩy)"
+
+#: includes/classes/class.form_elements.php:235
+msgid "Default Value (which will be selected by default)"
+msgstr "Giá trị mặc định"
+
+#: includes/classes/class.form_elements.php:246
+msgid ""
+"Function Name (PHP function to retrieve values)<br /> <i>Use only if you do "
+"not want to put Values manually.</i>"
+msgstr ""
+
+#: includes/classes/class.form_elements.php:263
+msgid "Show in the admin order list as a new column"
+msgstr "Hiển thị ở danh sách đơn hàng dưới dạng cột"
+
+#: includes/classes/class.form_elements.php:288
+msgid "Show on the admin order detail page"
+msgstr "Hiển thị trên trang chi tiết đơn hàng"
+
+#: includes/classes/class.form_elements.php:309
+msgid "Show in the iPhone app"
+msgstr "Hiển thị trên ứng dụng iPhone"
+
+#: includes/classes/class.forms.php:117
+msgid "Date"
+msgstr "Ngày"
+
+#: includes/classes/class.forms.php:142
+msgid "ID"
+msgstr "ID"
+
+#: includes/form-elements/checkbox.php:10
+#: includes/form-elements/checkbox.php:96
+msgid "Checkbox (Multichoice)"
+msgstr "Checkbox (nhiều lựa chọn)"
+
+#: includes/form-elements/input-text.php:11
+#: includes/form-elements/input-text.php:98
+msgid "Input Field"
+msgstr "Trường nhập"
+
+#: includes/form-elements/radio-button.php:10
+#: includes/form-elements/radio-button.php:96
+msgid "Radio (Single Choice)"
+msgstr "Chọn duy nhất"
+
+#: includes/form-elements/select-box.php:10
+msgid "Select"
+msgstr "Chọn"
+
+#: includes/form-elements/select-box.php:97
+msgid "Select (Dropdown)"
+msgstr "Chọn danh sách"
+
+#: includes/form-elements/textarea.php:10
+#: includes/form-elements/textarea.php:88
+msgid "Textarea"
+msgstr "Nhập nội dung"
+
+#: includes/functions.php:82
+msgid "None"
+msgstr "Trống"
+
+#: includes/functions.php:107
+msgid "Default"
+msgstr "Mặc định"
+
+#: includes/functions.php:251 includes/functions.php:254
+#: includes/functions.php:257 includes/functions.php:278
+#: includes/functions.php:281 includes/functions.php:284
+#: includes/functions.php:316 includes/functions.php:319
+#: includes/functions.php:322
+msgid "N/A"
+msgstr "N/A"
+
+#: tickera-custom-forms.php:100
+#, php-format
+msgid ""
+"%s add-on requires at least %s version of %s plugin. Your current version of "
+"%s is %s. Please update it."
+msgstr ""
+"%s add-on yêu cầu ít nhất %s phiên bản của %s plugin. Phiên bản hiện tại %s "
+"là %s. Vui lòng nâng cấp."
+
+#: tickera-custom-forms.php:161
+#, php-format
+msgid ""
+"There was an issue determining where %s is installed. Please reinstall it."
+msgstr "Có lỗi xảy ra tại nơi %s cài đặt. Vui lòng cài lại"
+
+#: tickera-custom-forms.php:169
+msgid "Save Changes"
+msgstr "Lưu thay đổi"
+
+#: tickera-custom-forms.php:219
+msgid ""
+"Custom form shown for attendees on the front-end. You can edit and/or create "
+"custom forms <a href=\""
+msgstr ""
+"Form tùy chỉnh hiển thị cho người tham dự ở front-end. Có thể sửa hoặc tạo "
+"form tùy chỉnh"
+
+#: tickera-custom-forms.php:296
+msgid "Custom Fields"
+msgstr "Trường tùy chỉnh"
+
+#: tickera-custom-forms.php:915
+#, php-format
+msgid "Only %s elements per row are allowed"
+msgstr "Chỉ cho phép %s thành phần trên mỗi dòng"
+
+#: tickera-custom-forms.php:944 tickera-custom-forms.php:945
+msgid "Forms"
+msgstr "Các form"
+
+#: tickera-custom-forms.php:946 tickera-custom-forms.php:970
+msgid "Create New"
+msgstr "Tạo mới"
+
+#: tickera-custom-forms.php:947
+msgid "Create New Form"
+msgstr "Tạo form mới"
+
+#: tickera-custom-forms.php:948
+msgid "Edit Form"
+msgstr "Sửa form"
+
+#: tickera-custom-forms.php:950
+msgid "New Form"
+msgstr "Form mới"
+
+#: tickera-custom-forms.php:951 tickera-custom-forms.php:955
+msgid "View Form"
+msgstr "Xem form"
+
+#: tickera-custom-forms.php:953
+msgid "No Forms Found"
+msgstr "Không tìm thấy form "
+
+#: tickera-custom-forms.php:954
+msgid "No Forms found in Trash"
+msgstr "Không tìm thấy form trong thùng rác"
+
+#: tickera-custom-forms.php:971
+msgid "Create New Custom Field"
+msgstr "Tạo mới trường tùy chỉnh"
+
+#: tickera-custom-forms.php:972
+msgid "Edit Custom Field"
+msgstr "Sửa trường "
+
+#: tickera-custom-forms.php:974
+msgid "New Custom Field"
+msgstr "Trường tùy chỉnh mới"
+
+#: tickera-custom-forms.php:975 tickera-custom-forms.php:979
+msgid "View Custom Field"
+msgstr "Xem trường tùy biến"
+
+#: tickera-custom-forms.php:976
+msgid "Search Custom Forms"
+msgstr "Tìm form"
+
+#: tickera-custom-forms.php:977
+msgid "No Custom Forms Found"
+msgstr "Không tìm thấy form "
+
+#: tickera-custom-forms.php:978
+msgid "No Custom Forms found in Trash"
+msgstr "Không tìm thấy form trong thùng rác"
+
+#. Plugin Name of the plugin/theme
+msgid "Tickera - Custom Forms"
+msgstr "Miraway - Trường tùy biến check-in"
+
+#. Plugin URI of the plugin/theme
+#. Author URI of the plugin/theme
+msgid "http://tickera.com/"
+msgstr "https://qrcode-solution.com/"
+
+#. Description of the plugin/theme
+msgid "Add custom forms for buyer and attendees"
+msgstr "THêm trường tùy chỉnh cho người mua và người tham dự"
+
+#. Author of the plugin/theme
+msgid "Tickera.com"
+msgstr "qrcode-solution.com"

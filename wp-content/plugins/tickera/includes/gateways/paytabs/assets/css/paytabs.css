@@ -1,0 +1,117 @@
+.hd-hidden {
+    display: none;
+}
+
+.hd-shown {
+    display: block;
+}
+
+#paytabs {
+    position: relative;
+}
+
+#paytabs_overlay {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: 0.6;
+    z-index: 9;
+}
+
+#paytabs_overlay img {
+    margin: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+table#tbl_paytabs {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+table#tbl_paytabs tr > td:first-child {
+    width: 40%;
+}
+
+table#tbl_paytabs tr > td:last-child div {
+    padding: 7px 0px;
+}
+
+table#tbl_paytabs td {
+    padding: 7px 12px;
+}
+
+table#tbl_paytabs label {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 0;
+}
+
+table#tbl_paytabs .help-block {
+    color: red;
+    float: right;
+    margin-right: 5px;
+}
+
+
+table#tbl_paytabs td.has-error input {
+    display: initial;
+}
+
+table#tbl_paytabs .predefined {
+    text-align: center;
+}
+
+table#tbl_paytabs .help-block,
+table#tbl_paytabs tr > td:last-child,
+table#tbl_paytabs input {
+    font-size: 12px;
+}
+
+table#tbl_paytabs input {
+    padding: 7px;
+    border-radius: 3px;
+}
+
+#pay-btn-paytabs,
+#paytabs #tc_payment_confirm,
+table#tbl_paytabs input {
+    width: 100%;
+}
+
+#paytabs_errors {
+    font-size: 18px;
+    color: red;
+    text-align: center;
+}
+
+.paytabs_errors._active {
+    margin: 0 0 30px;
+}
+
+.tc_transaction_errors {
+    font-size: 16px;
+    text-align: center;
+    color: #721c24;
+    background: #f8d7da;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.select2-results__options li {
+    margin: 0;
+    padding-left: 1em;
+}
+
+.hidden_iframe.open {
+    width: 100%;
+    position: fixed;
+    top: 0;
+}

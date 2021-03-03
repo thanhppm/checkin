@@ -1,0 +1,39 @@
+#csv_export_progressbar{
+    width: 388px;
+    display: none;
+}
+
+.ui-progressbar {
+    position: relative;
+}
+.progress-label {
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+}
+
+.tc_csv_export_field_label{
+    display: inline-block;
+    min-width: 300px;
+}
+.tc_csv_export_custom_form_indication{
+    display:inline-block;
+    margin-left: 10px;
+    background-color: #f3f3f3;
+    padding: 6px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    color: #5d5d5d;
+}
+/* show error*/
+.export_error{
+	padding: 12px 12px 12px 25px;
+    color: red;
+    font-weight: 700;
+}
+.export_error p {
+	font-size:14px;
+}

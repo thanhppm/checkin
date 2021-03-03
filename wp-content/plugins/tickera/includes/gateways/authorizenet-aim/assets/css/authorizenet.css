@@ -1,0 +1,68 @@
+.hd-hidden {
+    display: none;
+}
+
+.hd-shown {
+    display: block;
+}
+
+table.tbl_authorizenet {
+    /*margin-top: 0px;*/
+    /*margin-bottom: 0px;*/
+}
+
+table.tbl_authorizenet > tbody > tr > td:first-child {
+    width: 40%;
+}
+
+table.tbl_authorizenet > tbody > tr > td:last-child div {
+    padding: 7px 0px;
+}
+
+table.tbl_authorizenet > tbody > tr > td {
+    padding: 7px 12px;
+}
+
+table.tbl_authorizenet > tbody > tr > td div,
+table.tbl_authorizenet > tbody > tr > td label {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 0;
+}
+
+table.tbl_authorizenet .help-block {
+    color: red;
+    float: right;
+    margin-right: 5px;
+}
+
+
+table.tbl_authorizenet td.has-error input {
+    display: initial;
+}
+
+table.tbl_authorizenet .predefined {
+    text-align: center;
+}
+
+table.tbl_authorizenet .help-block,
+table.tbl_authorizenet > tbody > tr > td:last-child,
+table.tbl_authorizenet input {
+    font-size: 12px;
+}
+
+table.tbl_authorizenet input {
+    padding: 7px;
+    border-radius: 3px;
+}
+
+table.tbl_authorizenet input {
+    width: 100%;
+}
+
+.select2-results__options li {
+    margin: 0;
+    padding-left: 1em;
+}

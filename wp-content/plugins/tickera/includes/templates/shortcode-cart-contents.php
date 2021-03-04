@@ -1,14 +1,23 @@
 <div class="tc_cart_errors">
     <?php
+    global $tc_cart_errors;
 
     if ( isset( $_SESSION['tc_cart_errors'] ) && $_SESSION['tc_cart_errors'] ) {
+
+        /* Retrieve error from session */
         echo "<ul>" . $_SESSION['tc_cart_errors'] . "</ul>";
         unset( $_SESSION['tc_cart_errors'] );
+
+    } else {
+
+        /* Retrieve error messages from global variable */
+        echo $tc_cart_errors;
     }
 
-    echo apply_filters('tc_cart_errors', '');
+    /* Custom error messages */
+    echo apply_filters( 'tc_cart_errors', '' );
 
-    if (isset($_SESSION['tc_cart_ticket_error_ids'])) {
+    if ( isset( $_SESSION['tc_cart_ticket_error_ids'] ) ) {
         $tc_ticket_names = '';
         $tc_ticket_count = count($_SESSION['tc_cart_ticket_error_ids']);
         $tc_ticket_foreach = 1;
@@ -18,8 +27,7 @@
             echo '<li>' . sprintf(__('%s has been sold out.', 'tc'), $tc_ticket_name) . '</li>';
         }
         echo '</ul>';
-
-        unset($_SESSION['tc_cart_ticket_error_ids']);
+        unset( $_SESSION['tc_cart_ticket_error_ids'] );
     }
     ?>
 </div>

@@ -161,7 +161,6 @@ if ( !class_exists( 'TC_Event' ) ) {
 				return false;
 			}
 		}
-
 	}
 
 }

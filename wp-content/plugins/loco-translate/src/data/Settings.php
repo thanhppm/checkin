@@ -5,6 +5,7 @@
  * @property string $version Current plugin version installed
  * @property bool $gen_hash Whether to compile hash table into MO files
  * @property bool $use_fuzzy Whether to include Fuzzy strings in MO files
+ * @property int $fuzziness Fuzzy matching tolerance level, 0-100
  * @property int $num_backups Number of backups to keep of Gettext files
  * @property array $pot_alias Alternative names for POT files in priority order
  * @property array $php_alias Alternative file extensions for PHP files
@@ -12,12 +13,15 @@
  * @property bool $fs_persist Whether to remember file system credentials in session
  * @property int $fs_protect Prevent modification of files in system folders (0:off, 1:warn, 2:block)
  * @property int $pot_protect Prevent modification of POT files (0:off, 1:warn, 2:block)
+ * @property int $pot_expected Whether to allow missing templates and sync to source (0:off, 1:warn, 2:block) 
  * @property string $max_php_size Skip PHP source files this size or larger
  * @property bool $po_utf8_bom Whether to prepend PO and POT files with UTF-8 byte order mark
  * @property string $po_width PO/POT file maximum line width (wrapping) zero to disable
  * @property bool $jed_pretty Whether to pretty print JSON JED files
+ * @property bool $jed_clean Whether to clean up redundant JSON files during compilation
  * @property bool $ajax_files Whether to submit PO data as concrete files (requires Blob support in Ajax)
- * 
+ *
+ * @property string $deepl_api_key API key for DeepL Translator
  * @property string $google_api_key API key for Google Translate
  * @property string $yandex_api_key API key for Yandex.Translate
  * @property string $microsoft_api_key API key for Microsoft Translator text API
@@ -41,18 +45,22 @@ class Loco_data_Settings extends Loco_data_Serializable {
         'version' => '',
         'gen_hash' => false,
         'use_fuzzy' => true,
-        'num_backups' => 1,
+        'fuzziness' => 20,
+        'num_backups' => 5,
         'pot_alias' => array( 'default.po', 'en_US.po', 'en.po' ),
         'php_alias' => array( 'php', 'twig' ),
         'jsx_alias' => array(),
         'fs_persist' => false,
         'fs_protect' => 1,
         'pot_protect' => 1,
+        'pot_expected' => 1,
         'max_php_size' => '100K',
         'po_utf8_bom' => false,
         'po_width' => '79',
         'jed_pretty' => false,
+        'jed_clean' => false,
         'ajax_files' => true,
+        'deepl_api_key' => '',
         'google_api_key' => '',
         'yandex_api_key' => '',
         'microsoft_api_key' => '',
@@ -112,25 +120,7 @@ class Loco_data_Settings extends Loco_data_Serializable {
      * {@inheritdoc}
      */
     public function offsetSet( $prop, $value ){
-        if( ! isset(self::$defaults[$prop]) ){
-            throw new InvalidArgumentException('Invalid option, '.$prop );
-        }
-        $default = self::$defaults[$prop];
-        // cast to same type as default
-        if( is_bool($default) ){
-            $value = (bool) $value;
-        }
-        else if( is_int($default) ){
-            $value = (int) $value;
-        }
-        else if( is_array($default) ){
-            if( ! is_array($value) ){
-                $value = preg_split( '/[\\s,]+/', trim($value), -1, PREG_SPLIT_NO_EMPTY );
-            }
-        }
-        else {
-            $value = (string) $value;
-        }
+        $value = parent::cast($prop,$value,self::$defaults);
         parent::offsetSet( $prop, $value );
     }
 
@@ -151,7 +141,8 @@ class Loco_data_Settings extends Loco_data_Serializable {
      * @return bool whether settings where previously saved
      */
     public function fetch(){
-        if( $data = get_option('loco_settings') ){
+        $data = get_option('loco_settings');
+        if( is_array($data) ){
             $copy = new Loco_data_Settings;
             $copy->setUnserialized($data);
             // preserve any defaults not in previously saved data
@@ -180,10 +171,9 @@ class Loco_data_Settings extends Loco_data_Serializable {
             $this->persist();
             $updated = true;
             // feature alerts:
-            if( '2.4.' === substr($new,0,4) && '2.4.' !== substr($old,0,4) ){
-                Loco_error_AdminNotices::info( __('Loco Translate 2.4 supports third party translation providers. Set up your API keys in the plugin settings!','loco-translate') )
-                   ->addLink( Loco_mvc_AdminRouter::generate('config-apis'), __('Settings','loco-translate') )
-                   ->addLink( apply_filters('loco_external','https://localise.biz/wordpress/plugin/manual/providers'), __('Documentation','loco-translate') );
+            if( '2.5.' === substr($new,0,4) && '2.5.' !== substr($old,0,4) ){
+                Loco_error_AdminNotices::info( __('Loco Translate 2.5 adds supports for JSON language pack generation.','loco-translate') )
+                   ->addLink( apply_filters('loco_external','https://localise.biz/wordpress/plugin/manual/json'), __('Documentation','loco-translate') );
             }
         }
         return $updated;

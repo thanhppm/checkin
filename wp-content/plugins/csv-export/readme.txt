@@ -18,10 +18,27 @@ csv-option-screen
 
 == Changelog ==
 
-= 1.2.5.6 XX/XX/XXXX =
+= 1.2.6.0 =
+- Additional Columns for individual tickets/owners total values
+- Added minimum requirement of Tickera version
+
+= 1.2.5.9 =
+- Bug fixed: Progress bar not working properly during export csv.
+- Bug fixed: Ticket Type field reverting back to "all" after selecting a specific Ticket Type
+
+= 1.2.5.8 =
+- Bug fixed: Ticket Type field discrepancy on page load
+- Bug fixed: Intermittent undefined session during ajax call, resulting to csv export errors.
+
+= 1.2.5.7 =
+- Bug fixed: Missing ticket type when event field is being updated
+- Bug fixed: Ticket type field not showing when it exceeds 10 items
+- Fixed issue when add-on is activated on multisite
+
+= 1.2.5.6 =
 - Additional order status (Refunded) in filter
 - Bug Fixed: Unable to export csv file for some sites
-- Bug fixed: Missing options in Ticket Type Filter
+- Bug fixed: Missing options in Ticket Type Filters
 - Better license update / license check handling
 
 = 1.2.5.5 - 07/04/2020 =

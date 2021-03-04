@@ -267,6 +267,9 @@ if (!class_exists('TC_Discounts')) {
         function discounted_cart_total($total = false, $discount_code = '') {
             global $tc, $discount, $discount_value_total, $init_total, $new_total;
 
+            if ( !isset($_SESSION) )
+                session_start();
+
             $cart_contents = $tc->get_cart_cookie();
 
             $cart_subtotal = 0;
@@ -278,18 +281,10 @@ if (!class_exists('TC_Discounts')) {
                 $discount = new TC_Discounts();
             }
 
-            if ( !$total ) {
+            foreach ( $cart_contents as $ticket_type => $ordered_count )
+                $cart_subtotal = $cart_subtotal + ( tc_get_ticket_price( $ticket_type ) * $ordered_count );
 
-                foreach ( $cart_contents as $ticket_type => $ordered_count ) {
-                    $cart_subtotal = $cart_subtotal + ( tc_get_ticket_price( $ticket_type ) * $ordered_count );
-                }
-
-                if ( !isset($_SESSION) ) {
-                    session_start();
-                }
-
-                $_SESSION['tc_cart_subtotal'] = $cart_subtotal;
-            }
+            $_SESSION['tc_cart_subtotal'] = $cart_subtotal;
 
             if ( !$discount_code ) {
                 $discount_code = isset( $_POST['coupon_code'] ) ? sanitize_text_field( $_POST['coupon_code'] ) : '';
@@ -301,7 +296,6 @@ if (!class_exists('TC_Discounts')) {
 
                 // Initialize User Variables
                 $current_user = wp_get_current_user();
-                $current_user_id = $current_user->ID;
                 $current_user_roles = $current_user->roles;
 
                 // Initialize Discount Variables
@@ -309,12 +303,6 @@ if (!class_exists('TC_Discounts')) {
                 $discount_details = $discount_object->details;
                 $discount_availability = explode(',', $discount_details->discount_availability);
                 $discount_on_user_roles = isset( $discount_details->discount_on_user_roles ) ? array_filter(explode( ',', $discount_details->discount_on_user_roles )) : [];
-                // $discount_on_returning_customers = isset( $discount_details->discount_on_returning_customer ) ? $discount_details->discount_on_returning_customer : 'no';
-
-                /* // Calculate the number of times that a specific user used the discount code
-                $discount_per_user =  ( '' != $discount_details->discount_per_user ) ? $discount_details->discount_per_user : 999999999;
-                $discount_user_usage_count = self::discount_used_times( $discount_details->post_title, $current_user_id );
-                $discount_codes_available_per_user = (int)$discount_per_user - (int)$discount_user_usage_count; */
 
                 // Calculate the number of times that a discount code was used
                 $usage_limit = ( '' != $discount_details->usage_limit ) ? $discount_details->usage_limit : 999999999;
@@ -324,39 +312,48 @@ if (!class_exists('TC_Discounts')) {
                 // Prepare logic for discount availability per ticket type
                 $array_diff = ( $discount_availability ) ? array_diff( array_keys($tc->get_cart_cookie() ), array_filter($discount_availability) ) : null;
 
-                // Check if discount code if published
                 if ( $discount_object->details->post_status != 'publish' ) {
+
+                    /*
+                     * Check if discount code if published
+                     */
                     $discount_error_message = $discount->discount_message = __('Discount code cannot be found', 'tc');
 
-                    // Check for discount code expiration date
                 } elseif ( $current_date >= $discount_object->details->expiry_date ) {
+
+                    /*
+                     * Check for discount code expiration date
+                     */
                     $discount_error_message = __('Discount code expired', 'tc');
 
-                    // Check if the discount code reach the maximum used limit
                 } elseif ( $discount_codes_available <= 0 ) {
+
+                    /*
+                     * Check if the discount code reach the maximum used limit
+                     */
                     $discount_error_message = __('Discount code invalid or expired', 'tc');
 
-                    // Check if the user has a valid user role
                 } elseif ( ( isset( $discount_object->details->discount_on_user_roles ) && $discount_on_user_roles )
                     && ( empty( array_intersect($current_user_roles, $discount_on_user_roles) ) ) ) {
+
+                    /*
+                     * Check if the user has a valid user role
+                     */
                     $discount_error_message = __('Discount code is not available', 'tc');
 
-                    /* // Check if the user is a returning customer
-                    } elseif ( 'yes' == $discount_on_returning_customers && !tc_get_tickets_user_purchased_count( $current_user_id ) ) {
-                        $discount_error_message = __('Discount code is not available', 'tc');
-
-                    // Check if a user reached the maximum limit
-                    } elseif ( $discount_codes_available_per_user <= 0 ) {
-                        $discount_error_message = __('Discount code invalid or expired', 'tc');
-                    */
-
-                    // If not available to all tickets. Message will only display if there's only 1 item in the cart
                 } elseif ( 3 != $discount_details->discount_type && array_filter($discount_availability)
                     && $array_diff && count( $array_diff ) == count( array_keys($tc->get_cart_cookie() ) ) ) {
+
+                    /*
+                     * If not available to all tickets. Message will only display if there's only 1 item in the cart
+                     */
                     $discount_error_message = __("Discount code is not valid for the ticket type(s) in the cart.", 'tc');
 
-                    // If available to some tickets
                 } elseif ( array_filter($discount_availability) ) {
+
+                    /*
+                     * If available to some tickets
+                     */
                     $discount_available_per_ticket = array_intersect( array_keys($tc->get_cart_cookie()), array_filter($discount_availability) );
                 }
 
@@ -365,73 +362,87 @@ if (!class_exists('TC_Discounts')) {
                     $discount->discount_message = $discount_error_message;
                     $this->unset_discount();
 
-                    // If valid: apply discount type
                 } else {
 
-                    $cart_contents = ( isset( $discount_available_per_ticket ) ) ? $discount_availability : array_keys( $cart_contents );
-                    foreach ( $cart_contents as $ticket_type_id ) {
-                        $cart_contents = $tc->get_cart_cookie();
-                        if ( isset( $cart_contents[$ticket_type_id] ) ) {
+                    $tc_discount_code_post_validation = apply_filters( 'tc_discount_code_post_validation', array( 'validated' => true, 'message' => '' ), $discount_code );
 
-                            $ordered_count = $cart_contents[$ticket_type_id];
-                            $ticket_price = tc_get_ticket_price($ticket_type_id);
+                    /*
+                     * Apply discount if Post validation succeeded. Otherwise, display error message
+                     */
+                    if ( $tc_discount_code_post_validation['validated'] ) {
 
-                            // Apply only the remaining number of discounts available
-                            if ( $ordered_count >= $discount_codes_available ) {
-                                $max_discount = $discount_codes_available;
+                        $cart_contents = (isset($discount_available_per_ticket)) ? $discount_availability : array_keys($cart_contents);
+                        foreach ($cart_contents as $ticket_type_id) {
+                            $cart_contents = $tc->get_cart_cookie();
+                            if (isset($cart_contents[$ticket_type_id])) {
 
-                                /* } elseif ( $ordered_count >= $discount_codes_available_per_user ) {
-                                    $max_discount = $discount_codes_available_per_user; */
+                                $ordered_count = $cart_contents[$ticket_type_id];
+                                $ticket_price = tc_get_ticket_price($ticket_type_id);
 
-                            } else {
-                                $max_discount = $ordered_count;
-                            }
+                                // Apply only the remaining number of discounts available
+                                if ($ordered_count >= $discount_codes_available) {
+                                    $max_discount = $discount_codes_available;
 
-                            // Current cart ordered count vs available discount
-                            switch ( $discount_details->discount_type ) {
+                                    /* } elseif ( $ordered_count >= $discount_codes_available_per_user ) {
+                                        $max_discount = $discount_codes_available_per_user; */
 
-                                case 1: // IF: Fixed amount per item
-                                    $discount_value_per_each = ( $discount_object->details->discount_value > $ticket_price ) ? $ticket_price : $discount_object->details->discount_value;
-                                    if ( $max_discount > 0 ) {
-                                        for ($i = 1; $i <= (int)$max_discount; $i++) {
+                                } else {
+                                    $max_discount = $ordered_count;
+                                }
+
+                                // Current cart ordered count vs available discount
+                                switch ($discount_details->discount_type) {
+
+                                    case 1: // IF: Fixed amount per item
+                                        $discount_value_per_each = ($discount_object->details->discount_value > $ticket_price) ? $ticket_price : $discount_object->details->discount_value;
+                                        if ($max_discount > 0) {
+                                            for ($i = 1; $i <= (int)$max_discount; $i++) {
+                                                $discount_value = $discount_value + $discount_value_per_each;
+                                                $number_of_discount_uses++;
+                                                $discount_codes_available = $usage_limit - $number_of_discount_uses;
+                                            }
+                                        }
+                                        break;
+
+                                    case 2: // IF: Percentage
+                                        $discount_rounded_value = round((($ticket_price / 100) * $discount_object->details->discount_value), 2);
+                                        $discount_value_per_each = ($discount_rounded_value > $ticket_price) ? $ticket_price : $discount_rounded_value;
+                                        if ($max_discount > 0) {
+                                            $discount_value = $discount_value + $discount_value_per_each * $ordered_count;
+                                            $number_of_discount_uses++;
+                                            $discount_codes_available = $usage_limit - $number_of_discount_uses;
+                                        }
+                                        break;
+
+                                    case 3: // IF: Fixed Per Order
+                                        $discount_value = round($discount_object->details->discount_value, 2);
+                                        break;
+
+                                    default: // Fallback discount value
+                                        $discount_value_per_each = round((($ticket_price / 100) * $discount_object->details->discount_value), 2);
+                                        if ($max_discount > 0) {
                                             $discount_value = $discount_value + $discount_value_per_each;
                                             $number_of_discount_uses++;
                                             $discount_codes_available = $usage_limit - $number_of_discount_uses;
                                         }
-                                    }
-                                    break;
+                                }
 
-                                case 2: // IF: Percentage
-                                    $discount_rounded_value = round( ( ( $ticket_price / 100 ) * $discount_object->details->discount_value ), 2 );
-                                    $discount_value_per_each = ( $discount_rounded_value >  $ticket_price ) ? $ticket_price : $discount_rounded_value;
-                                    if ( $max_discount > 0 ) {
-                                        $discount_value = $discount_value + $discount_value_per_each * $ordered_count;
-                                        $number_of_discount_uses++;
-                                        $discount_codes_available = $usage_limit - $number_of_discount_uses;
-                                    }
-                                    break;
-
-                                case 3: // IF: Fixed Per Order
-                                    $discount_value = round( $discount_object->details->discount_value, 2 );
-                                    break;
-
-                                default: // Fallback discount value
-                                    $discount_value_per_each = round( ( ( $ticket_price / 100 ) * $discount_object->details->discount_value ), 2 );
-                                    if ( $max_discount > 0 ) {
-                                        $discount_value = $discount_value + $discount_value_per_each;
-                                        $number_of_discount_uses++;
-                                        $discount_codes_available = $usage_limit - $number_of_discount_uses;
-                                    }
-                            }
-
-                            // Not applicable if discount type is fixed per order
-                            // Count the discount usage in the current cart
-                            if ( $discount_object->details->discount_type != 3 && $discount_value ) {
-                                $discount_applied_count++;
+                                // Not applicable if discount type is fixed per order
+                                // Count the discount usage in the current cart
+                                if ($discount_object->details->discount_type != 3 && $discount_value) {
+                                    $discount_applied_count++;
+                                }
                             }
                         }
-                    }
 
+                    } else {
+
+                        /*
+                         * Display error message
+                         */
+                        $discount->discount_message = $tc_discount_code_post_validation['message'];
+                        $this->unset_discount();
+                    }
                 }
             }
 
@@ -468,10 +479,6 @@ if (!class_exists('TC_Discounts')) {
                     return tc_minimum_total($_SESSION['tc_cart_subtotal']);
                 }
 
-            }
-
-            if (!session_id()) {
-                session_start();
             }
 
             $new_total = (isset($_SESSION['tc_cart_subtotal']) ? $_SESSION['tc_cart_subtotal'] : 0) - $discount_value;
@@ -595,20 +602,20 @@ if (!class_exists('TC_Discounts')) {
                     'number' => true
                 ),
                 array(
-                    'field_name' => 'expiry_date',
-                    'field_title' => __('Expiration Date', 'tc'),
-                    'field_type' => 'text',
-                    'field_description' => __('The date this discount will expire (24 hour format)', 'tc'),
-                    'form_visibility' => true,
-                    'table_visibility' => true,
-                    'post_field_type' => 'post_meta'
-                ),
-                array(
                     'field_name' => 'used_count',
                     'field_title' => __('Used Count'),
                     'field_type' => 'text',
                     'field_description' => '',
                     'form_visibility' => false,
+                    'table_visibility' => true,
+                    'post_field_type' => 'post_meta'
+                ),
+                array(
+                    'field_name' => 'expiry_date',
+                    'field_title' => __('Expiration Date', 'tc'),
+                    'field_type' => 'text',
+                    'field_description' => __('The date this discount will expire (24 hour format)', 'tc'),
+                    'form_visibility' => true,
                     'table_visibility' => true,
                     'post_field_type' => 'post_meta'
                 )

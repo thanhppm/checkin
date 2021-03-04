@@ -1,21 +1,133 @@
 <?php
 
 /*
- Plugin Name: Tickera Seating Charts
- Plugin URI: http://tickera.com/
- Description: Create seating charts for your event
- Author: Tickera.com
- Author URI: http://tickera.com/
- Version: 0.58
- Text Domain: tcsc
- Domain Path: /languages
- Copyright 2019 Tickera (http://tickera.com/)
+Plugin Name: Tickera Seating Charts
+Plugin URI: http://tickera.com/
+Description: Create seating charts for your event
+Author: Tickera.com
+Author URI: http://tickera.com/
+Version: 0.64
+Text Domain: tcsc
+Domain Path: /languages
+Copyright 2019 Tickera (http://tickera.com/)
 */
+if ( !function_exists( 'seatings_fs' ) ) {
+    // Create a helper function for easy SDK access.
+    function seatings_fs()
+    {
+        global  $seatings_fs ;
+        
+        if ( !isset( $seatings_fs ) ) {
+            // Activate multisite network integration.
+            if ( !defined( 'WP_FS__PRODUCT_3103_MULTISITE' ) ) {
+                define( 'WP_FS__PRODUCT_3103_MULTISITE', true );
+            }
+            // Include Freemius SDK.
+            
+            if ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera-event-ticketing-system/freemius/start.php' ) ) {
+                // Try to load SDK from parent plugin folder.
+                require_once dirname( dirname( __FILE__ ) ) . '/tickera-event-ticketing-system/freemius/start.php';
+            } else {
+                
+                if ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php' ) ) {
+                    // Try to load SDK from premium parent plugin folder.
+                    require_once dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php';
+                } else {
+                    require_once dirname( __FILE__ ) . '/freemius/start.php';
+                }
+            
+            }
+            
+            $seatings_fs = fs_dynamic_init( array(
+                'id'               => '3103',
+                'slug'             => 'seating-charts',
+                'premium_slug'     => 'seating-charts',
+                'type'             => 'plugin',
+                'public_key'       => 'pk_254561f3d24293a2cdd972d5fd74a',
+                'is_premium'       => true,
+                'is_premium_only'  => true,
+                'has_paid_plans'   => true,
+                'is_org_compliant' => false,
+                'parent'           => array(
+                'id'         => '3102',
+                'slug'       => 'tickera-event-ticketing-system',
+                'public_key' => 'pk_7a38a2a075ec34d6221fe925bdc65',
+                'name'       => 'Tickera',
+            ),
+                'menu'             => array(
+                'first-path' => 'plugins.php',
+                'support'    => false,
+            ),
+                'is_live'          => true,
+            ) );
+        }
+        
+        return $seatings_fs;
+    }
+
+}
+/**
+ * Check if the parent's init SDK method exists.
+ *
+ * @return bool
+ */
+function seatings_fs_is_parent_active_and_loaded()
+{
+    return function_exists( 'tets_fs' );
+}
+
+function seatings_fs_is_parent_active()
+{
+    $active_plugins = get_option( 'active_plugins', array() );
+    
+    if ( is_multisite() ) {
+        $network_active_plugins = get_site_option( 'active_sitewide_plugins', array() );
+        $active_plugins = array_merge( $active_plugins, array_keys( $network_active_plugins ) );
+    }
+    
+    foreach ( $active_plugins as $basename ) {
+        if ( 0 === strpos( $basename, 'tickera-event-ticketing-system/' ) || 0 === strpos( $basename, 'tickera/' ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function seatings_fs_init()
+{
+    
+    if ( seatings_fs_is_parent_active_and_loaded() ) {
+        /*
+         * Parent is active, add your init code here.
+         * Init Freemius.
+         */
+        seatings_fs();
+        if ( !seatings_fs()->can_use_premium_code() ) {
+            return;
+        }
+    } else {
+        // Parent is inactive, add your error handling here.
+    }
+
+}
+
+
+if ( seatings_fs_is_parent_active_and_loaded() ) {
+    // If parent already included, init add-on.
+    seatings_fs_init();
+} elseif ( seatings_fs_is_parent_active() ) {
+    // Init add-on only after the parent is loaded.
+    add_action( 'tets_fs_loaded', 'seatings_fs_init' );
+} else {
+    // Even though the parent is not activated, execute add-on for activation / uninstall hooks.
+    seatings_fs_init();
+}
+
 
 if ( !class_exists( 'TC_Seat_Chart' ) ) {
     class TC_Seat_Chart
     {
-        var  $version = '0.58' ;
+        var  $version = '0.64' ;
         var  $tc_version_required = '3.3.1' ;
         var  $title = 'Seating Charts' ;
         var  $name = 'tc-seat-charts' ;
@@ -28,6 +140,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             $this->maybe_create_html_dir();
             require_once $this->plugin_dir . 'includes/php-html-css-js-minifier.php';
             require_once $this->plugin_dir . 'includes/class.tc_firebase.php';
+            add_action( 'init', array( $this, 'capture_update_cart_actions' ) );
             add_action( 'init', array( $this, 'register_custom_posts' ), 0 );
             add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts_and_styles' ) );
             add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts_and_styles' ) );
@@ -35,8 +148,8 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             //save_metabox_values
             add_action( 'wp_ajax_tc_get_event_ticket_types', array( $this, 'get_event_ticket_types_select' ) );
             add_action( 'wp_ajax_nopriv_tc_get_event_ticket_types', array( $this, 'get_event_ticket_types_select' ) );
-            add_action( 'wp_ajax_nopriv_tc_validate_seat_availability', array( $this, 'tc_validate_seat_availability' ) );
-            add_action( 'wp_ajax_tc_validate_seat_availability', array( $this, 'tc_validate_seat_availability' ) );
+            add_action( 'wp_ajax_nopriv_tc_validate_woo_seat_availability', array( $this, 'tc_validate_woo_seat_availability' ) );
+            add_action( 'wp_ajax_tc_validate_woo_seat_availability', array( $this, 'tc_validate_woo_seat_availability' ) );
             add_action( 'wp_ajax_nopriv_tc_add_seat_to_cart', array( $this, 'tc_add_seat_to_cart' ) );
             add_action( 'wp_ajax_tc_add_seat_to_cart', array( $this, 'tc_add_seat_to_cart' ) );
             add_action( 'wp_ajax_nopriv_tc_add_seat_to_cart_woo', array( $this, 'tc_add_seat_to_cart_woo' ) );
@@ -44,8 +157,8 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             add_action( 'wp_ajax_nopriv_tc_add_seat_to_cart_woo_variation', array( $this, 'tc_add_seat_to_cart_woo_variation' ) );
             add_action( 'wp_ajax_tc_add_seat_to_cart_woo_variation', array( $this, 'tc_add_seat_to_cart_woo_variation' ) );
             add_action( 'wp_ajax_tc_wc_get_cart_info', array( $this, 'tc_wc_get_cart_info' ) );
-            add_action( 'wp_ajax_nopriv_tc_remove_seat_from_cart', array( $this, 'tc_remove_seat_from_cart' ) );
-            add_action( 'wp_ajax_tc_remove_seat_from_cart', array( $this, 'tc_remove_seat_from_cart' ) );
+            add_action( 'wp_ajax_nopriv_tc_remove_seat_from_cart_ajax', array( $this, 'tc_remove_seat_from_cart_ajax' ) );
+            add_action( 'wp_ajax_tc_remove_seat_from_cart_ajax', array( $this, 'tc_remove_seat_from_cart_ajax' ) );
             add_filter(
                 'tc_ticket_fields',
                 array( $this, 'add_color_picker_field' ),
@@ -73,14 +186,13 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 10,
                 3
             );
-            //final check if the seat exists already
-            add_action(
+            \add_action(
                 'tc_add_more_final_checks',
                 array( $this, 'tc_seating_reservation_final_check' ),
                 10,
                 1
             );
-            //add errors when seat has already beeb booked
+            // Add errors when seat has already beeb booked
             add_filter(
                 'tc_cart_errors',
                 array( $this, 'tc_already_booked_seat' ),
@@ -158,7 +270,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 10,
                 1
             );
-            //add_action('tc_woo_bridge_after_order_completed', array($this, 'delete_order_cookie'), 10, 1);
             add_action( 'init', array( $this, 'load_plugin_textdomain' ), 11 );
             add_filter(
                 'post_row_actions',
@@ -174,6 +285,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 10,
                 1
             );
+            add_action( 'post_edit_form_tag', array( &$this, 'edit_post_enctype' ) );
             add_filter( 'post_updated_messages', array( $this, 'post_updated_messages' ) );
             add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
             add_action(
@@ -195,14 +307,12 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 10,
                 3
             );
-            add_action(
+            add_filter(
                 'woocommerce_cart_item_name',
                 array( $this, 'tc_list_out_single_tickets_woo' ),
                 10,
                 3
             );
-            //add_action('wp_logout', array($this, 'destroy_cookies'), 10);
-            //add_action('edit_form_after_editor', array($this, 'maybe_save_duplicated_chart_values'), 99);
             add_filter(
                 'tc_delete_info_plugins_list',
                 array( $this, 'tc_delete_info_plugins_list' ),
@@ -244,13 +354,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         function tc_check_disable_zoom()
         {
             $tc_seat_charts_settings = TC_Seat_Chart::get_settings();
-            
-            if ( $tc_seat_charts_settings['disable_zoom'] == 'yes' ) {
-                return true;
-            } else {
-                return false;
-            }
-        
+            return ( isset( $tc_seat_charts_settings['disable_zoom'] ) && 'yes' == $tc_seat_charts_settings['disable_zoom'] ? true : false );
         }
         
         function tc_delete_plugins_data( $submitted_data )
@@ -258,14 +362,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             
             if ( array_key_exists( $this->name, $submitted_data ) ) {
                 global  $wpdb ;
-                //Delete posts and post metas
-                $wpdb->query( "\n                DELETE\n                p, pm\n                FROM {$wpdb->posts} p\n                JOIN {$wpdb->postmeta} pm on pm.post_id = p.id\n\t\t WHERE p.post_type IN ('tc_seat_charts')\n\t\t" );
-                //Delete options
+                // Delete posts and post metas
+                $wpdb->query( "DELETE p, pm FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} pm on pm.post_id = p.id WHERE p.post_type IN ('tc_seat_charts')" );
+                // Delete options
                 $options = array( 'tc_seat_charts_settings' );
                 foreach ( $options as $option ) {
                     delete_option( $option );
                 }
-                //Delete directories and files
+                // Delete directories and files
                 $upload = wp_upload_dir();
                 $upload_dir = $upload['basedir'];
                 $upload_dir = $upload_dir . '/tc-seating-charts';
@@ -276,15 +380,12 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         function trash_chart( $post_id = false )
         {
-            
             if ( $post_id && get_post_type( $post_id ) == 'tc_seat_charts' ) {
-                $post = array(
+                wp_update_post( [
                     'ID'          => $post_id,
                     'post_status' => 'trash',
-                );
-                wp_update_post( $post );
+                ] );
             }
-        
         }
         
         function tc_seating_reservation_final_check( $cart )
@@ -320,49 +421,36 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             return $tc_cart_errors;
         }
         
+        /**
+         * Append Product details in Woocommerce Cart Page
+         *
+         * @param $tc_product_name
+         * @param $cart_item
+         * @param $cart_item_key
+         * @return string
+         */
         function tc_list_out_single_tickets_woo( $tc_product_name, $cart_item, $cart_item_key )
         {
             $product_name = '';
             $cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
-            $chart_id = @$cart_seats[$ticket_type->details->ID][0][2];
             $product_name .= $tc_product_name;
-            $product_name .= '<br /><div class="tc-cart-seat-wrap">';
-            
-            if ( $cart_item['variation_id'] !== 0 ) {
-                foreach ( array_keys( $cart_seats ) as $key ) {
-                    if ( $cart_item['variation_id'] == $key ) {
-                        foreach ( $cart_seats[$cart_item['variation_id']] as $single_cart_seat ) {
+            $product_type_variable = ( $cart_item['variation_id'] !== 0 ? 'variation_id' : 'product_id' );
+            foreach ( array_keys( $cart_seats ) as $key ) {
+                if ( $cart_item[$product_type_variable] == $key ) {
+                    foreach ( $cart_seats[$cart_item[$product_type_variable]] as $single_cart_seat ) {
+                        
+                        if ( !empty($single_cart_seat[1]) ) {
+                            $product_name .= '<br /><div class="tc-cart-seat-wrap">';
                             $product_name .= '<span class="tc-single-cart-seat">';
-                            
-                            if ( !empty($single_cart_seat[1]) ) {
-                                $remove_icon = '<span class="tc_cart_remove_icon tc_cart_seat_remove" title="' . __( 'Remove from Cart', 'tcsc' ) . '" data-ticket-type-id="' . (int) $cart_item['variation_id'] . '" data-seat-sign="' . $single_cart_seat[1] . '" data-seat-id="' . $single_cart_seat[0] . '" data-chart-id="' . (int) $single_cart_seat[2] . '"><i class="fa fa-times" aria-hidden="true"></i></span>';
-                                $product_name .= $remove_icon;
-                                $product_name .= $single_cart_seat[1];
-                            }
-                            
-                            $product_name .= "</span>";
+                            $remove_icon = '<span class="tc_cart_remove_icon tc_cart_seat_remove" title="' . __( 'Remove from Cart', 'tcsc' ) . '" data-ticket-type-id="' . (int) $cart_item[$product_type_variable] . '" data-seat-sign="' . $single_cart_seat[1] . '" data-seat-id="' . $single_cart_seat[0] . '" data-chart-id="' . (int) $single_cart_seat[2] . '"><i class="fa fa-times" aria-hidden="true"></i></span>';
+                            $product_name .= $remove_icon;
+                            $product_name .= $single_cart_seat[1];
+                            $product_name .= "</span></div>";
                         }
-                    }
-                }
-            } else {
-                foreach ( array_keys( $cart_seats ) as $key ) {
-                    if ( $cart_item['product_id'] == $key ) {
-                        foreach ( $cart_seats[$cart_item['product_id']] as $single_cart_seat ) {
-                            $product_name .= '<span class="tc-single-cart-seat">';
-                            
-                            if ( !empty($single_cart_seat[1]) ) {
-                                $remove_icon = '<span class="tc_cart_remove_icon tc_cart_seat_remove" title="' . __( 'Remove from Cart', 'tcsc' ) . '" data-ticket-type-id="' . (int) $cart_item['product_id'] . '" data-seat-sign="' . $single_cart_seat[1] . '" data-seat-id="' . $single_cart_seat[0] . '" data-chart-id="' . (int) $single_cart_seat[2] . '"><i class="fa fa-times" aria-hidden="true"></i></span>';
-                                $product_name .= $remove_icon;
-                                $product_name .= $single_cart_seat[1];
-                            }
-                            
-                            $product_name .= '</span>';
-                        }
+                    
                     }
                 }
             }
-            
-            $product_name .= "</div>";
             return $product_name;
         }
         
@@ -378,7 +466,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     foreach ( $cart_seats[$ticket_type->id] as $single_cart_seat ) {
                         ?>
                         <span class="tc-single-cart-seat">
-                            <?php 
+                        <?php 
                         
                         if ( !empty($single_cart_seat[1]) ) {
                             $remove_icon = '<span class="tc_cart_remove_icon tc_cart_seat_remove" title="' . __( 'Remove from Cart', 'tcsc' ) . '" data-ticket-type-id="' . (int) $ticket_type->details->ID . '" data-seat-sign="' . $single_cart_seat[1] . '" data-seat-id="' . $single_cart_seat[0] . '" data-chart-id="' . (int) $single_cart_seat[2] . '"><i class="fa fa-times" aria-hidden="true"></i></span>';
@@ -448,7 +536,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 }
             
             } catch ( Exception $e ) {
-                //we can't make a directory
+                // We can't make a directory
             }
         }
         
@@ -498,7 +586,19 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         }
         
         /**
+         * Set Admin Form Enctype
+         */
+        function edit_post_enctype()
+        {
+            $screen = get_current_screen();
+            if ( is_admin() && 'tc_seat_charts' == $screen->post_type && 'edit' == $screen->parent_base ) {
+                echo  ' enctype="multipart/form-data"' ;
+            }
+        }
+        
+        /**
          * Enqueue admin scripts and styles
+         *
          * @global type $post
          * @global type $post_type
          */
@@ -739,21 +839,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         function maybe_save_duplicated_chart_values()
         {
-            
             if ( isset( $_GET['state'] ) && $_GET['state'] == 'tcclnd' ) {
-                /* if ($post_type == 'tc_seat_charts') {
-                   $this->admin_enqueue_scripts_and_styles();
-                   } */
                 ?>
                 <script type="text/javascript">
                     jQuery(document).ready(function ($) {
-                        //$('.tc-save-button').click();
-                        //window.tc_controls.save();
                     });
                 </script>
                 <?php 
             }
-        
         }
         
         public static function maybe_duplicate_chart()
@@ -765,33 +858,32 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 $upload = wp_upload_dir();
                 $upload_dir = $upload['basedir'];
                 $upload_dir = $upload_dir . '/tc-seating-charts';
-                //ADMIN file initial
+                // ADMIN file initial
                 $filename = $from_post_id . '.tcsm';
                 $path_admin = $upload_dir . '/' . $filename;
-                //ADMIN: Current file contents
+                // ADMIN: Current file contents
                 $handle = fopen( $path_admin, "r" );
                 $file_content = fread( $handle, filesize( $path_admin ) );
-                //ADMIN file NEW
+                // ADMIN file NEW
                 $filename = $post->ID . '.tcsm';
                 $path_admin_new = $upload_dir . '/' . $filename;
                 $file_admin_new = @fopen( $path_admin_new, "w" );
                 @fwrite( $file_admin_new, $file_content );
                 @fclose( $file_admin_new );
                 @chmod( $path_admin_new, 0644 );
-                //FRONT file initial
+                // FRONT file initial
                 $filename = $from_post_id . '-front.tcsm';
                 $path_front = $upload_dir . '/' . $filename;
-                //FRONT: Current file contents
+                // FRONT: Current file contents
                 $handle = fopen( $path_front, "r" );
                 $file_content = fread( $handle, filesize( $path_front ) );
-                //FRONT file NEW
+                // FRONT file NEW
                 $filename = $post->ID . '-front.tcsm';
                 $path_front_new = $upload_dir . '/' . $filename;
                 $file_front_new = @fopen( $path_front_new, "w" );
                 @fwrite( $file_front_new, $file_content );
                 @fclose( $file_front_new );
                 @chmod( $path_front_new, 0644 );
-                //tc_seat_reserved
                 wp_redirect( admin_url( 'post.php?post=' . $post->ID . '&action=edit&state=tcclnd' ) );
             }
         
@@ -887,11 +979,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     $wpdb->query( $sql_query );
                 }
                 
-                /* $event_id = get_post_meta($post_id, 'event_name', true);
-                   
-                                     if (is_numeric($event_id)) {
-                                     TC_Better_Events::tc_duplicate_event_as_draft($event_id, ' [duplicate]', 'tc_seating_chart', $new_post_id, $post_id, false);
-                                     } */
                 do_action( 'tc_after_seat_chart_duplication', $new_post_id, $post_id );
                 /*
                  * finally, redirect to the edit post screen for the new draft
@@ -913,6 +1000,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Delete seat in-cart cookie after order completion
+         *
          * @global type $tc
          */
         function delete_order_cookie()
@@ -943,6 +1031,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Saves type of ticket for Woo products
+         *
          * @param type $post_id
          */
         function woo_ticket_type_additional_meta_save( $post_id )
@@ -969,6 +1058,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Disable quantity change for products (and variations) in the cart if the product is a seat
+         *
          * @param type $args
          * @param type $product
          * @return type
@@ -980,7 +1070,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             $variation_id = ( $product->is_type( 'variation' ) ? $product->get_id() : 0 );
             $pid = ( $variation_id > 0 ? $variation_id : $product_id );
             if ( isset( $cart_seats ) && (isset( $cart_seats[$variation_id] ) || isset( $cart_seats[$product_id] )) ) {
-                //(isset($cart_seats[$product->variation_id]) || isset($cart_seats[$product->id]))) {
                 
                 if ( isset( $cart_seats[$pid][0] ) && isset( $cart_seats[$pid][0][1] ) && $cart_seats[$pid][0][1] !== '' ) {
                     $args['max_value'] = $args['input_value'];
@@ -1012,7 +1101,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     'max_value' => ( $product->backorders_allowed() ? '' : $product->get_stock_quantity() ),
                     'min_value' => '1',
                 );
-                //echo '<label class="tc_wc_label_qty">qty</label>';
                 woocommerce_quantity_input( $args, $product, true );
                 exit;
             }
@@ -1036,6 +1124,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Variations data shown in the seat map popup when varible product is selected
+         *
          * @global type $product
          * @param type $id
          * @return type
@@ -1050,11 +1139,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             $available_variations = ( $get_variations ? $product->get_available_variations() : false );
             $attributes = $product->get_variation_attributes();
             $attribute_keys = array_keys( $attributes );
-            /* add_action('woocommerce_before_add_to_cart_quantity', 'tc_add_qty_label_before_qty_input');
-               
-                             function tc_add_qty_label_before_qty_input() {
-                             echo '<label class="tc_wc_label_qty">' . __('qty', 'tcsc') . '</label>';
-                             } */
             ?>
 
             <form class="variations_form cart" method="post" enctype='multipart/form-data' data-product_id="<?php 
@@ -1069,22 +1153,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     <p class="stock out-of-stock"><?php 
                 _e( 'This product is currently out of stock and unavailable.', 'tcsc' );
                 ?></p>
-
                 <?php 
             } else {
-                $passed_validation = true;
-                $available_variations = ( $available_variations ? $available_variations : array() );
-                foreach ( $available_variations as $values ) {
-                    $available_variations = $values['variation_id'];
-                    if ( $product->get_sold_individually() && isset( $in_cart_seats[$available_variations] ) && $in_cart_seats[$available_variations] ) {
-                        $passed_validation = false;
-                    }
-                }
+                $passed_validation = self::tc_validate_woo_seat_availability( true, $id )['tc_validation_passed'];
                 
                 if ( $passed_validation ) {
                     ?>
-                    <table class="variations" cellspacing="0">
-                        <tbody>
+                        <table class="variations" cellspacing="0">
+                            <tbody>
                             <?php 
                     foreach ( $attributes as $attribute_name => $options ) {
                         ?>
@@ -1110,11 +1186,11 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                             <?php 
                     }
                     ?>
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
 
-                    <div class="single_variation_wrap">
-                        <?php 
+                        <div class="single_variation_wrap">
+                            <?php 
                     /**
                      * woocommerce_before_single_variation Hook.
                      */
@@ -1131,16 +1207,20 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                      */
                     do_action( 'woocommerce_after_single_variation' );
                     ?>
-                    </div>
+
+                        </div>
+
                     <?php 
                 } else {
                     ?>
                         <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only tc_cart_button tc-seat-error" role="button" disabled><?php 
                     _e( 'Seat is currently not available', 'tcsc' );
                     ?></button>
-                <?php 
+                    <?php 
                 }
-            
+                
+                ?>
+                <?php 
             }
             
             ?>
@@ -1152,6 +1232,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Checks if a chart has orders (so we can disable chart editing etc)
+         *
          * @param type $chart_id
          * @return boolean
          */
@@ -1166,19 +1247,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 'no_found_rows'  => true,
             );
             $chart_ticket_instances = get_posts( $chart_ticket_instances_args );
-            
-            if ( count( $chart_ticket_instances ) > 0 ) {
-                return true;
-            } else {
-                return false;
-            }
-        
+            return ( count( $chart_ticket_instances ) > 0 ? true : false );
         }
         
         /**
          * Add tc_seat_chart shortcode to the shortcode builder list
+         *
          * @param array $shortcodes
-         * @return type
+         * @return array
          */
         function tc_modify_shortcode_builder_list( $shortcodes )
         {
@@ -1188,7 +1264,9 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Get reserved seats based on cart contents
-         * @return type
+         *
+         * @param bool $excluded_order_id
+         * @return array
          */
         function get_cart_reserved_seats( $excluded_order_id = false )
         {
@@ -1269,30 +1347,26 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         {
             global  $tc ;
             $reserved_seats = $this->get_cart_reserved_seats();
+            $error = '';
             if ( count( $reserved_seats ) > 0 ) {
-                
-                if ( count( $reserved_seats ) == 1 ) {
-                    $error = sprintf(
-                        __( 'Seat %s is already booked. Please remove it from the %scart%s.', 'tcsc' ),
-                        '<strong>' . $reserved_seats[0] . '</strong>',
-                        '<a href="' . $tc->get_cart_slug( true ) . '">',
-                        '</a>'
-                    );
-                } else {
-                    $error = sprintf(
-                        __( 'Seats %s are already booked. Please remove them from the %scart%s.', 'tcsc' ),
-                        '<strong>' . implode( ',', $reserved_seats ) . '</strong>',
-                        '<a href="' . $tc->get_cart_slug( true ) . '">',
-                        '</a>'
-                    );
-                }
-            
+                $error = ( 1 == count( $reserved_seats ) ? sprintf(
+                    __( 'Seat %s is already booked. Please remove it from the %scart%s.', 'tcsc' ),
+                    '<strong>' . $reserved_seats[0] . '</strong>',
+                    '<a href="' . $tc->get_cart_slug( true ) . '">',
+                    '</a>'
+                ) : sprintf(
+                    __( 'Seats %s are already booked. Please remove them from the %scart%s.', 'tcsc' ),
+                    '<strong>' . implode( ',', $reserved_seats ) . '</strong>',
+                    '<a href="' . $tc->get_cart_slug( true ) . '">',
+                    '</a>'
+                ) );
             }
             echo  $error ;
         }
         
         /**
          * Remove add to cart from a single product page if the product is used for seatings
+         *
          * @param boolean $is_purchasable
          * @param type $product
          * @return boolean
@@ -1320,28 +1394,21 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             foreach ( $WC->cart->get_cart() as $cart_item_key => $cart_item ) {
                 // Get Product ID
                 $prod_id = $cart_item['product_id'];
-                //($cart_item['variation_id'] > 0) ? $cart_item['variation_id'] : $cart_item['product_id'];
                 $in_cookie_prod_id = ( $cart_item['variation_id'] > 0 ? $cart_item['variation_id'] : $cart_item['product_id'] );
                 $_tc_used_for_seatings = get_post_meta( $prod_id, '_tc_used_for_seatings', true );
-                
-                if ( $_tc_used_for_seatings == 'yes' ) {
-                    $_tc_used_for_seatings = true;
-                } else {
-                    $_tc_used_for_seatings = false;
-                }
-                
+                $_tc_used_for_seatings = ( 'yes' == $_tc_used_for_seatings ? true : false );
+                // Make sure that cookie value is present
                 if ( $_tc_used_for_seatings ) {
-                    //make sure that cookie value is present
                     
                     if ( isset( $in_cart_seats[$in_cookie_prod_id] ) && !empty($in_cart_seats[$in_cookie_prod_id]) ) {
-                        //all good, cookie is still there
+                        // All good, cookie is still there
                     } else {
-                        //cookie expired but product is still in the cart, throw the error
+                        // Cookie expired but product is still in the cart, throw the error
                         
                         if ( !isset( $invalid_seat_cookies[$in_cookie_prod_id] ) ) {
                             $invalid_seat_cookies[] = $in_cookie_prod_id;
                         } else {
-                            //do nothing, we've already added that one which missing
+                            // Do nothing, we've already added that one which missing
                         }
                     
                     }
@@ -1367,20 +1434,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Checks if a seat is available upon placing an order (for WooCommerce version)
-         * @param type $posted
+         *
+         * @param $data
          */
         function woo_check_if_seats_are_available_before_cart_error_check( $data )
         {
             $order_id = absint( WC()->session->get( 'order_awaiting_payment' ) );
             $cart_hash = md5( json_encode( wc_clean( WC()->cart->get_cart_for_session() ) ) . WC()->cart->total );
-            
-            if ( $order_id && ($order = wc_get_order( $order_id )) && $order->has_cart_hash( $cart_hash ) && $order->has_status( array( 'pending', 'failed' ) ) ) {
-                //wc_add_notice('continuing order, maybe we should skip the check? Or check for all reserverd seats except for this order', 'error');
-                $reserved_seats = $this->get_cart_reserved_seats( $order_id );
-            } else {
-                $reserved_seats = $this->get_cart_reserved_seats();
-            }
-            
+            $reserved_seats = ( $order_id && ($order = wc_get_order( $order_id )) && $order->has_cart_hash( $cart_hash ) && $order->has_status( array( 'pending', 'failed' ) ) ? $this->get_cart_reserved_seats( $order_id ) : $this->get_cart_reserved_seats() );
             if ( count( $reserved_seats ) > 0 ) {
                 
                 if ( count( $reserved_seats ) == 1 ) {
@@ -1395,6 +1456,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Checks if a seat is available upon placing an order (for Tickera standalone version)
+         *
          * @global type $tc
          * @global type $tc_cart_errors
          * @global type $cart_error_number
@@ -1421,18 +1483,19 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Gets add-on settings
+         *
          * @return type
          */
         public static function get_settings()
         {
-            $tc_seat_charts_settings = get_option( 'tc_seat_charts_settings' );
-            return $tc_seat_charts_settings;
+            return get_option( 'tc_seat_charts_settings' );
         }
         
         /**
          * Adds new admin menu item for the add-on
+         *
          * @param array $menus
-         * @return type
+         * @return array
          */
         function tc_settings_new_menus( $menus )
         {
@@ -1450,6 +1513,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Adds admin notices if needed (for admins only if the add-on is not compatible with the parent plugin)
+         *
          * @global type $tc
          */
         function admin_notices()
@@ -1479,6 +1543,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Adds tc_seat_chart shortcode to the content on the single page of the tc_seat_charts post type (so we can preview a seat map)
+         *
          * @global type $post
          * @global type $post_type
          * @param type $content
@@ -1495,6 +1560,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Hides unendeed actions from the admin
+         *
          * @param type $actions
          * @param type $post
          * @return type
@@ -1521,13 +1587,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 COOKIEPATH,
                 COOKIE_DOMAIN
             );
-            $this->set_cart_seats_persistent( null );
+            self::set_cart_seats_persistent( null );
             ob_end_flush();
             exit;
         }
         
         /**
          * Disable quantity change for seats (for standalone version)
+         *
          * @param boolean $value
          * @param type $ticket_type_id
          * @param type $ordered_count
@@ -1535,22 +1602,16 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
          */
         function tc_editable_quantity( $value, $ticket_type_id, $ordered_count )
         {
-            global  $tc ;
             $cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
             if ( isset( $cart_seats ) && isset( $cart_seats[$ticket_type_id] ) ) {
-                
-                if ( isset( $cart_seats[$ticket_type_id][0] ) && isset( $cart_seats[$ticket_type_id][0][1] ) && $cart_seats[$ticket_type_id][0][1] !== '' ) {
-                    $value = false;
-                } else {
-                    $value = true;
-                }
-            
+                $value = ( isset( $cart_seats[$ticket_type_id][0] ) && isset( $cart_seats[$ticket_type_id][0][1] ) && $cart_seats[$ticket_type_id][0][1] !== '' ? false : true );
             }
             return $value;
         }
         
         /**
          * Add seats info neeeded for the database on the cart page / attendee form
+         *
          * @param type $ticket_type
          * @param type $attendee_index
          */
@@ -1583,6 +1644,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Get seat sign (A1, A2...) for a specified ticket instance id / ticket
+         *
          * @param type $ticket_instance_id
          * @return boolean
          */
@@ -1597,10 +1659,11 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Add seat sign in the ticket title after purchase
+         *
          * @param string $ticket_type_title
          * @param type $ticket_type_id
-         * @param type $array
-         * @param type $ticket_instance_id
+         * @param array $array
+         * @param bool $ticket_instance_id
          * @return string
          */
         function tc_maybe_add_seat_info_to_ticket_type(
@@ -1623,6 +1686,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Add remove from cart "X" next to an attendee form
+         *
          * @param string $attendee_caption
          * @param type $ticket_type
          * @param type $attendee_index
@@ -1645,6 +1709,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Get seats cookie
+         *
          * @return array
          */
         public static function get_cart_seats_cookie()
@@ -1654,31 +1719,54 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             
             if ( isset( $_COOKIE[$cookie_id] ) ) {
                 $seats_obj = json_decode( stripslashes( $_COOKIE[$cookie_id] ), true );
-                foreach ( $seats_obj as $ticket_type_id => $position ) {
+                foreach ( (array) $seats_obj as $ticket_type_id => $position ) {
                     $seats[(int) $ticket_type_id] = $position;
                 }
             } else {
                 $saved_cart = TC_Seat_Chart::get_cart_seats_persistant();
-                
-                if ( is_null( $saved_cart ) ) {
-                    $seats = array();
-                } else {
-                    $seats = $saved_cart;
-                }
-            
+                $seats = ( is_null( $saved_cart ) ? [] : $saved_cart );
             }
             
-            
-            if ( isset( $seats ) ) {
-                return $seats;
-            } else {
-                return array();
-            }
+            return ( isset( $seats ) ? $seats : [] );
+        }
         
+        /**
+         * Re-set seats cookie
+         *
+         * @param $seats
+         */
+        public static function set_seats_cookie( $seats )
+        {
+            if ( !session_id() ) {
+                @session_start();
+            }
+            ob_start();
+            $cookie_id = 'tc_cart_seats_' . COOKIEHASH;
+            unset( $_COOKIE[$cookie_id] );
+            setcookie(
+                $cookie_id,
+                null,
+                -1,
+                '/'
+            );
+            // Set cookie
+            $expire = time() + apply_filters( 'tc_cart_cookie_expiration', 172800 );
+            // 72 hrs expire by default
+            setcookie(
+                $cookie_id,
+                json_encode( $seats ),
+                $expire,
+                COOKIEPATH,
+                COOKIE_DOMAIN
+            );
+            $_COOKIE[$cookie_id] = json_encode( $seats );
+            ob_end_flush();
+            self::set_cart_seats_persistent( $seats );
         }
         
         /**
          * Set seats cookie
+         *
          * @param type $seats_info
          */
         function set_cart_seats_cookie( $seats_info )
@@ -1695,26 +1783,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 $chart_id = $seat_info[3];
                 $seats[(int) $ticket_type_id][] = array( $seat_id, $seat_label, (int) $chart_id );
             }
-            $cookie_id = 'tc_cart_seats_' . COOKIEHASH;
-            unset( $_COOKIE[$cookie_id] );
-            setcookie(
-                $cookie_id,
-                null,
-                -1,
-                '/'
-            );
-            //set cookie
-            $expire = time() + apply_filters( 'tc_cart_cookie_expiration', 172800 );
-            //72 hrs expire by default
-            setcookie(
-                $cookie_id,
-                json_encode( $seats ),
-                $expire,
-                COOKIEPATH,
-                COOKIE_DOMAIN
-            );
-            $_COOKIE[$cookie_id] = json_encode( $seats );
-            $this->set_cart_seats_persistent( $seats );
+            self::set_seats_cookie( $seats );
         }
         
         public static function get_cart_seats_persistant()
@@ -1736,18 +1805,23 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             return $cart;
         }
         
-        function set_cart_seats_persistent( $seats )
+        /**
+         * Set Cart Seats Cookie Persistent
+         *
+         * @param $seats
+         */
+        public static function set_cart_seats_persistent( $seats )
         {
             
             if ( get_current_user_id() ) {
-                foreach ( $seats as $seat_key => $seat_value ) {
+                foreach ( (array) $seats as $seat_key => $seat_value ) {
                     if ( empty($seats[$seat_key]) ) {
                         unset( $seats[$seat_key] );
                     }
                 }
-                update_user_meta( get_current_user_id(), '_seatings_persistent_cart', array(
+                update_user_meta( get_current_user_id(), '_seatings_persistent_cart', [
                     'seats_cart' => json_encode( $seats ),
-                ) );
+                ] );
             }
         
         }
@@ -1756,7 +1830,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         {
             delete_user_meta( get_current_user_id(), '_seatings_persistent_cart' );
             $this->delete_order_cookie();
-            //$this->destroy_cookies();
         }
         
         function destroy_cookies()
@@ -1774,24 +1847,90 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         }
         
         /**
+         * Capture Cart Update Action.
+         * Additional logic to be executed when Seating Chart is activated
+         */
+        function capture_update_cart_actions()
+        {
+            if ( isset( $_POST['cart_action'] ) ) {
+                
+                if ( in_array( $_POST['cart_action'], array( 'proceed_to_checkout', 'update_cart' ) ) ) {
+                    global  $cart_error_number, $tc_cart_tickets_error_codes ;
+                    
+                    if ( $cart_error_number && $tc_cart_tickets_error_codes ) {
+                        global  $tc ;
+                        $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
+                        $cart = $tc->get_cart_cookie( true );
+                        foreach ( TC_Seat_Chart::get_cart_seats_cookie() as $ticket_type_id => $seats ) {
+                            $ticket_error_numbers = ( isset( $tc_cart_tickets_error_codes[$ticket_type_id] ) ? $tc_cart_tickets_error_codes[$ticket_type_id]['errors'] : [] );
+                            /**
+                             * Error Code 101: Required tickets' maximums quantity per order.
+                             * Assign maximum quantity value
+                             */
+                            
+                            if ( in_array( 101, $ticket_error_numbers ) ) {
+                                $max_quantity = get_post_meta( $ticket_type_id, 'max_tickets_per_order', true );
+                                array_splice( $in_cart_seats[$ticket_type_id], $max_quantity );
+                                $cart[$ticket_type_id] = $max_quantity;
+                            }
+                            
+                            /**
+                             * Error Code 102: Not enough ticket quantity left.
+                             * Assign remaining quantity
+                             */
+                            
+                            if ( in_array( 102, $ticket_error_numbers ) ) {
+                                $quantity_left = ( isset( $cart[$ticket_type_id] ) ? $cart[$ticket_type_id] : 0 );
+                                array_splice( $in_cart_seats[$ticket_type_id], $quantity_left );
+                            }
+                            
+                            /**
+                             * Error Code 103: No item quantity added in cart.
+                             * Error Code 104: Has reached the maximum ticket purchases
+                             * Remove item in cart
+                             */
+                            
+                            if ( in_array( 103, $ticket_error_numbers ) || in_array( 104, $ticket_error_numbers ) ) {
+                                unset( $cart[$ticket_type_id] );
+                                unset( $in_cart_seats[$ticket_type_id] );
+                            }
+                        
+                        }
+                        $tc->update_cart_cookie( $cart );
+                        self::set_seats_cookie( $in_cart_seats );
+                        $discount = new TC_Discounts();
+                        $discount->discounted_cart_total();
+                        $tc->save_cart_post_data();
+                    }
+                
+                } elseif ( isset( $_POST['cart_action'] ) && 'empty_cart' == $_POST['cart_action'] ) {
+                    // Remove seats cookies
+                    self::set_seats_cookie( array() );
+                }
+            
+            }
+        }
+        
+        /**
          * Remove a product or product variation from a WooCommerce cart
+         *
          * @param type $product_id
          */
-        function wc_remove_product_from_cart( $product_id )
+        public static function wc_remove_product_from_cart( $product_id )
         {
             $WC = WC();
             // Set the product ID to remove
-            $prod_to_remove = intval( $product_id );
+            $prod_to_remove = (int) $product_id;
             // Cycle through each product in the cart
             foreach ( $WC->cart->get_cart() as $cart_item_key => $cart_item ) {
                 // Get the Variation or Product ID
-                $prod_id = ( get_post_type( $prod_to_remove ) == 'product_variation' ? $cart_item['variation_id'] : $cart_item['product_id'] );
+                $prod_id = ( 'product_variation' == get_post_type( $prod_to_remove ) ? $cart_item['variation_id'] : $cart_item['product_id'] );
                 // Check to see if IDs match
                 
                 if ( $prod_to_remove == $prod_id ) {
-                    $WC->cart->set_quantity( $cart_item_key, (int) $cart_item['quantity'] - 1, true );
                     $new_quant = (int) $cart_item['quantity'] - 1;
-                    if ( $new_quant == 0 ) {
+                    $WC->cart->set_quantity( $cart_item_key, $new_quant, true );
+                    if ( 0 == $new_quant ) {
                         $WC->cart->remove_cart_item( $cart_item_key );
                     }
                     break;
@@ -1801,12 +1940,13 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         }
         
         /**
-         * Remove seats from cart when removing an item (pr multiple items from cart via "X" button)
+         * Remove seats from cart when removing an item (per multiple items from cart via "X" button)
+         * Do not execute if firebase is enabled.
+         *
          * @param type $cart_item_key
          */
         function woo_cart_item_remove_seat( $cart_item_key )
         {
-            ob_start();
             $cart_item = WC()->cart->get_cart_item( $cart_item_key );
             $seat_ticket_type_id = ( isset( $cart_item['variation_id'] ) && is_int( $cart_item['variation_id'] ) && $cart_item['variation_id'] > 0 ? $cart_item['variation_id'] : $cart_item['product_id'] );
             $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
@@ -1818,79 +1958,50 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     unset( $in_cart_seats[$seat_ticket_type_id][$index] );
                 }
             }
-            $cookie_id = 'tc_cart_seats_' . COOKIEHASH;
-            unset( $_COOKIE[$cookie_id] );
-            setcookie(
-                $cookie_id,
-                null,
-                -1,
-                '/'
-            );
-            //set cookie
-            $expire = time() + apply_filters( 'tc_cart_cookie_expiration', 172800 );
-            //72 hrs expire by default
-            setcookie(
-                $cookie_id,
-                json_encode( $in_cart_seats ),
-                $expire,
-                COOKIEPATH,
-                COOKIE_DOMAIN
-            );
-            $_COOKIE[$cookie_id] = json_encode( $in_cart_seats );
-            $this->set_cart_seats_persistent( $in_cart_seats );
-            ob_end_flush();
+            self::set_seats_cookie( $in_cart_seats );
         }
         
         /**
          * Remove a product or product variation from a WooCommerce cart
-         * @global type $tc
+         *
+         * @param string $chart_id
+         * @param string $seat_id
+         * @return array
          */
-        function tc_remove_seat_from_cart_woo()
+        public static function tc_remove_seat_from_cart_woo( $chart_id, $seat_id )
         {
             global  $tc ;
+            $in_cart_count = 0;
             $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
-            $seat_id = $_POST['seat_id'];
-            //$seat_sign = $_POST['seat_sign'];
-            $chart_id = (int) $_POST['chart_id'];
-            foreach ( $in_cart_seats as $seat_ticket_type_id => $seat_ticket_type_index ) {
-                $orig_seat_id = 0;
-                $orig_chart_id = 0;
-                foreach ( $in_cart_seats[$seat_ticket_type_id] as $index => $ticket_type_seats_in_cart ) {
-                    $orig_seat_id = $ticket_type_seats_in_cart[0];
-                    $orig_chart_id = (int) $ticket_type_seats_in_cart[2];
+            /*
+             * Make sure to remove duplicates from the seats cookie
+             */
+            $temp_seat_cookie = [];
+            foreach ( $in_cart_seats as $ticket_id => $seating_ids ) {
+                $temp_seat_cookie[$ticket_id] = array_values( array_unique( $seating_ids, SORT_REGULAR ) );
+            }
+            $new_seat_cookie = [];
+            foreach ( $temp_seat_cookie as $ticket_id => $seating_ids ) {
+                $new_seat_cookie[$ticket_id] = $seating_ids;
+                foreach ( $seating_ids as $index => $seat_values ) {
                     
-                    if ( $orig_seat_id == $seat_id && $orig_chart_id == $chart_id ) {
-                        // && $orig_seat_sign == $seat_sign
-                        unset( $in_cart_seats[$seat_ticket_type_id][$index] );
-                        $in_cart_seats[$seat_ticket_type_id] = array_values( $in_cart_seats[$seat_ticket_type_id] );
-                        $this->wc_remove_product_from_cart( $seat_ticket_type_id );
+                    if ( end( $seat_values ) == $chart_id ) {
+                        $seating_id = reset( $seat_values );
+                        
+                        if ( $seating_id == $seat_id ) {
+                            // Remove entry from seat cookie
+                            if ( isset( $new_seat_cookie[$ticket_id] ) && isset( $new_seat_cookie[$ticket_id][$index] ) ) {
+                                unset( $new_seat_cookie[$ticket_id][$index] );
+                            }
+                            $new_seat_cookie[$ticket_id] = array_values( $new_seat_cookie[$ticket_id] );
+                            self::wc_remove_product_from_cart( $ticket_id );
+                        }
+                    
                     }
                 
                 }
             }
-            $cookie_id = 'tc_cart_seats_' . COOKIEHASH;
-            unset( $_COOKIE[$cookie_id] );
-            setcookie(
-                $cookie_id,
-                null,
-                -1,
-                '/'
-            );
-            //set cookie
-            $expire = time() + apply_filters( 'tc_cart_cookie_expiration', 172800 );
-            //72 hrs expire by default
-            setcookie(
-                $cookie_id,
-                json_encode( $in_cart_seats ),
-                $expire,
-                COOKIEPATH,
-                COOKIE_DOMAIN
-            );
-            $_COOKIE[$cookie_id] = json_encode( $in_cart_seats );
-            $this->set_cart_seats_persistent( $in_cart_seats );
-            if ( ob_get_length() > 0 ) {
-                ob_end_clean();
-            }
+            self::set_seats_cookie( $new_seat_cookie );
             $cart_subtotal = WC()->cart->get_cart_total();
             $in_cart_count = apply_filters( 'tc_seat_chart_in_cart_count', $in_cart_count );
             $response = array();
@@ -1904,81 +2015,78 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             $response['total'] = $cart_subtotal;
             //apply_filters('tc_cart_currency_and_format', $cart_subtotal);
             $response['in_cart_count'] = $in_cart_count;
-            $response['cart_link'] = add_query_arg( array(
+            $response['cart_link'] = add_query_arg( [
                 'tcrft' => time(),
-            ), apply_filters( 'tc_seat_chart_checkout_url', $tc->get_cart_page( true ) ) );
-            echo  json_encode( $response ) ;
-            ob_end_flush();
-            exit;
+            ], apply_filters( 'tc_seat_chart_checkout_url', $tc->get_cart_page( true ) ) );
+            return $response;
+        }
+        
+        function tc_remove_seat_from_cart_ajax()
+        {
+            $seat = $_POST['tcsc_seat'];
+            $exploded = explode( '-', $seat );
+            $chart_id = $exploded[0];
+            $seat_id = $exploded[1];
+            wp_send_json( self::tc_remove_seat_from_cart( $chart_id, $seat_id ) );
+        }
+        
+        public static function tc_remove_seat_from_cart( $chart_id = '', $seat_id = '' )
+        {
+            return ( true == apply_filters( 'tc_is_woo', false ) ? self::tc_remove_seat_from_cart_woo( $chart_id, $seat_id ) : self::tc_remove_seat_from_cart_standalone( $chart_id, $seat_id ) );
         }
         
         /**
          * Remove a product or product variation from a WooCommerce cart (if the Bridge is active) or remove a ticket from a standalone version
+         *
+         * @param string $chart_id
+         * @param string $seat_id
+         * @return array
          * @global type $tc
          */
-        function tc_remove_seat_from_cart()
+        public static function tc_remove_seat_from_cart_standalone( $chart_id, $seat_id )
         {
             global  $tc ;
-            ob_start();
-            $seat_ticket_type_id = (int) $_POST['seat_ticket_type_id'];
-            
-            if ( apply_filters( 'tc_is_woo', false ) == true ) {
-                $this->tc_remove_seat_from_cart_woo();
-                exit;
-            }
-            
-            $old_cart = $tc->get_cart_cookie( true );
-            $cart = $old_cart;
             $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
-            $seat_id = $_POST['seat_id'];
-            $seat_sign = $_POST['seat_sign'];
-            $chart_id = (int) $_POST['chart_id'];
-            foreach ( $in_cart_seats[$seat_ticket_type_id] as $index => $ticket_type_seats_in_cart ) {
-                $orig_seat_id = $ticket_type_seats_in_cart[0];
-                $orig_chart_id = (int) $ticket_type_seats_in_cart[2];
+            $cart_content = $tc->get_cart_cookie( true );
+            /*
+             * Make sure to remove duplicates from the seats cookie
+             */
+            $temp_seat_cookie = [];
+            foreach ( $in_cart_seats as $ticket_id => $seating_ids ) {
+                $temp_seat_cookie[$ticket_id] = array_values( array_unique( $seating_ids, SORT_REGULAR ) );
+            }
+            $new_seat_cookie = [];
+            foreach ( $temp_seat_cookie as $ticket_id => $seating_ids ) {
+                $new_seat_cookie[$ticket_id] = $seating_ids;
+                foreach ( $seating_ids as $index => $seat_values ) {
+                    
+                    if ( end( $seat_values ) == $chart_id ) {
+                        $seating_id = reset( $seat_values );
+                        
+                        if ( $seating_id == $seat_id ) {
+                            
+                            if ( isset( $new_seat_cookie[$ticket_id] ) && isset( $new_seat_cookie[$ticket_id][$index] ) ) {
+                                // Remove entry from seat cookie
+                                unset( $new_seat_cookie[$ticket_id][$index] );
+                                // Remove an item from cart cookie
+                                $cart_content[$ticket_id] = @$cart_content[$ticket_id] - 1;
+                            }
+                            
+                            $new_seat_cookie[$ticket_id] = array_values( $new_seat_cookie[$ticket_id] );
+                        }
+                    
+                    }
                 
-                if ( $orig_seat_id == $seat_id && $orig_chart_id == $chart_id ) {
-                    unset( $in_cart_seats[$seat_ticket_type_id][$index] );
-                    $in_cart_seats[$seat_ticket_type_id] = array_values( $in_cart_seats[$seat_ticket_type_id] );
-                    $cart[(int) $_POST['seat_ticket_type_id']] = $cart[(int) $_POST['seat_ticket_type_id']] - 1;
-                }
-            
-            }
-            $tc->update_cart_cookie( $cart );
-            $cookie_id = 'tc_cart_seats_' . COOKIEHASH;
-            unset( $_COOKIE[$cookie_id] );
-            setcookie(
-                $cookie_id,
-                null,
-                -1,
-                '/'
-            );
-            //set cookie
-            $expire = time() + apply_filters( 'tc_cart_cookie_expiration', 172800 );
-            //72 hrs expire by default
-            setcookie(
-                $cookie_id,
-                json_encode( $in_cart_seats ),
-                $expire,
-                COOKIEPATH,
-                COOKIE_DOMAIN
-            );
-            $_COOKIE[$cookie_id] = json_encode( $in_cart_seats );
-            $this->set_cart_seats_persistent( $in_cart_seats );
-            if ( ob_get_length() > 0 ) {
-                ob_end_clean();
-            }
-            $cart_contents = $cart;
-            //$tc->get_cart_cookie();
-            $cart_subtotal = 0;
-            $in_cart_count = 0;
-            foreach ( $cart_contents as $ticket_type => $ordered_count ) {
-                $ticket = new TC_Ticket( $ticket_type );
-                $cart_subtotal = $cart_subtotal + tc_get_ticket_price( $ticket->details->ID ) * $ordered_count;
-                if ( $ordered_count > 0 ) {
-                    $in_cart_count++;
                 }
             }
+            $tc->update_cart_cookie( $cart_content );
+            self::set_seats_cookie( $new_seat_cookie );
+            // Update cart totals
+            $discount = new TC_Discounts();
+            $discount->discounted_cart_total();
+            $tc->save_cart_post_data();
+            $totals = self::tc_recalculate_subtotal();
+            $in_cart_count = apply_filters( 'tc_seat_chart_in_cart_count', $totals['in_cart_count'] );
             $response = array();
             $response['link'] = sprintf(
                 '<span class="tc_in_cart">%s <a href="%s">%s</a></span>',
@@ -1987,14 +2095,12 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 apply_filters( 'tc_ticket_removed_from_cart_message', __( 'Cart', 'tcsc' ) )
             );
             $response['subtotal'] = __( 'Subtotal: ', 'tcsc' );
-            $response['total'] = apply_filters( 'tc_cart_currency_and_format', $cart_subtotal );
+            $response['total'] = apply_filters( 'tc_cart_currency_and_format', $totals['subtotal'] );
             $response['in_cart_count'] = $in_cart_count;
-            $response['cart_link'] = add_query_arg( array(
+            $response['cart_link'] = add_query_arg( [
                 'tcrft' => time(),
-            ), $tc->get_cart_page( true ) );
-            echo  json_encode( $response ) ;
-            ob_end_flush();
-            exit;
+            ], $tc->get_cart_page( true ) );
+            return $response;
         }
         
         function tc_wc_get_cart_info()
@@ -2021,6 +2127,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Add a product variation to the cart
+         *
          * @global type $tc
          */
         function tc_add_seat_to_cart_woo_variation()
@@ -2030,6 +2137,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             ob_start();
             
             if ( isset( $_POST['tc_seat_cart_items'] ) ) {
+                $in_cart_count = 0;
                 $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
                 $tc_seat_cart_items = $_POST['tc_seat_cart_items'];
                 $tc_seat_cart_items_exploded = array();
@@ -2075,63 +2183,100 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Validate Seats availability based on Woo Poducts Attributes
-         * @return mixed|void
+         *
+         * @param $object_type | True when used in ajax call
+         * @return array
          */
-        function tc_validate_seat_availability()
+        function tc_validate_woo_seat_availability( $object_type, $ticket_type_id = null )
         {
             // Initialize Variables
             $response = [];
-            $error_message = '';
-            $tc_seat_cart_items_exploded = array();
+            // Collects browser cookies for reserved and in cart seats
             $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
-            $tc_seat_cart_items = $_POST['tc_seat_cart_items'];
+            // Retrieve Seat Items
+            $tc_seat_cart_item = ( isset( $_POST['tc_seat_cart_items'] ) ? reset( $_POST['tc_seat_cart_items'] ) : '' );
+            $tc_seat_cart_item = explode( '-', $tc_seat_cart_item );
+            // Set Product ID
+            $product_id = ( $ticket_type_id ? $ticket_type_id : absint( $tc_seat_cart_item[0] ) );
+            // Retrieve Chart ID
+            $chart_id = ( isset( $_POST['seat_chart_id'] ) && $_POST['seat_chart_id'] ? (int) $_POST['seat_chart_id'] : end( $tc_seat_cart_item ) );
+            // Set Quantity
             $quantity = ( isset( $_POST['standing_qty'] ) ? $_POST['standing_qty'] : '1' );
             $quantity = ( (int) $quantity > 0 ? (int) $quantity : 1 );
-            foreach ( $tc_seat_cart_items as $tc_seat_cart_item ) {
-                $tc_seat_cart_item = explode( '-', $tc_seat_cart_item );
-                $tc_seat_cart_items_exploded[] = $tc_seat_cart_item;
-            }
-            foreach ( $tc_seat_cart_items_exploded as $tc_seat_cart_item_exploded ) {
-                // Initialize pre validation
-                $pre_validation = true;
-                $product_id = absint( $tc_seat_cart_item_exploded[0] );
-                $product_type = get_post_type( $product_id );
-                // Reassign product id if type is variation
-                $product_id = ( 'product_variation' == $product_type ? wp_get_post_parent_id( $product_id ) : $product_id );
-                $product_obj = wc_get_product( $product_id );
-                $product_status = get_post_status( $product_id );
-                // Validation starts here
-                
-                if ( 'publish' != $product_status || $product_obj->get_sold_individually() && isset( $in_cart_seats[$product_id] ) && $in_cart_seats[$product_id] ) {
-                    $pre_validation = false;
-                    $error_message = __( 'Seat is currently not available.', 'tcsc' );
+            // Reassign product id if type is variation
+            $product_obj = wc_get_product( $product_id );
+            $product_status = get_post_status( $product_id );
+            // Initialize pre validation
+            $pre_validation = true;
+            // Validate per product attributes
+            
+            if ( 'publish' != $product_status ) {
+                $pre_validation = false;
+            } elseif ( $product_obj->get_sold_individually() ) {
+                // Collects all reserved seats
+                $tickets_instances = get_posts( array(
+                    'post_type'      => 'tc_tickets_instances',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => -1,
+                    'meta_key'       => 'chart_id',
+                    'meta_value'     => $chart_id,
+                    'no_found_rows'  => true,
+                ) );
+                $ticket_instances_ticket_ids = [];
+                foreach ( $tickets_instances as $tickets_instance ) {
+                    $ticket_instances_ticket_id = get_post_meta( $tickets_instance->ID, 'ticket_type_id', true );
+                    $ticket_instances_ticket_ids[] = ( $product_obj->has_child() ? wp_get_post_parent_id( $ticket_instances_ticket_id ) : $ticket_instances_ticket_id );
                 }
+                // Check if selected seat is in cart or reserved
+                if ( isset( $in_cart_seats[$product_id] ) && $in_cart_seats[$product_id] || in_array( $product_id, $ticket_instances_ticket_ids ) ) {
+                    $pre_validation = false;
+                }
+                // Check if product variation is already in the cart
                 
-                $passed_validation = apply_filters(
-                    'woocommerce_add_to_cart_validation',
-                    $pre_validation,
-                    $product_id,
-                    $quantity
-                );
+                if ( $product_obj->has_child() ) {
+                    $variations = $product_obj->get_available_variations();
+                    foreach ( $variations as $variation ) {
+                        
+                        if ( isset( $in_cart_seats[$variation['variation_id']] ) && $in_cart_seats[$variation['variation_id']] ) {
+                            $pre_validation = false;
+                            break;
+                        }
+                    
+                    }
+                }
+            
             }
+            
+            $error_message = ( !$pre_validation ? __( 'Seat is currently not available.', 'tcsc' ) : '' );
+            $passed_validation = apply_filters(
+                'woocommerce_add_to_cart_validation',
+                $pre_validation,
+                $product_id,
+                $quantity
+            );
             $response['tc_error'] = !$passed_validation;
             $response['tc_validation_passed'] = $passed_validation;
             $response['tc_error_message'] = apply_filters( 'tc_seat_validation_error_message', $error_message );
+            // Executes if not an ajax call
+            if ( true == $object_type ) {
+                return $response;
+            }
             wp_send_json( $response );
         }
         
         /**
          * Add simple WooCommerce to the cart
-         * @global type $tc
+         *
+         * @throws Exception
          */
         function tc_add_seat_to_cart_woo()
         {
             global  $tc ;
-            $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
             $response = array();
             ob_start();
             
             if ( isset( $_POST['tc_seat_cart_items'] ) ) {
+                $in_cart_count = 0;
                 $tc_seat_cart_items = $_POST['tc_seat_cart_items'];
                 $tc_seat_cart_items_exploded = array();
                 foreach ( $tc_seat_cart_items as $tc_seat_cart_item ) {
@@ -2141,19 +2286,9 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 foreach ( $tc_seat_cart_items_exploded as $tc_seat_cart_item_exploded ) {
                     $product_id = absint( $tc_seat_cart_item_exploded[0] );
                     $quantity = ( isset( $_POST['standing_qty'] ) ? $_POST['standing_qty'] : '1' );
-                    
-                    if ( (int) $quantity > 0 ) {
-                        // Do nothing
-                    } else {
-                        $quantity = 1;
-                    }
-                    
-                    // Validate Product Attributes
-                    $pre_validation = true;
-                    $product_obj = wc_get_product( $product_id );
-                    if ( $product_obj->get_sold_individually() && isset( $in_cart_seats[$product_id] ) && $in_cart_seats[$product_id] ) {
-                        $pre_validation = false;
-                    }
+                    $quantity = ( (int) $quantity > 0 ? $quantity : 1 );
+                    $pre_validation = self::tc_validate_woo_seat_availability( true );
+                    $pre_validation = $pre_validation['tc_validation_passed'];
                     $passed_validation = apply_filters(
                         'woocommerce_add_to_cart_validation',
                         $pre_validation,
@@ -2195,6 +2330,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Add (standalone) ticket to the cart
+         *
          * @global type $tc
          */
         function tc_add_seat_to_cart()
@@ -2203,9 +2339,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             
             if ( isset( $_POST['tc_seat_cart_items'] ) ) {
                 $qty = ( isset( $_POST['standing_qty'] ) ? $_POST['standing_qty'] : 1 );
-                if ( $qty == 0 ) {
-                    $qty = 1;
-                }
+                $qty = ( 0 == $qty ? 1 : $qty );
                 $tc_seat_cart_items = $_POST['tc_seat_cart_items'];
                 $tc_seat_cart_items_exploded = array();
                 foreach ( $tc_seat_cart_items as $tc_seat_cart_item ) {
@@ -2231,15 +2365,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     ob_end_clean();
                 }
                 ob_start();
-                $cart_contents = $tc->get_cart_cookie();
-                $in_cart_count = 0;
-                foreach ( $cart_contents as $ticket_type => $ordered_count ) {
-                    $ticket = new TC_Ticket( $ticket_type );
-                    $cart_subtotal = $cart_subtotal + tc_get_ticket_price( $ticket->details->ID ) * $ordered_count;
-                    if ( $ordered_count > 0 ) {
-                        $in_cart_count++;
-                    }
-                }
+                $totals = self::tc_recalculate_subtotal();
                 $response = array();
                 $response['link'] = sprintf(
                     '<span class="tc_in_cart">%s <a href="%s">%s</a></span>',
@@ -2248,13 +2374,37 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     apply_filters( 'tc_ticket_added_to_cart_message', __( 'Cart', 'tcsc' ) )
                 );
                 $response['subtotal'] = __( 'Subtotal: ', 'tcsc' );
-                $response['total'] = apply_filters( 'tc_cart_currency_and_format', $cart_subtotal );
-                $response['in_cart_count'] = $in_cart_count;
+                $response['total'] = apply_filters( 'tc_cart_currency_and_format', $totals['subtotal'] );
+                $response['in_cart_count'] = $totals['in_cart_count'];
                 echo  json_encode( $response ) ;
                 ob_end_flush();
                 exit;
             }
         
+        }
+        
+        /**
+         * Recalculate Cart Subtotal
+         *
+         * @return array
+         */
+        public static function tc_recalculate_subtotal()
+        {
+            global  $tc ;
+            $cart_subtotal = 0;
+            $in_cart_count = 0;
+            $cart_contents = $tc->get_cart_cookie();
+            foreach ( $cart_contents as $ticket_type => $ordered_count ) {
+                $ticket = new TC_Ticket( $ticket_type );
+                $cart_subtotal = $cart_subtotal + tc_get_ticket_price( $ticket->details->ID ) * $ordered_count;
+                if ( $ordered_count > 0 ) {
+                    $in_cart_count++;
+                }
+            }
+            return [
+                'subtotal'      => $cart_subtotal,
+                'in_cart_count' => $in_cart_count,
+            ];
         }
         
         /**
@@ -2290,6 +2440,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Add ticket type color picker to the ticket type screen in the admin (for standalone version)
+         *
          * @param type $fields
          * @return string
          */
@@ -2315,8 +2466,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             if ( is_object( $seat_map_post_id ) ) {
                 $seat_map_post_id = $seat_map_post_id->ID;
             }
-            //if (false === ( $content = get_option('tc_get_occupied_seats_' . $seat_map_post_id, false) )) {
-            //  ob_start();
             $seats = get_post_meta( $seat_map_post_id, 'tc_seat_cords', true );
             $seats = explode( '|', $seats );
             $seat_ticket_types = get_post_meta( $seat_map_post_id, 'tc_seat_ticket_types', true );
@@ -2328,7 +2477,8 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             ?>
             <script type="text/javascript">
                 var tc_seats = new Array();
-            <?php 
+
+                <?php 
             $i = 0;
             foreach ( $seats as $seat ) {
                 
@@ -2336,7 +2486,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     $seat_sign_val = ( isset( $seat_signs ) && is_array( $seat_signs ) && count( $seat_signs ) > 0 && !empty($seat_signs) && isset( $seat_signs[$i] ) ? $seat_signs[$i] : '' );
                     $seat_direction_val = ( isset( $seat_directions ) && is_array( $seat_directions ) && count( $seat_directions ) > 0 && !empty($seat_directions) && isset( $seat_directions[$i] ) ? $seat_directions[$i] : '' );
                     ?>
-                        tc_seats[ '<?php 
+                tc_seats[ '<?php 
                     echo  $seat ;
                     ?>' ] = new Array(<?php 
                     echo  $seat_ticket_types[$i] ;
@@ -2345,14 +2495,16 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     ?>, <?php 
                     echo  '"' . $seat_direction_val . '"' ;
                     ?>);
-                    <?php 
+                <?php 
                     $i++;
                 }
             
             }
             ?>
+
                 var tc_seat_colors = new Array();
-            <?php 
+
+                <?php 
             $unique_ticket_types = array_unique( $seat_ticket_types );
             $i = 0;
             foreach ( $unique_ticket_types as $unique_ticket_type ) {
@@ -2364,12 +2516,12 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                         $seat_color = $seat_color_default;
                     }
                     ?>
-                        tc_seat_colors[ '<?php 
+                tc_seat_colors[ '<?php 
                     echo  $unique_ticket_type ;
                     ?>' ] = "<?php 
                     echo  $seat_color ;
                     ?>";
-                    <?php 
+                <?php 
                     $i++;
                 }
             
@@ -2377,12 +2529,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             ?>
             </script>
             <?php 
-            //$content = ob_get_clean();
-            //set_option('tc_get_occupied_seats_' . $seat_map_post_id, base64_decode($content));
-            //echo $content;
-            /* } else {
-               echo base64_encode($content);
-               } */
         }
         
         public static function get_seating_chart_html( $post_id, $front = false )
@@ -2392,13 +2538,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 $upload = wp_upload_dir();
                 $upload_dir = $upload['basedir'];
                 $upload_dir = $upload_dir . '/tc-seating-charts';
-                
-                if ( $front ) {
-                    $filename = $post_id . '-front.tcsm';
-                } else {
-                    $filename = $post_id . '.tcsm';
-                }
-                
+                $filename = ( $front ? $post_id . '-front.tcsm' : $post_id . '.tcsm' );
                 $path = $upload_dir . '/' . $filename;
                 if ( file_exists( $path ) ) {
                     try {
@@ -2452,14 +2592,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 $upload = wp_upload_dir();
                 $upload_dir = $upload['basedir'];
                 $upload_dir = $upload_dir . '/tc-seating-charts';
-                //admin file
+                // Admin file
                 $filename = $post_id . '.tcsm';
                 $path = $upload_dir . '/' . $filename;
                 $file = @fopen( $path, "w" );
                 @fwrite( $file, ( isset( $_POST['tc_chart_content'] ) ? stripslashes( minify_output( $_POST['tc_chart_content'] ) ) : '' ) );
                 @fclose( $file );
                 @chmod( $path, 0644 );
-                //front file
+                // Front file
                 $filename_front = $post_id . '-front.tcsm';
                 $path_front = $upload_dir . '/' . $filename_front;
                 $tc_chart_content_front_minified = stripslashes( minify_output( ( isset( $_POST['tc_chart_content_front'] ) ? $_POST['tc_chart_content_front'] : '' ) ) );
@@ -2489,8 +2629,9 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Save metabox values for the seat map
+         *
          * @param type $post_id
-         * @return type
+         * @return void
          */
         public static function save_metabox_values( $post_id )
         {
@@ -2525,6 +2666,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Enqueue front-end scripts
+         *
          * @global TC_Seat_Chart $TC_Seat_Chart
          */
         function enqueue_scripts_and_styles()
@@ -2553,8 +2695,11 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             wp_enqueue_style( 'tc-seatings-front', plugins_url( 'assets/seatings-default.css', __FILE__ ) );
         }
         
-        /*
+        /**
          * Render fields by type (function, text, textarea, etc)
+         *
+         * @param $field
+         * @param bool $show_title
          */
         public static function render_field( $field, $show_title = true )
         {
@@ -2569,10 +2714,10 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 ?>" class="tc_seat_chart_label"><?php 
                 echo  ( isset( $field['field_title'] ) ? $field['field_title'] : '' ) ;
                 ?>
-                    <?php 
+            <?php 
             }
             
-            //Button
+            // Button
             if ( $field['field_type'] == 'button' ) {
                 submit_button(
                     $field['text'],
@@ -2586,18 +2731,18 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             if ( $field['field_type'] == 'function' ) {
                 eval($field['function'] . '("' . $field['field_name'] . '"' . (( isset( $post->ID ) ? ',' . $post->ID : '' )) . ');');
                 ?>
-                    <span class="description"><?php 
+                <span class="description"><?php 
                 echo  ( isset( $field['field_description'] ) ? $field['field_description'] : '' ) ;
                 ?></span>
-                    <?php 
+                <?php 
             }
             
-            //Text
+            // Text
             
             if ( $field['field_type'] == 'text' ) {
                 $class = ( isset( $field['class'] ) ? $field['class'] : '' );
                 ?>
-                    <input type="text" <?php 
+                <input type="text" <?php 
                 echo  ( isset( $field['disabled'] ) ? 'disabled' : '' ) ;
                 ?> class="regular-<?php 
                 echo  $field['field_type'] . ' ' . $class ;
@@ -2616,17 +2761,17 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 ?>" name="<?php 
                 echo  $field['field_name'] . '_' . $field['post_field_type'] ;
                 ?>">
-                    <span class="description"><?php 
+                <span class="description"><?php 
                 echo  ( isset( $field['field_description'] ) ? $field['field_description'] : '' ) ;
                 ?></span>
-                    <?php 
+                <?php 
             }
             
-            //Textare
+            // Textarea
             
             if ( $field['field_type'] == 'textarea' ) {
                 ?>
-                    <textarea <?php 
+                <textarea <?php 
                 echo  ( isset( $field['disabled'] ) ? 'disabled' : '' ) ;
                 ?> class="regular-<?php 
                 echo  $field['field_type'] ;
@@ -2645,17 +2790,17 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 
                 }
                 ?></textarea>
-                    <span class="description"><?php 
+                <span class="description"><?php 
                 echo  $field['field_description'] ;
                 ?></span>
-                    <?php 
+                <?php 
             }
             
-            //Editor
+            // Editor
             
             if ( $field['field_type'] == 'textarea_editor' ) {
                 ?>
-                    <?php 
+                <?php 
                 
                 if ( isset( $post->ID ) ) {
                     
@@ -2674,34 +2819,34 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     'textarea_rows' => 5,
                 ) );
                 ?>
-                    <span class="description"><?php 
+                <span class="description"><?php 
                 echo  $field['field_description'] ;
                 ?></span>
-                    <?php 
+                <?php 
             }
             
-            //Image
+            // Image
             
             if ( $field['field_type'] == 'image' ) {
                 ?>
-                    <div class="file_url_holder">
-                        <label>
-                            <input class="file_url" type="text" size="36" name="<?php 
+                <div class="file_url_holder">
+                    <label>
+                        <input class="file_url" type="text" size="36" name="<?php 
                 echo  $field['field_name'] . '_file_url_' . $field['post_field_type'] ;
                 ?>" value="<?php 
                 if ( isset( $post->ID ) ) {
                     echo  esc_attr( ( isset( $seat_chart_fields[$field['field_name'] . '_file_url'] ) ? $seat_chart_fields[$field['field_name'] . '_file_url'] : '' ) ) ;
                 }
                 ?>" />
-                            <input class="file_url_button button-secondary" type="button" value="<?php 
+                        <input class="file_url_button button-secondary" type="button" value="<?php 
                 _e( 'Browse', 'tcsc' );
                 ?>" />
-                            <span class="description"><?php 
+                        <span class="description"><?php 
                 echo  $field['field_description'] ;
                 ?></span>
-                        </label>
-                    </div>
-                    <?php 
+                    </label>
+                </div>
+                <?php 
             }
             
             if ( $show_title ) {
@@ -2712,8 +2857,9 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         }
         
         /**
-         * Get unique ticket types
+         * Get unique ticket types.
          * Used in tc_seat_chart shortcode
+         *
          * @param type $seat_map_post_id
          * @return type
          */
@@ -2815,12 +2961,11 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Seating chart metabox / floor plan
+         *
          * @global type $post
-         * @param type $id
          */
         public static function show_seat_chart_metabox()
         {
-            //$id = false
             global  $post ;
             $id = $post->ID;
             $seat_chart_rows = get_post_meta( $id, 'seat_chart_rows', true );
@@ -2834,16 +2979,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             $canvas_width = $seat_chart_cols * TC_Seat_Chart::chart_measure();
             $canvas_height = $seat_chart_rows * TC_Seat_Chart::chart_measure();
             $selectable_row_html = '';
-            /* for ($i = 1; $i < ($seat_chart_rows + 1); $i++) {
-                             $selectable_row_html .= '<div class="tc_seat_row_row">';
-               
-                             for ($j = 1; $j < ($seat_chart_cols + 1); $j++) {
-                             //$selectable_row_html .= '<div class="tc_seat_unit tc_seat_' . $i . '_' . $j . '" data-seat-r="' . $i . '" data-seat-c="' . $j . '"><i class="fa fa-times tc_sc_rfc" aria-hidden="true" style="display:none;"></i></div>';
-                             $selectable_row_html .= '<div class="tc_seat_unit" id="tc_seat_' . $i . '_' . $j . '"><span class="tc-add-font"></span></div>';
-                             }
-               
-                             $selectable_row_html .= '</div>';
-                             } */
             ?>
 
             <div class="selectable_row tc_seating_chart_canvas" style="width:<?php 
@@ -2852,16 +2987,13 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             echo  $canvas_height ;
             ?>px;">
                 <!--SEATING CHART HERE ADMIN-->
-                <?php 
-            //echo $selectable_row_html;
-            ?>
             </div>
             <br clear="all" />
             <p class="description"><?php 
             _e( 'HINT: use SHIFT and CTRL / CMD keys or mouse (lasso) in order to select or deselect multiple seats at once.', 'tcsc' );
             ?></p>
             <style type="text/css">
-                .tc_seating_selectable_group .tc_seat_unit{
+                .tc_seating_selectable_group .tc_seat_unit {
                     width: <?php 
             echo  TC_Seat_Chart::chart_measure() ;
             ?>px;
@@ -2870,7 +3002,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             ?>px;
                 }
 
-                .tc_seating_selectable_group .tc_seat_unit .tc-add-font{
+                .tc_seating_selectable_group .tc_seat_unit .tc-add-font {
                     font-size: <?php 
             echo  TC_Seat_Chart::chart_measure( 'font' ) ;
             ?>px;
@@ -2910,6 +3042,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Show seating chart on the front-end
+         *
          * @global type $post
          * @param type $id
          */
@@ -2954,8 +3087,10 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                         //rotation
                     }
                     
-                    //Seat seat sign attribute
-                    //Create row html
+                    /*
+                     * Seat seat sign attribute
+                     * Create row html
+                     */
                     $selectable_row_html .= '<div class="tc_seat_unit tc_seat_' . $k . ' ' . $seat_classes . '" data-seat-r="' . $i . '" data-seat-c="' . $j . '" ' . $attributes . '><span class="tc-add-font ' . $tc_add_font_class . '" ' . $seat_color . '></span><i class="fa fa-times tc_sc_rfc" aria-hidden="true" style="display:none;"></i></div>';
                 }
                 $selectable_row_html .= '</div>';
@@ -2983,15 +3118,14 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         public static function get_reserved_order_statuses()
         {
-            $order_statuses = apply_filters( 'tc_seat_charts_get_reserved_seats_order_statuses', array( 'order_received', 'order_paid' ) );
-            return $order_statuses;
+            return apply_filters( 'tc_seat_charts_get_reserved_seats_order_statuses', array( 'order_received', 'order_paid' ) );
         }
         
         /**
          * Get all reserved seats
-         * @param type $chart_id
-         * @param type $post_status
-         * @return type
+         *
+         * @param bool $chart_id
+         * @return void
          */
         public static function get_reserved_seats( $chart_id = false )
         {
@@ -3019,7 +3153,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 tc_reserved_seats[<?php 
             echo  $chart_id ;
             ?>] = new Array();
-            <?php 
+                <?php 
             $i = 0;
             foreach ( $tickets_instances as $ticket_instance ) {
                 
@@ -3040,51 +3174,58 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         }
         
         /**
+         * Get the formatted seats cookie data.
+         * This data will be forwarded to the js scripts global variable.
+         *
+         * @param $chart_id
+         * @return array
+         */
+        public static function get_in_cart_seats_format( $chart_id )
+        {
+            $tc_in_cart_seats = [];
+            foreach ( TC_Seat_Chart::get_cart_seats_cookie() as $in_cart_ticket_type ) {
+                foreach ( $in_cart_ticket_type as $in_cart_seat ) {
+                    // Check if any of the ticket types which belong to the current chart_id is in the cart
+                    if ( $in_cart_seat[2] == $chart_id ) {
+                        $tc_in_cart_seats[$chart_id][$in_cart_seat[0]] = 1;
+                    }
+                }
+            }
+            return $tc_in_cart_seats;
+        }
+        
+        /**
          * Get seats which are in the cart of current user
+         *
+         * @param bool $chart_id
+         * @return void
          * @global type $tc
-         * @param type $chart_id
-         * @return type
          */
         public static function get_in_cart_seats( $chart_id = false )
         {
-            global  $tc ;
             if ( !$chart_id ) {
                 return;
             }
-            $in_cart_seats = TC_Seat_Chart::get_cart_seats_cookie();
+            $tc_in_cart_seats = self::get_in_cart_seats_format( $chart_id );
             ?>
             <script type="text/javascript">
                 if (typeof tc_in_cart_seats == "undefined") {
-                    var tc_in_cart_seats = new Array();
+                    var tc_in_cart_seats = [];
                 }
                 tc_in_cart_seats[<?php 
             echo  $chart_id ;
-            ?>] = new Array();
-            <?php 
-            $i = 0;
-            foreach ( $in_cart_seats as $in_cart_ticket_type ) {
-                foreach ( $in_cart_ticket_type as $in_cart_seat ) {
-                    
-                    if ( $in_cart_seat[2] == $chart_id ) {
-                        //check if any of the ticket types which bellong to the current chart_id is in the cart
-                        $seat_id = $in_cart_seat[0];
-                        ?>tc_in_cart_seats[<?php 
-                        echo  $chart_id ;
-                        ?>][ '<?php 
-                        echo  $seat_id ;
-                        ?>' ] = 1;<?php 
-                        $i++;
-                    }
-                
-                }
-            }
-            ?>
+            ?>] = []; // Initialize tc_in_cart_seats with callback empty array.
+                tc_in_cart_seats = <?php 
+            echo  json_encode( $tc_in_cart_seats ) ;
+            ?>;
             </script>
             <?php 
+            // Open PHP for succeeding source codes
         }
         
         /**
          * Checks if ticket type is product or product variation (WooCommerce)
+         *
          * @param type $ticket_type_id
          * @return boolean
          */
@@ -3093,13 +3234,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             
             if ( function_exists( 'wc_get_product' ) ) {
                 $product = wc_get_product( $ticket_type_id );
-                
-                if ( $product && $product->is_type( 'variable' ) ) {
-                    return true;
-                } else {
-                    return false;
-                }
-            
+                return ( $product && $product->is_type( 'variable' ) ? true : false );
             }
         
         }
@@ -3112,20 +3247,12 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 
                 if ( $product ) {
                     $qty = $product->get_stock_quantity();
-                    
-                    if ( is_numeric( $qty ) ) {
-                        return $product->get_stock_quantity();
-                    } else {
-                        return 999;
-                    }
-                
+                    return ( is_numeric( $qty ) ? $product->get_stock_quantity() : 999 );
                 } else {
                     
                     if ( function_exists( 'tc_get_tickets_count_left' ) ) {
                         $qty = tc_get_tickets_count_left( $ticket_type_id );
-                        if ( !is_numeric( $qty ) ) {
-                            $qty = 1;
-                        }
+                        $qty = ( !is_numeric( $qty ) ? 1 : $qty );
                         return $qty;
                     }
                 
@@ -3135,9 +3262,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 
                 if ( function_exists( 'tc_get_tickets_count_left' ) ) {
                     $qty = tc_get_tickets_count_left( $ticket_type_id );
-                    if ( !is_numeric( $qty ) ) {
-                        $qty = 1;
-                    }
+                    $qty = ( !is_numeric( $qty ) ? 1 : $qty );
                     return $qty;
                 }
             
@@ -3169,7 +3294,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 tc_seats[<?php 
             echo  $seat_map_post_id ;
             ?>] = new Array();
-            <?php 
+                <?php 
             $i = 0;
             $has_seat_signs = ( is_array( $seat_signs ) && count( $seat_signs ) > 0 && !empty($seat_signs) ? true : false );
             $has_seat_direction = ( is_array( $seat_directions ) && count( $seat_directions ) > 0 && !empty($seat_directions) ? true : false );
@@ -3199,7 +3324,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 if (typeof tc_seat_colors == "undefined") {
                     var tc_seat_colors = new Array();
                 }
-            <?php 
+                <?php 
             $unique_ticket_types = array_unique( $seat_ticket_types );
             $i = 0;
             foreach ( $unique_ticket_types as $unique_ticket_type ) {
@@ -3211,12 +3336,12 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                         $seat_color = $seat_color_default;
                     }
                     ?>
-                        tc_seat_colors[ '<?php 
+                tc_seat_colors[ '<?php 
                     echo  $unique_ticket_type ;
                     ?>' ] = "<?php 
                     echo  $seat_color ;
                     ?>";
-                    <?php 
+                <?php 
                     $i++;
                 }
             
@@ -3224,9 +3349,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             ?>
             </script>
             <?php 
-            /* } else {
-               echo base64_decode($content);
-               } */
         }
         
         public static function get_occupied_seats_front_php( $seat_map_post_id )
@@ -3354,16 +3476,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                 <div class="tc_seat_direction_box bc tc-selected-direction"><span>↓</span></div>
                 <div class="tc_seat_direction_box br"><span>↓</span></div>
             </div>
-            <input type="hidden" value="bc" id="tc_seat_direction_settings_value">
-
-            <?php 
-            /* TC_Seat_Chart::render_field(array(
-               'field_type' => 'button',
-               'field_name' => 'tc_seat_direction_settings_single_set_button',
-               'text' => __('Set', 'tcsc'),
-               'type' => 'primary'
-               )); */
-            ?>                                                                                                                                                       <!--<p class="tc_seat_sign_settings_message"><?php 
+            <input type="hidden" value="bc" id="tc_seat_direction_settings_value"><!--<p class="tc_seat_sign_settings_message"><?php 
             _e( 'Select one or more seats which have assigned ticket type in order to set seat(s) sign.', 'tcsc' );
             ?></p>-->
             <br clear="all" />
@@ -3458,7 +3571,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
                     $ticket_type_colors .= 'tc_seat_default_colors[' . $ticket_type->ID . '] = "' . $seat_color . '";';
                 }
                 $ticket_types_colors_script .= '<script type="text/javascript">
-				var tc_seat_default_colors = new Array();';
+                var tc_seat_default_colors = new Array();';
                 $ticket_types_colors_script .= $ticket_type_colors;
                 if ( $front ) {
                     $ticket_types_colors_script .= '' . 'if (window.tc_controls !== null || window.tc_controls !== "undefined") {' . 'window.tc_controls.set_default_colors();' . '}';
@@ -3471,7 +3584,8 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         
         /**
          * Shows select box with ticket types
-         * @return type
+         *
+         * @return void
          */
         function get_event_ticket_types_select()
         {
@@ -3511,7 +3625,7 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
             }
             $ticket_types_html .= '</select>';
             $ticket_types_html .= '<script type="text/javascript">
-				var tc_seat_colors = new Array();';
+            var tc_seat_colors = new Array();';
             $ticket_types_html .= $ticket_type_colors;
             $ticket_types_html .= '</script>';
             echo  $ticket_types_html ;
@@ -3533,113 +3647,6 @@ if ( !class_exists( 'TC_Seat_Chart' ) ) {
         add_action( 'tets_fs_loaded', 'tc_seat_chart_load' );
     } else {
         $TC_Seat_Chart = new TC_Seat_Chart();
-    }
-
-}
-
-if ( !function_exists( 'seatings_fs' ) ) {
-    // Create a helper function for easy SDK access.
-    function seatings_fs()
-    {
-        global  $seatings_fs ;
-        
-        if ( !isset( $seatings_fs ) ) {
-            // Activate multisite network integration.
-            if ( !defined( 'WP_FS__PRODUCT_3103_MULTISITE' ) ) {
-                define( 'WP_FS__PRODUCT_3103_MULTISITE', true );
-            }
-            // Include Freemius SDK.
-            
-            if ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera-event-ticketing-system/freemius/start.php' ) ) {
-                // Try to load SDK from parent plugin folder.
-                require_once dirname( dirname( __FILE__ ) ) . '/tickera-event-ticketing-system/freemius/start.php';
-            } else {
-                
-                if ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php' ) ) {
-                    // Try to load SDK from premium parent plugin folder.
-                    require_once dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php';
-                } else {
-                    require_once dirname( __FILE__ ) . '/freemius/start.php';
-                }
-            
-            }
-            
-            $seatings_fs = fs_dynamic_init( array(
-                'id'               => '3103',
-                'slug'             => 'seating-charts',
-                'premium_slug'     => 'seating-charts',
-                'type'             => 'plugin',
-                'public_key'       => 'pk_254561f3d24293a2cdd972d5fd74a',
-                'is_premium'       => true,
-                'is_premium_only'  => true,
-                'has_paid_plans'   => true,
-                'is_org_compliant' => false,
-                'parent'           => array(
-                'id'         => '3102',
-                'slug'       => 'tickera-event-ticketing-system',
-                'public_key' => 'pk_7a38a2a075ec34d6221fe925bdc65',
-                'name'       => 'Tickera',
-            ),
-                'menu'             => array(
-                'first-path' => 'plugins.php',
-                'support'    => false,
-            ),
-                'is_live'          => true,
-            ) );
-        }
-        
-        return $seatings_fs;
-    }
-
-}
-function seatings_fs_is_parent_active_and_loaded()
-{
-    // Check if the parent's init SDK method exists.
-    return function_exists( 'tets_fs' );
-}
-
-function seatings_fs_is_parent_active()
-{
-    $active_plugins = get_option( 'active_plugins', array() );
-    
-    if ( is_multisite() ) {
-        $network_active_plugins = get_site_option( 'active_sitewide_plugins', array() );
-        $active_plugins = array_merge( $active_plugins, array_keys( $network_active_plugins ) );
-    }
-    
-    foreach ( $active_plugins as $basename ) {
-        if ( 0 === strpos( $basename, 'tickera-event-ticketing-system/' ) || 0 === strpos( $basename, 'tickera/' ) ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function seatings_fs_init()
-{
-    
-    if ( seatings_fs_is_parent_active_and_loaded() ) {
-        // Init Freemius.
-        seatings_fs();
-        // Parent is active, add your init code here.
-    } else {
-        // Parent is inactive, add your error handling here.
-    }
-
-}
-
-
-if ( seatings_fs_is_parent_active_and_loaded() ) {
-    // If parent already included, init add-on.
-    seatings_fs_init();
-} else {
-    
-    if ( seatings_fs_is_parent_active() ) {
-        // Init add-on only after the parent is loaded.
-        add_action( 'tets_fs_loaded', 'seatings_fs_init' );
-    } else {
-        // Even though the parent is not activated, execute add-on for activation / uninstall hooks.
-        seatings_fs_init();
     }
 
 }

@@ -50,6 +50,7 @@ jQuery(document).ready(function ($) {
         }
 
         $(this).css({'background-color': tc_seat_color});
+        $(this).css({'color': tc_seat_color});
 
         tc_controls.tc_mark_reserved_seats($('#post_ID').val());
     }

@@ -47,6 +47,7 @@ class Loco_ajax_FsConnectController extends Loco_mvc_AjaxController {
 
 
     /**
+     * @param Loco_fs_File file path to update (should exist)
      * @return bool
      */
     private function authorizeUpdate( Loco_fs_File $file ){
@@ -57,13 +58,28 @@ class Loco_ajax_FsConnectController extends Loco_mvc_AjaxController {
         if( Loco_data_Settings::get()->num_backups && ! $this->api->authorizeCopy($file) ){
             return false;
         }
-        // updating file may also recompile binary, which may or may not exist
-        $files = new Loco_fs_Siblings( $file );
-        if( $file = $files->getBinary() ){
-            return $this->api->authorizeSave($file);
+        // updating file will also recompile binary, which may or may not exist
+        $files = new Loco_fs_Siblings($file);
+        $mofile = $files->getBinary();
+        if( $mofile && ! $this->api->authorizeSave($mofile) ){
+            return false;
         }
         // else no dependants to update
         return true;
+    }
+
+
+    /**
+     * @param Loco_fs_File path which may exist (update it) or may not (create it)
+     * @return bool
+     */
+    private function authorizeUpload( Loco_fs_File $file ){
+        if( $file->exists() ){
+            return $this->api->authorizeUpdate($file);
+        }
+        else {
+            return $this->api->authorizeCreate($file);
+        }
     }
 
 
@@ -116,8 +132,22 @@ class Loco_ajax_FsConnectController extends Loco_mvc_AjaxController {
                     $this->set('warning',$message);
                 }
             }
-            else if( $html = $this->api->getForm() ){
+            else {
                 $this->set( 'authed', false );
+                // HTML form should be set when authorization failed
+                $html = $this->api->getForm();
+                if( '' === $html || ! is_string($html) ){
+                    // this is the only non-error case where form will not be set.
+                    if( 'direct' === loco_constant('FS_METHOD') ){
+                        $html = 'Remote connections are prevented by your WordPress configuration. Direct access only.';
+                    }
+                    // else an unknown error occurred when fetching output from request_filesystem_credentials
+                    else {
+                        $html = 'Failed to get credentials form';
+                    }
+                    // displaying error after clicking "connect" to avoid unnecessary warnings when operation may not be required
+                    $html = '<form><h2>Connection problem</h2><p>'.$html.'.</p></form>';
+                }
                 $this->set( 'prompt', $html );
                 // supporting text based on file operation type explains why auth is required
                 if( 'create' === $type ){
@@ -134,9 +164,6 @@ class Loco_ajax_FsConnectController extends Loco_mvc_AjaxController {
                 }
                 // message is printed before default text, so needs delimiting.
                 $this->set('message',$message.'.');
-            }
-            else {
-                throw new Loco_error_Exception('Failed to get credentials form');
             }
         }
         catch( Loco_error_WriteException $e ){

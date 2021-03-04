@@ -2,6 +2,7 @@
 
 /**
  * Check which radio value should be checked in the cart form
+ *
  * @param type $field
  * @param type $field_value
  * @param type $field_values
@@ -32,9 +33,8 @@ function tc_cart_field_get_radio_value_cheched($field, $field_value, $field_valu
 }
 
 /**
- *
  * @global type $tc
- * @param type $cart /
+ * @param type $cart
  */
 function tc_final_cart_check($cart) {
 
@@ -49,7 +49,7 @@ function tc_final_cart_check($cart) {
         global $wpdb;
         $ticket_type_id = new TC_Ticket($tc_ticket_id);
 
-          if ($ticket_type_id->is_ticket_exceeded_quantity_limit() == true) {
+          if ($ticket_type_id->is_sold_ticket_exceeded_limit_level() == true) {
               $tc_tickets_soldout[] = $ticket_type_id->id;
               $tc_error_numbers++;
         }
@@ -71,11 +71,12 @@ function tc_final_cart_check($cart) {
 
 /**
  * Check which select option value should be selected in the cart form
+ *
  * @param type $field
  * @param type $field_value
  * @param type $field_name
- * @param type $ticket_type
- * @param type $owner_index
+ * @param bool $ticket_type
+ * @param bool $owner_index
  * @return boolean
  */
 function tc_cart_field_get_option_value_selected($field, $field_value, $field_name, $ticket_type = false, $owner_index = false) {
@@ -105,9 +106,10 @@ function tc_cart_field_get_option_value_selected($field, $field_value, $field_na
 
 /**
  * Get checkbox values
+ *
  * @param type $field_name
- * @param type $ticket_type
- * @param type $owner_index
+ * @param bool $ticket_type
+ * @param bool $owner_index
  * @return type
  */
 function tc_cart_field_get_checkbox_values($field_name, $ticket_type = false, $owner_index = false) {
@@ -128,12 +130,13 @@ function tc_cart_field_get_checkbox_values($field_name, $ticket_type = false, $o
 
 /**
  * Check which checboxes should be checked on the cart form
+ *
  * @param type $field
  * @param type $field_value
  * @param type $field_values
  * @param type $field_name
- * @param type $ticket_type
- * @param type $owner_index
+ * @param bool $ticket_type
+ * @param bool $owner_index
  * @return boolean
  */
 function tc_cart_field_get_checkbox_value_cheched($field, $field_value, $field_values, $field_name, $ticket_type = false, $owner_index = false) {
@@ -161,12 +164,11 @@ function tc_cart_field_get_checkbox_value_cheched($field, $field_value, $field_v
     return $result;
 }
 
-//Sanitizaton
-
 /**
  * Sanitize posted array
+ *
  * @param type $input
- * @return type
+ * @return array
  */
 function tc_sanitize_array($input) {
     $new_input = array();
@@ -212,6 +214,7 @@ function tc_sanitize_array($input) {
 
 /**
  * Sanitize posted string
+ *
  * @param type $string
  * @return type
  */
@@ -314,7 +317,9 @@ function tc_sanitize_string($string) {
     }
 }
 
-//Admin menus
+/**
+ * Admin menus
+ */
 
 function tc_discount_codes_admin() {
     global $tc;
@@ -351,7 +356,13 @@ function tc_network_settings_admin() {
     require_once( $tc->plugin_dir . "includes/network-admin-pages/network_settings.php");
 }
 
-//Internal cache functions
+/**
+ * Internal cache functions
+ *
+ * @param $key
+ * @param $value
+ * @param int $ttl
+ */
 function tc_cache_set($key, $value, $ttl = 3600) {
     set_transient($key, $value, $ttl);
 }
@@ -388,25 +399,31 @@ function tc_js_redirect($url) {
 }
 
 function tc_get_ticket_price($id) {
-//$ticket				 = new TC_Ticket( $id );
     $price_per_ticket = get_post_meta($id, 'price_per_ticket', true);
     return apply_filters('tc_price_per_ticket', $price_per_ticket, $id);
 }
 
-function tc_unistr_to_ords($str, $encoding = 'UTF-8') {
-// Turns a string of unicode characters into an array of ordinal values,
-// Even if some of those characters are multibyte.
-    $str = mb_convert_encoding($str, "UCS-4BE", $encoding);
-    $ords = array();
+function tc_unistr_to_ords( $str, $encoding = 'UTF-8' ) {
 
-// Visit each unicode character
-    for ($i = 0; $i < mb_strlen($str, "UCS-4BE"); $i++) {
-// Now we have 4 bytes. Find their total
-// numeric value.
-        $s2 = mb_substr($str, $i, 1, "UCS-4BE");
-        $val = unpack("N", $s2);
+    /*
+     * Turns a string of unicode characters into an array of ordinal values,
+     * Even if some of those characters are multibyte.
+     */
+    $str = mb_convert_encoding( $str, "UCS-4BE", $encoding );
+    $ords = [];
+
+    /*
+     * Visit each unicode character
+     * Result: Now we have 4 bytes. Find their total
+     * Type: numeric value.
+     */
+    for ( $i = 0; $i < mb_strlen( $str, "UCS-4BE" ); $i++ ) {
+
+        $s2 = mb_substr( $str, $i, 1, "UCS-4BE" );
+        $val = unpack( "N", $s2 );
         $ords[] = $val[1];
     }
+
     return($ords);
 }
 
@@ -510,8 +527,13 @@ function tc_get_tickets_user_purchased_count( $user_id, $ticket_type_id = null) 
     return $sold_count;
 }
 
+/**
+ * Calculate the total number of quantity left of a ticket.
+ *
+ * @param $ticket_id
+ * @return float|int|string
+ */
 function tc_get_tickets_count_left($ticket_id) {
-    global $wpdb, $wp_query;
 
     $global_quantity_available = 0;
     $unlimited = false;
@@ -534,6 +556,7 @@ function tc_get_tickets_count_left($ticket_id) {
 
 /**
  * Get the total number of ticket purchased
+ *
  * @param $ticket_id
  * @return int
  */
@@ -559,56 +582,77 @@ function tc_get_tickets_count_sold($ticket_id) {
     return $sold_count;
 }
 
-function tc_get_event_tickets_count_left($event_id) {
-    global $wpdb;
+/**
+ * Calculate the total number of quantity left of an event.
+ *
+ * @param $event_id
+ * @return float|int|string
+ */
+function tc_get_event_tickets_count_left( $event_id ) {
 
-    $event = new TC_Event($event_id);
-    $ticket_types = $event->get_event_ticket_types();
+    $event_obj = get_post_meta( $event_id );
+    $limit_level = isset( $event_obj['limit_level'] ) ? $event_obj['limit_level'][0]: 0;
 
-    $global_quantity_available = 0;
-    $unlimited = false;
+    if ( $limit_level ) {
+        $max_limit_value = isset( $event_obj['limit_level_value'] ) ? $event_obj['limit_level_value'][0]: 0;
+        $event_ticket_sold_count = tc_get_event_tickets_count_sold( $event_id );
+        return abs( $max_limit_value - $event_ticket_sold_count ) ? abs( $max_limit_value - $event_ticket_sold_count ) : 0;
 
-    foreach ($ticket_types as $ticket_type_id) {
-        $quantity_available = get_post_meta($ticket_type_id, 'quantity_available', true);
-        if (is_numeric($quantity_available)) {
-            $global_quantity_available = $global_quantity_available + $quantity_available;
-        } else {
-            $unlimited = true;
-        }
-    }
-
-    if ($unlimited) {
-        return '∞';
     } else {
-        $quantity_sold = tc_get_event_tickets_count_sold($event_id);
-        return abs($global_quantity_available - $quantity_sold);
+
+        $event = new TC_Event($event_id);
+        $ticket_types = $event->get_event_ticket_types();
+
+        $global_quantity_available = 0;
+        $unlimited = false;
+
+        foreach ( $ticket_types as $ticket_type_id ) {
+            $ticket_count_left = tc_get_tickets_count_left( $ticket_type_id );
+
+            if ( is_numeric( $ticket_count_left ) ) {
+                $global_quantity_available = $global_quantity_available + $ticket_count_left;
+
+            } else {
+                $unlimited = true;
+                break;
+            }
+        }
+
+        if ($unlimited) {
+            return '∞';
+
+        } else {
+            return $global_quantity_available;
+        }
+
     }
 }
 
-function tc_get_event_tickets_count_sold($event_id) {
+/**
+ * Count the number of ticket purchases based on event id
+ *
+ * @param $event_id
+ * @return int
+ */
+function tc_get_event_tickets_count_sold( $event_id ) {
+
     global $wpdb;
 
-    $event = new TC_Event($event_id);
+    $event = new TC_Event( $event_id );
     $ticket_types = $event->get_event_ticket_types();
 
     $sold_count = 0;
 
-    if (count($ticket_types) > 0) {
+    if ( count( $ticket_types ) > 0 ) {
 
-        $sold_records = $wpdb->get_results(
-                "
-	SELECT      COUNT(*) as cnt, p.post_parent
-	FROM        $wpdb->posts p, $wpdb->postmeta pm
-                    WHERE p.ID = pm.post_id
-                    AND pm.meta_key = 'ticket_type_id'
-                    AND pm.meta_value IN (" . implode(',', $ticket_types) . ")
-                    GROUP BY p.post_parent
-	"
-        );
+        $sold_records = $wpdb->get_results( "SELECT COUNT(*) as cnt, p.post_parent FROM {$wpdb->posts} p, {$wpdb->postmeta} pm WHERE p.ID = pm.post_id AND pm.meta_key = 'ticket_type_id' AND pm.meta_value IN (" . implode(',', $ticket_types) . ") GROUP BY p.post_parent" );
 
+        foreach ( $sold_records as $sold_record ) {
 
-        foreach ($sold_records as $sold_record) {
-            if (get_post_status($sold_record->post_parent) == 'order_paid') {
+            $valid_order_status =  [ 'order_paid', 'order_received', 'order_fraud' ];
+            $order_status = get_post_status($sold_record->post_parent);
+
+            if ( in_array( $order_status, $valid_order_status ) ) {
                 $sold_count = $sold_count + $sold_record->cnt;
             }
         }
@@ -623,51 +667,44 @@ function tc_get_payment_page_slug() {
     return isset( $page->post_name ) ? isset( $page->post_name ) : null;
 }
 
-function tc_create_page($slug, $option = '', $page_title = '', $page_content = '', $post_parent = 0) {
+function tc_create_page( $slug, $option = '', $page_title = '', $page_content = '', $post_parent = 0 ) {
     global $wpdb;
 
-    $option_value = get_option($option);
+    $option_value = get_option( $option );
 
-    if ($option_value > 0 && get_post($option_value))
+    if ($option_value > 0 && get_post( $option_value ) )
         return -1;
 
     $page_found = null;
 
-    if (strlen($page_content) > 0) {
-// Search for an existing page with the specified page content (typically a shortcode)
-        $page_found = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . $wpdb->posts . " WHERE post_type='page' AND post_content LIKE %s LIMIT 1;", "%{$page_content}%"));
-    } else {
-// Search for an existing page with the specified page slug
-        $page_found = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . $wpdb->posts . " WHERE post_type='page' AND post_name = %s LIMIT 1;", $slug));
-    }
+    $page_found = ( strlen( $page_content ) > 0 )
+        ? $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . $wpdb->posts . " WHERE post_type='page' AND post_content LIKE %s LIMIT 1;", "%{$page_content}%")) // Search for an existing page with the specified page content (typically a shortcode)
+        : $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . $wpdb->posts . " WHERE post_type='page' AND post_name = %s LIMIT 1;", $slug)); // Search for an existing page with the specified page slug
 
     $page_found = apply_filters('tc_create_page_id', $page_found, $slug, $page_content);
 
-    if ($page_found) {
-        if (!$option_value) {
-            update_option($option, $page_found);
-        }
+    if ( $page_found ) {
+        if ( !$option_value )
+            update_option( $option, $page_found );
 
         return $page_found;
     }
 
-    $page_data = array(
-        'post_author' => get_current_user_id(),
-        'post_status' => 'publish',
-        'post_type' => 'page',
-        'post_author' => 1,
-        'post_name' => sanitize_key($slug),
-        'post_title' => sanitize_text_field($page_title),
-        'post_content' => sanitize_text_field($page_content),
-        'post_parent' => (int) $post_parent,
-        'comment_status' => 'closed'
+    $page_id = wp_insert_post( [
+            'post_author'       => get_current_user_id(),
+            'post_status'       => 'publish',
+            'post_type'         => 'page',
+            'post_author'       => 1,
+            'post_name'         => sanitize_key( $slug ),
+            'post_title'        => sanitize_text_field( $page_title ),
+            'post_content'      => sanitize_text_field( $page_content ),
+            'post_parent'       => (int) $post_parent,
+            'comment_status'    => 'closed'
+        ]
     );
 
-    $page_id = wp_insert_post($page_data);
-
-    if ($option) {
-        update_option($option, $page_id);
-    }
+    if ( $option )
+        update_option( $option, $page_id );
 
     return $page_id;
 }
@@ -697,58 +734,62 @@ function tc_get_events_and_tickets_shortcode_select_box() {
 
 add_action('tc_order_created', 'tc_order_created_email', 10, 5);
 
-function client_email_from_name($name) {
+function client_email_from_name() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['client_order_from_name']) ? $tc_email_settings['client_order_from_name'] : get_option('blogname');
 }
 
-function client_email_from_email($email) {
+function client_email_from_email() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['client_order_from_email']) ? $tc_email_settings['client_order_from_email'] : get_option('admin_email');
 }
 
-function attendee_email_from_name($name) {
+function attendee_email_from_name() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['attendee_order_from_name']) ? $tc_email_settings['attendee_order_from_name'] : get_option('blogname');
 }
 
-function attendee_email_from_email($email) {
+function attendee_email_from_email() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['attendee_order_from_email']) ? $tc_email_settings['attendee_order_from_email'] : get_option('admin_email');
 }
 
-function client_email_from_placed_name($name) {
+function client_email_from_placed_name() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['client_order_from_placed_name']) ? $tc_email_settings['client_order_from_placed_name'] : get_option('blogname');
 }
 
-function client_email_from_placed_email($email) {
+function client_email_from_placed_email() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['client_order_from_placed_email']) ? $tc_email_settings['client_order_from_placed_email'] : get_option('admin_email');
 }
 
-function admin_email_from_name($name) {
+function admin_email_from_name() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['admin_order_from_name']) ? $tc_email_settings['admin_order_from_name'] : get_option('blogname');
 }
 
-function admin_email_from_email($email) {
+function admin_email_from_email() {
     $tc_email_settings = get_option('tc_email_setting', false);
-    return get_option('admin_email'); //isset( $tc_email_settings[ 'admin_order_from_email' ] ) ? $tc_email_settings[ 'admin_order_from_email' ] : get_option( 'admin_email' );
+    return get_option('admin_email');
 }
 
-function admin_email_from_placed_name($name) {
+function admin_email_from_placed_name() {
     $tc_email_settings = get_option('tc_email_setting', false);
     return isset($tc_email_settings['admin_order_from_placed_name']) ? $tc_email_settings['admin_order_from_placed_name'] : get_option('blogname');
 }
 
-function admin_email_from_placed_email($email) {
+function admin_email_from_placed_email() {
     $tc_email_settings = get_option('tc_email_setting', false);
-    return get_option('admin_email'); //isset( $tc_email_settings[ 'admin_order_from_placed_email' ] ) ? $tc_email_settings[ 'admin_order_from_placed_email' ] : get_option( 'admin_email' );
+    return get_option('admin_email');
+}
+
+function admin_order_refunded_from_name() {
+    $tc_email_settings = get_option('tc_email_setting', false);
+    return isset( $tc_email_settings['admin_order_refunded_from_name'] ) ? $tc_email_settings['admin_order_refunded_from_name'] : get_option('blogname');
 }
 
 add_action('tc_wb_allowed_tickets_access', 'tc_maybe_send_order_paid_attendee_email');
-
 function tc_maybe_send_order_paid_attendee_email($wc_order) {
     $order_id = $wc_order->get_id();
     tc_order_paid_attendee_email($order_id);
@@ -1145,6 +1186,48 @@ function tc_order_created_email($order_id, $status, $cart_contents = false, $car
             }
         }
     }
+
+    if ( 'order_refunded' == $status ) {
+
+        if ( ( isset( $tc_email_settings['admin_send_refunded_message'] ) && 'yes' == $tc_email_settings['admin_send_refunded_message'] ) ) {
+
+            add_filter( 'wp_mail_from', 'admin_email_from_placed_email', 999 );
+            add_filter( 'wp_mail_from_name', 'admin_order_refunded_from_name', 999 );
+
+            $subject = isset( $tc_email_settings['admin_order_refunded_subject'] ) ? stripslashes( $tc_email_settings['admin_order_refunded_subject'] ) : __( 'Order Refunded', 'tc' );
+
+            $default_message = 'Hello, <br /><br />Your order (ORDER_ID) totalling <strong>ORDER_TOTAL</strong> was refunded. <br /><br />You can track your order status here: DOWNLOAD_URL';
+            $message = isset( $tc_email_settings['admin_order_refunded_message'] ) ? $tc_email_settings['admin_order_refunded_message'] : $default_message;
+
+            $order = tc_get_order_id_by_name( $order_id );
+            $order = new TC_Order( $order->ID );
+
+            $order_admin_url = admin_url( 'post.php?post=' . $order->details->ID . '&action=edit' );
+
+            $placeholders = array( 'ORDER_ID', 'ORDER_TOTAL', 'ORDER_ADMIN_URL', 'BUYER_NAME', 'ORDER_DETAILS' );
+            $placeholder_values = array( $order_id, apply_filters( 'tc_cart_currency_and_format', $payment_info['total']), $order_admin_url, $buyer_name, tc_get_order_details_email( $order->details->ID, $order->details->tc_order_date, true, $status ) );
+
+            $to = isset( $tc_email_settings['admin_order_refunded_to_email'] ) ? $tc_email_settings['admin_order_refunded_to_email'] : get_option( 'admin_email' );
+
+            $message = str_replace( apply_filters( 'tc_order_refunded_admin_email_placeholders', $placeholders ), apply_filters( 'tc_order_refunded_admin_email_placeholder_values', $placeholder_values ), $message );
+
+            $admin_headers = '';
+
+            if ( 'wp_mail' == $email_send_type ) {
+                wp_mail( $to, $subject, html_entity_decode( stripcslashes( apply_filters( 'tc_order_refunded_admin_email_message', wpautop( $message ) ) ) ), apply_filters( 'tc_order_refunded_admin_email_headers', $admin_headers ) );
+
+            } else {
+                $headers = 'MIME-Version: 1.0' . "\r\n";
+                $headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+                $headers .= 'From: ' . admin_email_from_email('') . "\r\n" .
+                    'Reply-To: ' . admin_email_from_email('') . "\r\n" .
+                    'X-Mailer: PHP/' . phpversion();
+
+                mail( $to, $subject, stripcslashes( wpautop( $message ) ), apply_filters( 'tc_order_refunded_admin_email_headers', $headers ) );
+            }
+        }
+    }
+
     do_action( 'tc_after_order_created_email', $order_id, $status, $cart_contents, $cart_info, $payment_info, $send_email_to_admin );
 }
 
@@ -1190,8 +1273,10 @@ if (!function_exists('tc_get_delete_pending_orders_intervals')) {
     }
 
 }
-/* General purpose which retrieves yes/no values */
 
+/**
+ * General purpose which retrieves yes/no values
+ */
 if (!function_exists('tc_yes_no_email')) {
 
     function tc_yes_no_email($field_name, $default_value = '') {
@@ -1596,28 +1681,32 @@ function tc_years_dropdown($sel = '', $pfp = false) {
 }
 
 function tc_get_client_ip() {
-    if (isset($_SERVER['X-Real-IP'])) {
+
+    if ( isset( $_SERVER['X-Real-IP'] ) ) {
         return $_SERVER['X-Real-IP'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        // Proxy servers can send through this header like this: X-Forwarded-For: client1, proxy1, proxy2
-        // Make sure we always only send through the first IP in the list which should always be the client IP.
-        return trim(current(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])));
-    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+
+    } elseif ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+
+        /*
+         * Proxy servers can send through this header like this: X-Forwarded-For: client1, proxy1, proxy2
+         * Make sure we always only send through the first IP in the list which should always be the client IP.
+         */
+        return trim( current( explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
+
+    } elseif ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
         return $_SERVER['REMOTE_ADDR'];
     }
+
     return false;
 }
 
 function tc_get_client_info() {
     $ip_address = tc_get_client_ip();
+    $client_data = wp_remote_get( 'http://freegeoip.net/json/' . $ip_address, array( 'user-agent' => 'Tickera', 'sslverify' => false ) );
 
-
-    $client_data = wp_remote_get('http://freegeoip.net/json/' . $ip_address, array('user-agent' => 'Tickera', 'sslverify' => false));
-
-    if (!is_wp_error($client_data)) {
-        $client_data = json_decode(wp_remote_retrieve_body($client_data));
+    if ( !is_wp_error( $client_data ) ) {
+        $client_data = json_decode( wp_remote_retrieve_body( $client_data ) );
     }
-
 
     return $client_data;
 }
@@ -1957,6 +2046,7 @@ function tc_get_order_id_by_name($slug) {
 
 /**
  * Retrieve the status of an order
+ *
  * @param string $field_name
  * @param string $post_id
  */
@@ -1967,6 +2057,7 @@ function tc_get_order_status($field_name = '', $post_id = '') {
     switch ( $value ) {
 
         case 'order_fraud':
+        case 'order_refunded':
             $color = "tc_order_fraud";
             break;
 
@@ -1980,10 +2071,6 @@ function tc_get_order_status($field_name = '', $post_id = '') {
 
         case 'order_cancelled':
             $color = "tc_order_cancelled";
-            break;
-
-        case 'order_refunded':
-            $color = "tc_order_fraud";
             break;
 
         default:
@@ -2002,6 +2089,7 @@ function tc_get_order_front_link($field_name = '', $post_id = '') {
 
 /**
  * Generate a selection field for Order Status
+ *
  * @param string $field_name
  * @param string $post_id
  */
@@ -2026,8 +2114,6 @@ function tc_get_order_customer($field_name = '', $post_id = '') {
     $value = get_post_meta($post_id, $field_name, true);
     $order = new TC_Order($post_id);
     $author_id = $order->details->post_author;
-
-//$buyer_info = '<a href="' . admin_url( 'user-edit.php?user_id=' . $author_id ) . '">' . $value[ 'buyer_data' ][ 'first_name_post_meta' ] . ' ' . $value[ 'buyer_data' ][ 'last_name_post_meta' ] . '</a>';
 
     $first_name = (isset($value['buyer_data']) && isset($value['buyer_data']['first_name_post_meta'])) ? $value['buyer_data']['first_name_post_meta'] : '';
     $last_name = (isset($value['buyer_data']) && isset($value['buyer_data']['last_name_post_meta'])) ? $value['buyer_data']['last_name_post_meta'] : '';
@@ -2226,12 +2312,13 @@ function tc_get_tickets_table_email($order_id = '', $order_key = '') {
             <?php
         }
     }
-    $content = wpautop(ob_get_clean(), true);
-    return $content;
+
+    return wpautop( ob_get_clean(), true );
 }
 
 /**
  * Generate order details template for mailing
+ *
  * @param string $order_id
  * @param string $order_key
  * @param bool $return
@@ -2325,12 +2412,12 @@ function tc_get_order_details_email( $order_id = '', $order_key = '', $return = 
         <?php } ?>
         <?php if (apply_filters('tc_get_order_details_email_show_fees', true, $order_id) == true) { ?>
             <?php if (!isset($tc_general_settings['show_fees']) || isset($tc_general_settings['show_fees']) && $tc_general_settings['show_fees'] == 'yes') { ?>
-                <label <?php echo apply_filters('tc_style_email_label', $tc_style_email_label); ?>><span <?php echo apply_filters('tc_style_email_label_span', $tc_style_email_label_span); ?> class="order_details_title"><?php echo $tc_general_settings['fees_label']; ?></span> <?php echo $fees_total; ?></label>
+                <label <?php echo apply_filters('tc_style_email_label', $tc_style_email_label); ?>><span <?php echo apply_filters('tc_style_email_label_span', $tc_style_email_label_span); ?> class="order_details_title"><?php echo @$tc_general_settings['fees_label']; ?></span> <?php echo $fees_total; ?></label>
             <?php } ?>
         <?php } ?>
         <?php if (apply_filters('tc_get_order_details_email_show_tax', true, $order_id) == true) { ?>
             <?php if (!isset($tc_general_settings['show_tax_rate']) || isset($tc_general_settings['show_tax_rate']) && $tc_general_settings['show_tax_rate'] == 'yes') { ?>
-                <label <?php echo apply_filters('tc_style_email_label', $tc_style_email_label); ?>><span <?php echo apply_filters('tc_style_email_label_span', $tc_style_email_label_span); ?> class="order_details_title"><?php echo $tc_general_settings['tax_label']; ?></span> <?php echo $tax_total; ?></label>
+                <label <?php echo apply_filters('tc_style_email_label', $tc_style_email_label); ?>><span <?php echo apply_filters('tc_style_email_label_span', $tc_style_email_label_span); ?> class="order_details_title"><?php echo @$tc_general_settings['tax_label']; ?></span> <?php echo $tax_total; ?></label>
             <?php } ?>
         <?php } ?>
         <?php if (apply_filters('tc_get_order_details_email_show_total', true, $order_id) == true) { ?>
@@ -2414,111 +2501,112 @@ function tc_get_order_details_email( $order_id = '', $order_key = '', $return = 
     }
 }
 
-function tc_order_details_table_front($order_id, $return = false) {
+/**
+ * Render Order Detail Table in Frontend
+ *
+ * @param $order_id
+ * @param bool $return
+ * @return string
+ */
+function tc_order_details_table_front( $order_id, $return = false ) {
 
-    if ($return) {
+    if ( $return ) {
         ob_start();
     }
 
-    $order = new TC_Order($order_id);
+    $order = new TC_Order( $order_id );
+    $order_is_paid = ( 'order_paid' == $order->details->post_status ) ? true : false;
 
-    if ($order->details->post_status == 'order_paid') {
-        $order_is_paid = true;
-    } else {
-        $order_is_paid = false;
-    }
+    $order_is_paid = apply_filters( 'tc_order_is_paid', $order_is_paid, $order_id );
 
-    $order_is_paid = apply_filters('tc_order_is_paid', $order_is_paid, $order_id);
+    if ( true == $order_is_paid ) {
 
-    if ($order_is_paid == true) {
-        $orders = new TC_Orders();
-
-        $args = array(
-            'posts_per_page' => -1,
-            'orderby' => 'post_date',
-            'order' => 'ASC',
-            'post_type' => 'tc_tickets_instances',
-            'post_parent' => $order->details->ID
+        $tickets = get_posts( [
+                'posts_per_page'    => -1,
+                'orderby'           => 'post_date',
+                'order'             => 'ASC',
+                'post_type'         => 'tc_tickets_instances',
+                'post_parent'       => $order->details->ID
+            ]
         );
 
-        $tickets = get_posts($args);
-        $columns = apply_filters('tc_front_ticket_table_columns', $orders->get_owner_info_fields_front());
         $style = '';
-        $classes = apply_filters('tc_order_details_table_front_classes', 'order-details widefat shadow-table');
+        $orders = new TC_Orders();
 
-        if (apply_filters('tc_order_details_table_front_show_tickets_header', true) == true) {
-            echo '<h2>' . __('Tickets', 'woocommerce-tickera-bridge') . '</h2>';
+        $columns = apply_filters( 'tc_front_ticket_table_columns', $orders->get_owner_info_fields_front() );
+        $classes = apply_filters( 'tc_order_details_table_front_classes', 'order-details widefat shadow-table' );
+
+        if ( apply_filters('tc_order_details_table_front_show_tickets_header', true ) == true ) {
+            echo '<h2>' . __( 'Tickets', 'woocommerce-tickera-bridge' ) . '</h2>';
         }
 
-        do_action('tc_order_details_table_front_before_table', $order_id, $tickets, $columns, $classes);
+        do_action( 'tc_order_details_table_front_before_table', $order_id, $tickets, $columns, $classes );
+
         ?>
 
-        <table class="<?php echo esc_attr($classes); ?>">
+        <table class="<?php echo esc_attr( $classes ); ?>">
             <tr>
-                <?php
-                foreach ($columns as $column) {
-                    ?>
+                <?php foreach ( $columns as $column ) : ?>
                     <th><?php echo $column['field_title']; ?></th>
-                    <?php
-                }
-                ?>
+                <?php endforeach; ?>
             </tr>
 
-            <?php
-            foreach ($tickets as $ticket) {
-                $style = ( ' class="alternate"' == $style ) ? '' : ' class="alternate"';
-                ?>
-                <tr <?php echo esc_attr($style); ?>>
+
+            <?php foreach ( $tickets as $ticket ) : ?>
+
+                <?php $style = ( ' class="alternate"' == $style ) ? '' : ' class="alternate"'; ?>
+
+                <tr <?php echo esc_attr( $style ); ?>>
                     <?php
-                    foreach ($columns as $column) {
-                        ?>
+                    foreach ( $columns as $column ) : ?>
                         <td>
                             <?php
-                            if ($column['field_type'] == 'function') {
+                            if ( 'function' == $column['field_type'] ) {
                                 eval($column['function'] . '("' . $column['field_name'] . '", "' . (isset($column['field_id']) ? $column['field_id'] : '') . '", "' . $ticket->ID . '");');
+
                             } else {
-                                if ($column['post_field_type'] == 'post_meta') {
-                                    echo get_post_meta($ticket->ID, $column['field_name'], true);
-                                }
-                                if ($column['post_field_type'] == 'ID') {
+
+                                if ( 'post_meta' == $column['post_field_type'] ) {
+                                    echo get_post_meta( $ticket->ID, $column['field_name'], true );
+
+                                } elseif ( 'ID' == $column['post_field_type'] ) {
                                     echo $ticket->ID;
                                 }
                             }
                             ?>
                         </td>
-                    <?php }
-                    ?>
+                    <?php endforeach; ?>
                 </tr>
-                <?php
-            }
-            ?>
+
+            <?php endforeach; ?>
         </table>
+
         <?php
-        do_action('tc_order_details_table_front_after_table', $order_id, $tickets, $columns, $classes);
+        do_action( 'tc_order_details_table_front_after_table', $order_id, $tickets, $columns, $classes );
     }
-    if ($return) {
-        $content = wpautop(ob_get_clean(), true);
-        return $content;
+
+    if ( $return ) {
+        return wpautop( ob_get_clean(), true );
     }
 }
 
 /**
- * Generate order details in customer view
+ * Render order details in Frontend
+ *
  * @param string $order_id
  * @param string $order_key
  * @param bool $return
  * @return string
  */
-function tc_get_order_details_front($order_id = '', $order_key = '', $return = false) {
-    global $tc;
+function tc_get_order_details_front( $order_id = '', $order_key = '', $return = false ) {
 
-    if ($return) {
+    if ( $return ) {
         ob_start();
     }
 
-    $tc_general_settings = get_option('tc_general_setting', false);
+    $tc_general_settings = get_option( 'tc_general_setting', false );
 
-    $order = new TC_Order($order_id);
+    $order = new TC_Order( $order_id );
     $init_order_id = $order_id;
 
     // Key must match order creation date for security reasons
@@ -2527,84 +2615,84 @@ function tc_get_order_details_front($order_id = '', $order_key = '', $return = f
         switch ( $order->details->post_status ) {
 
             case 'order_received':
-                $order_status = __('Pending Payment', 'tc');
+                $order_status = __( 'Pending Payment', 'tc' );
                 break;
 
             case 'order_fraud':
-                $order_status = __('Under Review', 'tc');
+                $order_status = __( 'Under Review', 'tc' );
                 break;
 
             case 'order_paid':
-                $order_status = __('Payment Completed', 'tc');
+                $order_status = __( 'Payment Completed', 'tc' );
                 break;
 
             case 'trash':
-                $order_status = __('Order Deleted', 'tc');
+                $order_status = __( 'Order Deleted', 'tc' );
                 break;
 
             case 'order_cancelled':
-                $order_status = __('Order Cancelled', 'tc');
+                $order_status = __( 'Order Cancelled', 'tc' );
                 break;
 
             case 'order_refunded':
-                $order_status = __('Order Refunded', 'tc');
+                $order_status = __( 'Order Refunded', 'tc' );
                 break;
 
             default:
                 $order_status = $order->details->post_status;
         }
 
-        $fees_total = apply_filters('tc_cart_currency_and_format', $order->details->tc_payment_info['fees_total']);
-        $tax_total = apply_filters('tc_cart_currency_and_format', $order->details->tc_payment_info['tax_total']);
-        $subtotal = apply_filters('tc_cart_currency_and_format', $order->details->tc_payment_info['subtotal']);
-        $total = apply_filters('tc_cart_currency_and_format', $order->details->tc_payment_info['total']);
-        $transaction_id = isset($order->details->tc_payment_info['transaction_id']) ? $order->details->tc_payment_info['transaction_id'] : '';
-        $order_id = strtoupper($order->details->post_name);
-        $order_date = $payment_date = apply_filters('tc_order_date', tc_format_date($order->details->tc_order_date, true)); //date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $order->details->tc_order_date, false )
+        $fees_total = apply_filters( 'tc_cart_currency_and_format', $order->details->tc_payment_info['fees_total'] );
+        $tax_total = apply_filters( 'tc_cart_currency_and_format', $order->details->tc_payment_info['tax_total'] );
+        $subtotal = apply_filters( 'tc_cart_currency_and_format', $order->details->tc_payment_info['subtotal'] );
+        $total = apply_filters( 'tc_cart_currency_and_format', $order->details->tc_payment_info['total'] );
+        $transaction_id = isset( $order->details->tc_payment_info['transaction_id'] ) ? $order->details->tc_payment_info['transaction_id'] : '';
+        $order_id = strtoupper( $order->details->post_name );
+        $order_date = $payment_date = apply_filters( 'tc_order_date', tc_format_date( $order->details->tc_order_date, true ) );
+
         $discounts = new TC_Discounts();
-        $discount_total = $discounts->get_discount_total_by_order($order->details->ID);
+        $discount_total = $discounts->get_discount_total_by_order( $order->details->ID );
         ?>
 
-        <label><span class="order_details_title"><?php _e('Order: ', 'tc'); ?></span> <?php echo $order_id; ?></label>
-        <label><span class="order_details_title"><?php _e('Order date: ', 'tc'); ?></span> <?php echo $order_date; ?></label>
-        <label><span class="order_details_title"><?php _e('Order status: ', 'tc'); ?></span> <?php echo $order_status; ?></label>
+        <label><span class="order_details_title"><?php _e( 'Order: ', 'tc' ); ?></span> <?php echo $order_id; ?></label>
+        <label><span class="order_details_title"><?php _e( 'Order date: ', 'tc' ); ?></span> <?php echo $order_date; ?></label>
+        <label><span class="order_details_title"><?php _e( 'Order status: ', 'tc' ); ?></span> <?php echo $order_status; ?></label>
 
-        <?php if ( isset( $transaction_id ) && $transaction_id !== '') : ?>
-            <label><span class="order_details_title"><?php _e('Transaction ID: ', 'tc'); ?></span> <?php echo $transaction_id; ?></label>
+        <?php if ( isset( $transaction_id ) && $transaction_id !== '' ) : ?>
+            <label><span class="order_details_title"><?php _e( 'Transaction ID: ', 'tc' ); ?></span> <?php echo $transaction_id; ?></label>
         <?php endif; ?>
 
-        <label><span class="order_details_title"><?php _e('Subtotal: ', 'tc'); ?></span> <?php echo $subtotal; ?></label>
+        <label><span class="order_details_title"><?php _e( 'Subtotal: ', 'tc' ); ?></span> <?php echo $subtotal; ?></label>
 
-        <?php if ( $discount_total !== 0) : ?>
-            <?php $order_discount_code = get_post_meta($order->details->ID, 'tc_discount_code', true); ?>
-            <label class="tc_order_details_discount_value"><span class="order_details_title"><?php _e('Discount: ', 'tc'); ?></span> <?php tc_get_order_discount_info('', $order->details->ID); ?></label>
-            <label class="tc_order_details_discount_code"><span class="order_details_title"><?php _e('Discount code: ', 'tc');?></span> <?php  echo $order_discount_code;?></label>
+        <?php if ( $discount_total !== 0 ) : ?>
+            <?php $order_discount_code = get_post_meta( $order->details->ID, 'tc_discount_code', true ); ?>
+            <label class="tc_order_details_discount_value"><span class="order_details_title"><?php _e( 'Discount: ', 'tc' ); ?></span> <?php tc_get_order_discount_info( '', $order->details->ID ); ?></label>
+            <label class="tc_order_details_discount_code"><span class="order_details_title"><?php _e( 'Discount code: ', 'tc' );?></span> <?php  echo $order_discount_code;?></label>
         <?php endif; ?>
 
-        <?php if ( !isset( $tc_general_settings['show_fees'] ) || isset( $tc_general_settings['show_fees'] ) && $tc_general_settings['show_fees'] == 'yes' ) : ?>
-            <label><span class="order_details_title"><?php echo isset($tc_general_settings['fees_label']) ? $tc_general_settings['fees_label'] : __('Fees', 'tc'); ?></span> <?php echo $fees_total; ?></label>
+        <?php if ( !isset( $tc_general_settings['show_fees'] ) || isset( $tc_general_settings['show_fees'] ) && 'yes' == $tc_general_settings['show_fees'] ) : ?>
+            <label><span class="order_details_title"><?php echo isset( $tc_general_settings['fees_label'] ) ? $tc_general_settings['fees_label'] : __( 'Fees', 'tc' ); ?></span> <?php echo $fees_total; ?></label>
         <?php endif; ?>
 
-        <?php if ( !isset( $tc_general_settings['show_tax_rate'] ) || isset( $tc_general_settings['show_tax_rate'] ) && $tc_general_settings['show_tax_rate'] == 'yes' ) : ?>
-            <label><span class="order_details_title"><?php echo isset($tc_general_settings['tax_label']) ? $tc_general_settings['tax_label'] : __('Tax', 'tc'); ?></span> <?php echo $tax_total; ?></label>
+        <?php if ( !isset( $tc_general_settings['show_tax_rate'] ) || isset( $tc_general_settings['show_tax_rate'] ) && 'yes' == $tc_general_settings['show_tax_rate'] ) : ?>
+            <label><span class="order_details_title"><?php echo isset( $tc_general_settings['tax_label'] ) ? $tc_general_settings['tax_label'] : __( 'Tax', 'tc' ); ?></span> <?php echo $tax_total; ?></label>
         <?php endif; ?>
 
         <hr />
-        <label><span class="order_details_title"><?php _e('Total: ', 'tc'); ?></span> <?php echo $total; ?></label>
+        <label><span class="order_details_title"><?php _e( 'Total: ', 'tc' ); ?></span> <?php echo $total; ?></label>
 
-        <?php // Open PHP for succeeding source codes
-        
-        tc_order_details_table_front($init_order_id, $return);
+        <?php
+
+        tc_order_details_table_front( $init_order_id, $return );
 
     } else {
-        _e("You don't have required permissions to access this page.", 'tc');
+        _e( "You don't have required permissions to access this page.", 'tc' );
     }
 
-    do_action('tc_after_order_details', $order_id);
+    do_action( 'tc_after_order_details', $order_id );
 
-    if ($return) {
-        $content = wpautop(ob_get_clean(), true);
-        return $content;
+    if ( $return ) {
+        return wpautop( ob_get_clean(), true );
     }
 }
 
@@ -3087,29 +3175,65 @@ function tc_get_ticket_templates($field_name = '', $post_id = '') {
     }
 }
 
-/* Get events drop down */
+/**
+ * Render Events Drop Down
+ *
+ * @param string $field_name
+ * @param string $post_id
+ * @param bool $multi_select
+ */
+function tc_get_api_keys_events( $field_name = '', $post_id = '', $multi_select = false ) {
 
-function tc_get_api_keys_events($field_name = '', $post_id = '') {
-    $wp_events_search = new TC_Events_Search('', '', -1);
-    if ($post_id !== '') {
-        $currently_selected = get_post_meta($post_id, $field_name, true);
-    } else {
-        $currently_selected = '';
-    }
+    $multi_select = ( $multi_select ) ? 'multiple' : '';
+    $placeholder = ( $multi_select ) ? __( 'Choose any events', 'tc' ) : '';
+
+    $wp_events_search = new TC_Events_Search( '', '', -1 );
+    $terms = get_terms( [ 'taxonomy' => 'event_category', 'hide_empty' => false ] );
+
+    $selected = ( $post_id !== '' ) ? (array) get_post_meta( $post_id, $field_name, true ) : [];
+
+    /*
+     * Identify if dynamic field
+     * Convert selected values to the latest format
+     */
+    $currently_selected = ( ! is_array( reset( $selected ) ) ) ? [ 'all' => $selected ] : $selected;
+    $current_event_ids = reset( $currently_selected );
+    $current_term_id = array_keys( $currently_selected )[0];
     ?>
-    <select name="<?php echo esc_attr($field_name); ?>_post_meta">
-        <option value="all"><?php _e('All Events', 'tc'); ?></option>
-        <?php
-        foreach ($wp_events_search->get_results() as $event) {
 
-            $event_obj = new TC_Event($event->ID);
-            $event_object = $event_obj->details;
-            ?>
-            <option value="<?php echo (int) $event_object->ID; ?>" <?php selected($currently_selected, $event_object->ID, true); ?>><?php echo $event_object->post_title; ?></option>
-            <?php
-        }
-        ?>
+    <!-- Event Category Field -->
+    <select id="tc-event-category-field" class="regular-text dynamic-field-parent">
+        <option value="all" <?php selected( $current_term_id, 'all', true ); ?>><?php _e( 'All Event Categories', 'tc' ); ?></option>
+        <?php foreach ( $terms as $term ) : ?>
+            <option value="<?php echo (int) $term->term_id; ?>" <?php selected( $current_term_id, (int) $term->term_id, true ); ?>><?php echo $term->name; ?></option>
+        <?php endforeach; ?>
     </select>
+
+    <!-- Event Name Field -->
+    <select id="tc-event-name-field" class="regular-text dynamic-field-child" name="<?php echo esc_attr( $field_name ); ?>_post_meta[<?php echo esc_attr( $current_term_id ); ?>][]" data-placeholder="<?php echo $placeholder; ?>" <?php echo esc_attr( $multi_select ); ?>>
+        <option value="all" <?php selected( true, ( ! $current_event_ids || in_array( 'all', $current_event_ids ) ), true ); ?>><?php _e( 'All Events', 'tc' ); ?></option>
+
+        <?php foreach ( $wp_events_search->get_results() as $event ) : ?>
+            <?php
+            $event_terms = get_the_terms( $event->ID, 'event_category' );
+            $event_title = get_the_title( $event->ID );
+
+            if ( 'all' == $current_term_id ) : ?>
+                <option value="<?php echo (int) $event->ID; ?>" <?php selected( true, ( in_array( $event->ID, $current_event_ids ) && ! in_array( 'all', $current_event_ids ) ), true ); ?>><?php echo $event_title; ?></option>
+
+            <?php else :
+
+                foreach ( (array) $event_terms as &$term ) {
+                    if ( isset( $term->term_id ) && $current_term_id == $term->term_id ) : ?>
+                        <option value="<?php echo (int) $event->ID; ?>" <?php selected( true, ( in_array( $event->ID, $current_event_ids ) && ! in_array( 'all', $current_event_ids ) ), true ); ?>><?php echo $event->post_title; ?></option>
+                        <?php break; endif;
+                }
+            endif;
+
+            ?>
+        <?php endforeach; ?>
+    </select>
+
     <?php
 }
 
@@ -3137,6 +3261,13 @@ function tc_get_quantity_sold($field_name = '', $post_id = '') {
     return $post_id;
 }
 
+/**
+ * Collect a list of events in an array
+ *
+ * @param string $field_name
+ * @param string $post_id
+ * @return array
+ */
 function tc_get_events_array($field_name = '', $post_id = '') {
     $events = array();
     $wp_events_search = new TC_Events_Search('', '', '-1');
@@ -3152,6 +3283,12 @@ function tc_get_events_array($field_name = '', $post_id = '') {
     return $events;
 }
 
+/**
+ * Generate a dropdown menu with a list of events
+ *
+ * @param string $field_name
+ * @param string $post_id
+ */
 function tc_get_events($field_name = '', $post_id = '') {
     $wp_events_search = new TC_Events_Search('', '', '-1');
     if ($post_id !== '') {
@@ -3177,8 +3314,49 @@ function tc_get_events($field_name = '', $post_id = '') {
     <?php
 }
 
-/* Get tickets drop down (used on the discount codes admin page) */
+/**
+ * Get Event Level Dropdown Option (Used in Tickera Admin Event Page)
+ *
+ * @param string $field_name
+ * @param $post_id
+ */
+function tc_get_event_limit_level_option( $field_name = '', $post_id ){
 
+    $field_name = esc_attr( $field_name );
+    $post_meta = get_post_meta( $post_id );
+    $limit_level_type = isset( $post_meta['limit_level'] ) ? reset( $post_meta['limit_level'] ) : 0;
+    $limit_level_value = isset( $post_meta['limit_level_value'] ) ? reset( $post_meta['limit_level_value'] ) : '';
+
+    $html = '';
+
+    // Input fields for Limit types
+    $html .= '<label for="' . $field_name . '_0">';
+    $html .= '<input type="radio" id="' . $field_name . '_0" class="' . $field_name . '_post_meta has_conditional" name="' . $field_name . '_post_meta" value = "0" ' . checked( $limit_level_type, 0, false ) . '/>' . __( 'Per ticket type (Default)', 'tc' );
+    $html .= '</label><br><br>';
+    $html .= '<label for="' . $field_name . '_1">';
+    $html .= '<input type="radio" id="' . $field_name . '_1" class="' . $field_name . '_post_meta has_conditional" name="' . $field_name . '_post_meta" value = "1" ' . checked( $limit_level_type, 1, false ) . '/>' . __( 'Per event', 'tc' );
+    $html .= '</label><br><br>';
+
+    // Input field for Limit value
+    $html .= '<input type="text"';
+    $html .= 'name="' . $field_name . '_value_post_meta"';
+    $html .= 'id="' . $field_name . '"';
+    $html .= 'class="regular-text tc_conditional" value="' . $limit_level_value . '"';
+    $html .= 'data-condition-field_name="' . $field_name . '_post_meta"';
+    $html .= 'data-condition-field_type="radio"';
+    $html .= 'data-condition-value="0"';
+    $html .= 'data-condition-action="hide"';
+    $html .= ' number="true" required/>';
+
+    echo $html;
+}
+
+/**
+ * Get tickets drop down (used in the discount codes admin page)
+ *
+ * @param string $field_name
+ * @param string $post_id
+ */
 function tc_get_ticket_types($field_name = '', $post_id = '') {
     $wp_tickets_search = new TC_Tickets_Search('', '', -1);
     if ($post_id !== '') {
@@ -3207,6 +3385,12 @@ function tc_get_ticket_types($field_name = '', $post_id = '') {
     <?php
 }
 
+/**
+ * Generate a dropdown menu with a list of users' roles.
+ *
+ * @param string $field_name
+ * @param string $post_id
+ */
 function tc_get_user_roles( $field_name = '', $post_id = '' ) {
 
     $user_roles_object = new WP_Roles();
@@ -3233,8 +3417,12 @@ function tc_get_user_roles( $field_name = '', $post_id = '' ) {
     <?php // Open PHP for succeeding source codes
 }
 
-/* Get discount type */
-
+/**
+ * Get discount type
+ *
+ * @param string $field_name
+ * @param string $post_id
+ */
 function tc_get_discount_types($field_name = '', $post_id = '') {
     if ($post_id !== '') {
         $currently_selected = get_post_meta($post_id, $field_name, true);
@@ -3303,7 +3491,7 @@ function tc_update_widget_cart() {
 }
 
 function tc_post_fields() {
-    $post_fields = array(
+    return array(
         'ID',
         'post_author',
         'post_date',
@@ -3328,24 +3516,20 @@ function tc_post_fields() {
         'post_mime_type',
         'comment_count'
     );
-    return $post_fields;
 }
 
 function tc_get_post_meta_all($post_id) {
-    $data = array();
-
+    $data = [];
     $metas = get_post_meta($post_id);
     foreach ($metas as $key => $value) {
         $data[$key] = is_array($value) ? $value[0] : $value;
     };
-
     return $data;
 }
 
 function tc_get_post_meta_all_old($post_id) {
     global $wpdb;
-    $data = array();
-
+    $data = [];
     $wpdb->query($wpdb->prepare("
         SELECT `meta_key`, `meta_value`
         FROM " . $wpdb->postmeta . "
@@ -3353,8 +3537,7 @@ function tc_get_post_meta_all_old($post_id) {
 
     foreach ($wpdb->last_result as $k => $v) {
         $data[$v->meta_key] = $v->meta_value;
-    };
-
+    }
     return $data;
 }
 
@@ -3416,14 +3599,13 @@ if (!function_exists('json_encode')) {
 }
 
 function ticket_code_to_id($ticket_code) {
-    $args = array(
-        'posts_per_page' => 1,
-        'meta_key' => 'ticket_code',
-        'meta_value' => $ticket_code,
-        'post_type' => 'tc_tickets_instances'
+    $result = get_posts( array(
+            'posts_per_page' => 1,
+            'meta_key' => 'ticket_code',
+            'meta_value' => $ticket_code,
+            'post_type' => 'tc_tickets_instances'
+        )
     );
-
-    $result = get_posts($args);
 
     if (isset($result[0])) {
         return $result[0]->ID;
@@ -3436,8 +3618,12 @@ function tc_checkout_step_url($checkout_step) {
     return apply_filters('tc_checkout_step_url', trailingslashit(home_url()) . trailingslashit($checkout_step));
 }
 
-/* check if the tcpdf throws image error and if it does change the url */
-
+/**
+ * check if the tcpdf throws image error and if it does change the url
+ *
+ * @param $image_url
+ * @return false|string
+ */
 function tc_ticket_template_image_url($image_url) {
 
     $imsize = @getimagesize($image_url);
@@ -3513,7 +3699,6 @@ if (!function_exists('tc_iw_is_wl')) {
 }
 
 require_once("wizard-functions.php");
-
 require_once("internal-hooks.php");
 
 ?>

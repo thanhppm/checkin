@@ -1,41 +1,28 @@
 <?php
 global $post, $tc;
 
-$post_object = get_page($post->ID);
 $tc_chart_content = TC_Seat_Chart::get_seating_chart_html($post->ID);
-$tc_admin_zoom_level = 1;
-$tc_pan_position_left = 10;
-$tc_pan_position_top = 10;
-$tc_part_no = 0;
 
-if (is_numeric(get_post_meta($post->ID, 'tc_admin_zoom_level', true))) {
-    $tc_admin_zoom_level = get_post_meta($post->ID, 'tc_admin_zoom_level', true);
-}
+$tc_admin_zoom_level = get_post_meta( $post->ID, 'tc_admin_zoom_level', true );
+$tc_pan_position_left = get_post_meta( $post->ID, 'tc_pan_position_left', true );
+$tc_pan_position_top = get_post_meta( $post->ID, 'tc_pan_position_top', true);
+$tc_part_no = get_post_meta( $post->ID, 'tc_part_no', true );
 
-if (is_numeric(get_post_meta($post->ID, 'tc_pan_position_left', true))) {
-    $tc_pan_position_left = get_post_meta($post->ID, 'tc_pan_position_left', true);
-}
+$tc_admin_zoom_level = is_numeric( $tc_admin_zoom_level ) ? $tc_admin_zoom_level : 1;
+$tc_pan_position_left = is_numeric( $tc_pan_position_left ) ? $tc_pan_position_left : 10;
+$tc_pan_position_top = is_numeric( $tc_pan_position_top ) ? $tc_pan_position_top : 10;
+$tc_part_no = is_numeric( $tc_part_no ) ? $tc_part_no : 0;
 
-if (is_numeric(get_post_meta($post->ID, 'tc_pan_position_top', true))) {
-    $tc_pan_position_top = get_post_meta($post->ID, 'tc_pan_position_top', true);
-}
-
-if (is_numeric(get_post_meta($post->ID, 'tc_part_no', true))) {
-    $tc_part_no = get_post_meta($post->ID, 'tc_part_no', true);
-}
-
-//if (is_numeric(get_post_meta($post->ID, 'tc_current_screen_width', true))) {
-$tc_current_screen_width = get_post_meta($post->ID, 'tc_current_screen_width', true);
-//}
+$tc_current_screen_width = get_post_meta( $post->ID, 'tc_current_screen_width', true );
 ?>
 <input type="hidden" id="tc_square_size" value="<?php echo esc_attr(TC_Seat_Chart::chart_measure()); ?>" />
-<input type="hidden" id="tc_admin_zoom_level" name="tc_admin_zoom_level_post_meta" value="<?php echo esc_attr($tc_admin_zoom_level); ?>" />
+<input type="hidden" id="tc_admin_zoom_level" name="tc_admin_zoom_level_post_meta" value="<?php echo esc_attr( $tc_admin_zoom_level ); ?>" />
 <input type="hidden" id="tc_ticket_types" name="tc_ticket_types_post_meta" value="" />
-<input type="hidden" id="tc_pan_position_left" name="tc_pan_position_left_post_meta" value="<?php echo esc_attr($tc_pan_position_left); ?>" />
-<input type="hidden" id="tc_current_screen_width" name="tc_current_screen_width_post_meta" value="<?php echo esc_attr($tc_current_screen_width); ?>" />
-<input type="hidden" id="tc_pan_position_top" name="tc_pan_position_top_post_meta" value="<?php echo esc_attr($tc_pan_position_top); ?>" />
-<input type="hidden" id="tc_part_no" name="tc_part_no_post_meta" value="<?php echo esc_attr($tc_part_no); ?>" />
-<textarea style="display:none;" id="tc_chart_content" name="tc_chart_content"><?php echo esc_html($tc_chart_content); ?></textarea>
+<input type="hidden" id="tc_pan_position_left" name="tc_pan_position_left_post_meta" value="<?php echo esc_attr( $tc_pan_position_left ); ?>" />
+<input type="hidden" id="tc_current_screen_width" name="tc_current_screen_width_post_meta" value="<?php echo esc_attr( $tc_current_screen_width ); ?>" />
+<input type="hidden" id="tc_pan_position_top" name="tc_pan_position_top_post_meta" value="<?php echo esc_attr( $tc_pan_position_top ); ?>" />
+<input type="hidden" id="tc_part_no" name="tc_part_no_post_meta" value="<?php echo esc_attr( $tc_part_no ); ?>" />
+<textarea style="display:none;" id="tc_chart_content" name="tc_chart_content"><?php echo esc_html( $tc_chart_content ); ?></textarea>
 <textarea style="display:none;" id="tc_chart_content_front" name="tc_chart_content_front"></textarea>
 <div class="tc-sidebar">
 

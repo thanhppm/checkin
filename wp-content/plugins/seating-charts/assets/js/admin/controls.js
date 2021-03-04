@@ -1,5 +1,7 @@
 jQuery(document).ready(function ($) {
+
     window.tc_controls = {
+
         /**
          * Creates new element
          * @returns {undefined}
@@ -42,9 +44,10 @@ jQuery(document).ready(function ($) {
                     tc_controls.get_event_ticket_types();
                 }
             } else {
-                //tc_controls.change_event_confirmation_callback(true);
+                // tc_controls.change_event_confirmation_callback(true);
             }
         },
+
         change_event_confirmation_callback: function (value) {
             if (value == true) {
                 var selected_event_id = $("#tc-settings .tc-event-wrap option:selected").val();
@@ -63,6 +66,7 @@ jQuery(document).ready(function ($) {
                 });
             }
         },
+
         delete_confirmation: function (obj_to_delete) {
             $("#tc-seating-dialog").dialog({
                 bgiframe: true,
@@ -91,6 +95,7 @@ jQuery(document).ready(function ($) {
                 ]
             });
         },
+
         delete_confirmation_callback: function (value, obj_to_delete) {
             if (value == true) {
                 obj_to_delete.remove();
@@ -99,6 +104,7 @@ jQuery(document).ready(function ($) {
                 $(".tc-group-wrap").removeClass('tc-edit-mode');
             }
         },
+
         rgb2hex: function (rgb) {
             rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
             return (rgb && rgb.length === 4) ? "#" +
@@ -106,81 +112,94 @@ jQuery(document).ready(function ($) {
                     ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
                     ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
         },
+
         set_default_settings_values: function () {
-            //Seatings
+
+            // Seatings
             $('#tc_seating_group_title').val('');
             $('#tc_seating_group_widget .tc_seat_add_controls').show();
             $('#tc_seating_group_widget .tc_seat_edit_controls').hide();
             $('#tc_seating_group_widget .tc-seat-rows-slider').show();
             $('#tc_seating_group_widget .tc-seat-cols-slider').show();
-            //Standing
+            // Standing
             $('#tc_standing_group_title').val('');
             $('#tc_standing_widget .tc_seat_add_controls').show();
             $('#tc_standing_widget .tc_seat_edit_controls').hide();
             $('#tc_standing_widget .tc-assign-ticket-type').show();
-            //Table
+            // Table
             $('.tc_table_title').val('');
             $('#tc-table .tc_table_add_controls').show();
             $('#tc-table .tc_table_edit_controls').hide();
             $('#tc-table .tc-input-slider').show();
-            //Element
+            // Element
             $('.tc_element_title').val('');
             $('#tc_element_widget .tc_element_add_controls').show();
             $('#tc_element_widget .tc_element_edit_controls').hide();
-            //Text
+            // Text
             $('.tc_text_title').val('');
             $('#tc_text_widget .tc_text_add_controls').show();
             $('#tc_text_widget .tc_text_edit_controls').hide();
         },
+
         next_part_number: function () {
             var next_part_no = $('#tc_part_no').val();
             next_part_no = parseInt(next_part_no) + 1;
             $('#tc_part_no').val(next_part_no);
             return next_part_no;
         },
-        set_tabs_inactive: function (event)
-        {
-            if ($(event.target).attr('class') == 'tc-wrapper') {
-//unset all active tabs
+
+        /**
+         * Unset all active tabs
+         *
+         * @param event
+         */
+        set_tabs_inactive: function (event) {
+
+            if ( 'tc-wrapper' == $(event.target).attr('class') ) {
                 $(".tc-sidebar").tabs({collapsible: true, active: false});
                 tc_controls.hide_ticket_type_box();
                 $(".tc-group-wrap").removeClass('tc-edit-mode');
             }
         },
+
         unselect_all: function () {
-            //unselect all
             $(".tc-group-wrap *").removeClass('ui-selected');
             $(".tc-group-wrap").removeClass('tc-edit-mode');
         },
+
         zoom: function () {
-            if (window.tc_seat_zoom_level <= 1 && window.tc_seat_zoom_level >= 0.30) {
+
+            if ( window.tc_seat_zoom_level <= 1 && window.tc_seat_zoom_level >= 0.30 ) {
+
                 var prev_value = $(".tc-zoom-slider").slider("option", "value");
                 window.tc_seat_zoom_level_prev = prev_value;
+
                 if (window.tc_seat_zoom_level_prev < window.tc_seat_zoom_level) {
                     zoom_level = ((window.tc_seat_zoom_level - window.tc_seat_zoom_level_prev)) + 1;
+
                 } else {
                     zoom_level = ((window.tc_seat_zoom_level_prev - window.tc_seat_zoom_level)) + 1;
                 }
 
+                $('.tc-pan-wrapper').css( {
+                        '-webkit-transform': 'scale(' + window.tc_seat_zoom_level + ')',
+                        'webkit-transform-origin': '0 0',
+                        '-moz-transform': 'scale(' + window.tc_seat_zoom_level + ')',
+                        'moz-transform-origin': '0 0',
+                        '-ms-transform': 'scale(' + window.tc_seat_zoom_level + ')',
+                        '-o-transform': 'scale(' + window.tc_seat_zoom_level + ')',
+                        'o-transform-origin': '0 0',
+                        'transform': 'scale(' + window.tc_seat_zoom_level + ')',
+                        'transform-origin': '0 0'
+                    }
+                );
 
-                $('.tc-pan-wrapper').css(
-                        {
-                            '-webkit-transform': 'scale(' + window.tc_seat_zoom_level + ')',
-                            'webkit-transform-origin': '0 0',
-                            '-moz-transform': 'scale(' + window.tc_seat_zoom_level + ')',
-                            'moz-transform-origin': '0 0',
-                            '-ms-transform': 'scale(' + window.tc_seat_zoom_level + ')',
-                            '-o-transform': 'scale(' + window.tc_seat_zoom_level + ')',
-                            'o-transform-origin': '0 0',
-                            'transform': 'scale(' + window.tc_seat_zoom_level + ')',
-                            'transform-origin': '0 0'
-                        });
-//$(".tc-zoom-slider").slider("option", window.tc_seat_zoom_level)
                 $('#tc_admin_zoom_level').val(window.tc_seat_zoom_level);
                 $(".tc-zoom-slider").slider('value', window.tc_seat_zoom_level);
                 $(".tc-wrapper").css('background-size', 80 * window.tc_seat_zoom_level);
             }
         },
+
         zoom_plus: function () {
             if (window.tc_seat_zoom_level < 1) {
                 //window.tc_seat_zoom_level_prev = window.tc_seat_zoom_level;
@@ -188,6 +207,7 @@ jQuery(document).ready(function ($) {
                 tc_controls.zoom();
             }
         },
+
         zoom_minus: function () {
             if (window.tc_seat_zoom_level > 0.3) {
                 //window.tc_seat_zoom_level_prev = window.tc_seat_zoom_level;
@@ -195,13 +215,16 @@ jQuery(document).ready(function ($) {
                 tc_controls.zoom();
             }
         },
+
         position_zoom_controls: function () {
             var admin_menu_width = $('#adminmenuwrap').width();
             $('.tc-zoom-wrap').css('left', admin_menu_width + 15)
         },
+
         set_wrapper_height: function () {
             $('.tc-wrapper').height($(window).height() - $('#wpadminbar').height());
         },
+
         center: function (element) {
             element.css("position", "absolute");
             var position = jQuery('.tc-pan-wrapper').position();
@@ -227,6 +250,7 @@ jQuery(document).ready(function ($) {
             element.css("left", (left + tc_wrap_width) + "px");
             return element;
         },
+
         position_pan_wrapper: function (position) {
             var move_val = 50;
             switch (position) {
@@ -252,6 +276,7 @@ jQuery(document).ready(function ($) {
             $(".tc-wrapper").css('background-position-x', $('.tc-pan-wrapper').position().left);
             $(".tc-wrapper").css('background-position-y', $('.tc-pan-wrapper').position().top);
         },
+
         save_distinct_ticket_types: function () {
             var items = {};
             $('.tc_set_seat').each(function () {
@@ -265,6 +290,7 @@ jQuery(document).ready(function ($) {
             var results = result.toString();
             $('#tc_ticket_types').val(results);
         },
+
         save_confirmation: function () {
 
             var unassigned_seats = 0;
@@ -297,19 +323,13 @@ jQuery(document).ready(function ($) {
                                 tc_controls.save_confirmation_callback(false);
                             }
                         },
-                                /*{
-                                 text: tc_controls_vars.yes,
-                                 click: function () {
-                                 $(this).dialog("close");
-                                 tc_controls.save_confirmation_callback(true);
-                                 }
-                                 }*/
                     ]
                 });
             } else {
                 tc_controls.save_confirmation_callback(true);
             }
         },
+
         save_confirmation_callback: function (value) {
             if (value == true) {
                 $('.tc-wrapper').prepend("<div class='tc-chart-preloader'><div class='tc-loader'></div></div>");
@@ -332,9 +352,11 @@ jQuery(document).ready(function ($) {
 
             }
         },
+
         save: function () {
             tc_controls.save_confirmation();
         },
+
         init: function () {
             $('#content-tmce').click();
             window.tc_seat_zoom_level_prev = parseFloat($('#tc_admin_zoom_level').val());
@@ -348,39 +370,44 @@ jQuery(document).ready(function ($) {
             $('.tc-wrapper, .tc-sidebar').fadeTo(600, 1, function () {
                 // Animation completed.
             });
-            //fix issue with Firefox Inset
-            Browser = navigator.userAgent;
-            if (!$.browser.mozilla || (Browser.indexOf("Trident") > 0 && $.browser.mozilla)) { 
-            jQuery(jQuery(".tc-group-wrap")).each(function () {
-                var getStyle = $(this).attr("style");
-                var element = getInsetStyle(getStyle);
-                if(element !== undefined){
-                    var value = element.split(' ');
-                    var topPosition = value[0] ? value[0] : 'auto';
-                    var rightPosition = value[1] ? value[1] : 'auto';
-                    var bottomPosition = value[2] ? value[2] : 'auto';
-                    var leftPosition = value[3] ? value[3] : 'auto';
-                    var removeTrail = leftPosition.replace(";", "");
-                    $(this).css({"top": topPosition, "left": removeTrail});
+
+            // Make sure to always replace inset property with top, right, bottom, left properties
+            jQuery.each( jQuery( '.tc-group-wrap' ), function () {
+
+                let getStyle = $(this).attr( 'style' ),
+                    element = tc_controls.getInsetStyle( getStyle );
+
+                if ( element !== undefined ) {
+
+                    let value = element.split(' '),
+                        topPosition = value[0] ? value[0] : 'auto',
+                        rightPosition = value[1] ? value[1] : 'auto',
+                        bottomPosition = value[2] ? value[2] : 'auto',
+                        leftPosition = value[3] ? value[3] : 'auto',
+                        removeTrail = leftPosition.replace( ';', '' );
+
+                    $(this).css( { 'inset': '', 'top': topPosition, 'left': removeTrail } );
                 }
             });
-
-
-// Get inset property
-            function getInsetStyle(allStyle) {
-                var styles = allStyle.split('; ');
-                var astyle;
-                for (var i = 0; i < styles.length; i++) {
-                    astyle = styles[i].split(': ');
-                    if (astyle[0] == 'inset'){
-                        return (astyle[1]);
-                    }
-                }
-                return undefined;
-            }
-        }
-            
         },
+
+        /**
+         * Get inset property
+         *
+         * @param allStyle
+         * @returns {undefined|*}
+         */
+        getInsetStyle: function( allStyle ) {
+            let styles = allStyle.split( '; ' );
+            for ( let i = 0; i < styles.length; i++ ) {
+                let astyle = styles[i].split( ': ' );
+                if ( 'inset' == astyle[0] ){
+                    return astyle[1];
+                }
+            }
+            return undefined;
+        },
+
         set_default_colors: function () {
             $.each($(".tc_set_seat, .tc-object-selectable"), function () {
                 var ticket_type_id = $(this).data('tt-id');
@@ -392,18 +419,22 @@ jQuery(document).ready(function ($) {
                 }
 
                 $(this).css({'background-color': tc_seat_color});
+                $(this).css({'color': tc_seat_color});
 
             })
         },
+
         tc_mark_reserved_seats: function (seat_chart_id) {
             for (var k in tc_reserved_seats[seat_chart_id]) {
                 if (tc_reserved_seats[seat_chart_id].hasOwnProperty(k)) {
                     $('#' + k).css({'background-color': tc_controls_vars.tc_reserved_seat_color});
+                    $('#' + k).css({'color': tc_controls_vars.tc_reserved_seat_color});
                     $('#' + k).addClass('tc_seat_reserved');
                     $('#' + k).removeClass('ui-selected ui-selectee');
                 }
             }
         },
+
         get_event_ticket_types: function () {
             $('.tc-icon-edit').hide();
             $('.tc-ticket-type-wrap select').prop("disabled", true);
@@ -414,6 +445,7 @@ jQuery(document).ready(function ($) {
                 $('.tc-icon-edit').show();
             });
         },
+
         show_ticket_type_box: function (event, ui, show_labels) {
             $('.tc_seat_reserved').removeClass('ui-selected');
             if (show_labels !== false) {
@@ -427,6 +459,7 @@ jQuery(document).ready(function ($) {
             }
 
         },
+
         show_labels: function (event, ui) {
             if ($('.tc_set_seat.ui-selected:not(.tc-object-selectable)').length) {
                 $('#tc-seat-labels-num').html(' (' + $('.tc_set_seat.ui-selected:not(.tc-object-selectable)').length + ')');
@@ -447,12 +480,15 @@ jQuery(document).ready(function ($) {
                 tc_controls.hide_labels();
             }
         },
+
         hide_labels: function () {
             $('#tc-seat-labels-settings').hide();
         },
+
         hide_ticket_type_box: function () {
             $('#tc_ticket_type_widget').hide();
         },
+
         change_ticket_type: function () {
             
             if ($('#ticket_type_id').val() !== undefined && $('#ticket_type_id').val() != null && $('#ticket_type_id').val().length > 0) {
@@ -465,10 +501,12 @@ jQuery(document).ready(function ($) {
                     $(this).attr('data-tt-id', $('#ticket_type_id').val());
                     if ($(this).hasClass('tc-table-chair') || $(this).hasClass('tc-object-selectable')) {
                         $(this).animate({'background-color': tc_seat_color}, 250);
+                        $(this).animate({'color': tc_seat_color}, 250);
                     }
 
                     if ($(this).hasClass('tc_seat_unit')) {
                         $(this).animate({'background-color': tc_seat_color}, 250);
+                        $(this).animate({'color': tc_seat_color}, 250);
                     }
 
                     $(this).removeClass('tc_set_seat');
@@ -479,6 +517,7 @@ jQuery(document).ready(function ($) {
             $('#tc_ticket_type_widget').hide();
             $('#tc-seat-labels-settings').hide();
         },
+
         unset_ticket_type: function () {
             $.each($(".ui-selected"), function () {
 

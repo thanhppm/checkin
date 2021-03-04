@@ -110,7 +110,7 @@ if (!class_exists('TC_Ticket_Templates')) {
             $ticket_template_auto_pagebreak = ( isset( $tc_general_settings['ticket_template_auto_pagebreak'] )
                 && 'yes' == $tc_general_settings['ticket_template_auto_pagebreak'] ) ? true : false ;
 
-            $pdf->SetAutoPageBreak($ticket_template_auto_pagebreak, PDF_MARGIN_BOTTOM);
+            $pdf->SetAutoPageBreak(false, 0);
             $pdf->setJPEGQuality(100);
             $pdf->AddPage();
 
@@ -141,6 +141,8 @@ if (!class_exists('TC_Ticket_Templates')) {
                 $tc_bg_size = $tc_ticket_background_values[$tc_document_orientation][$tc_document_paper_size];
                 $pdf->Image( $tc_ticket_background, $tc_bg_size[0], $tc_bg_size[1], $tc_bg_size[2], $tc_bg_size[3], '', '', '', true, 300, '', false, false, 0, false );
             }
+
+            $pdf->SetAutoPageBreak($ticket_template_auto_pagebreak, PDF_MARGIN_BOTTOM);
 
             $col_1 = 'width: 100%;';
             $col_1_width = '100%';

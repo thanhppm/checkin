@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Tickera - Custom Forms Add-on\n"
-"POT-Creation-Date: 2019-10-03 16:08+0200\n"
+"POT-Creation-Date: 2020-08-13 12:52+0200\n"
 "PO-Revision-Date: 2018-07-31 11:11+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -42,8 +42,8 @@ msgid ""
 "end. You can change that %shere%s"
 msgstr ""
 
-#: includes/admin-pages/tc_custom_fields.php:72 tickera-custom-forms.php:968
-#: tickera-custom-forms.php:969
+#: includes/admin-pages/tc_custom_fields.php:72 tickera-custom-forms.php:1089
+#: tickera-custom-forms.php:1090
 msgid "Custom Forms"
 msgstr ""
 
@@ -56,13 +56,13 @@ msgid "Add New"
 msgstr ""
 
 #: includes/admin-pages/tc_custom_fields.php:88
-#: includes/admin-pages/tc_custom_fields.php:90 tickera-custom-forms.php:952
+#: includes/admin-pages/tc_custom_fields.php:90 tickera-custom-forms.php:1073
 msgid "Search Forms"
 msgstr ""
 
 #: includes/admin-pages/tc_custom_fields.php:130
-#: includes/classes/class.forms.php:148 tickera-custom-forms.php:949
-#: tickera-custom-forms.php:973
+#: includes/classes/class.forms.php:148 tickera-custom-forms.php:1070
+#: tickera-custom-forms.php:1094
 msgid "Edit"
 msgstr ""
 
@@ -95,7 +95,7 @@ msgid ""
 "could be created and used."
 msgstr ""
 
-#: includes/admin-pages/tc_custom_fields.php:225 tickera-custom-forms.php:216
+#: includes/admin-pages/tc_custom_fields.php:225 tickera-custom-forms.php:329
 msgid "Attendee Form"
 msgstr ""
 
@@ -227,95 +227,95 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
-#: tickera-custom-forms.php:100
+#: tickera-custom-forms.php:213
 #, php-format
 msgid ""
 "%s add-on requires at least %s version of %s plugin. Your current version of "
 "%s is %s. Please update it."
 msgstr ""
 
-#: tickera-custom-forms.php:161
+#: tickera-custom-forms.php:274
 #, php-format
 msgid ""
 "There was an issue determining where %s is installed. Please reinstall it."
 msgstr ""
 
-#: tickera-custom-forms.php:169
+#: tickera-custom-forms.php:282
 msgid "Save Changes"
 msgstr ""
 
-#: tickera-custom-forms.php:219
+#: tickera-custom-forms.php:332
 msgid ""
 "Custom form shown for attendees on the front-end. You can edit and/or create "
 "custom forms <a href=\""
 msgstr ""
 
-#: tickera-custom-forms.php:296
+#: tickera-custom-forms.php:409
 msgid "Custom Fields"
 msgstr ""
 
-#: tickera-custom-forms.php:915
+#: tickera-custom-forms.php:1036
 #, php-format
 msgid "Only %s elements per row are allowed"
 msgstr ""
 
-#: tickera-custom-forms.php:944 tickera-custom-forms.php:945
+#: tickera-custom-forms.php:1065 tickera-custom-forms.php:1066
 msgid "Forms"
 msgstr ""
 
-#: tickera-custom-forms.php:946 tickera-custom-forms.php:970
+#: tickera-custom-forms.php:1067 tickera-custom-forms.php:1091
 msgid "Create New"
 msgstr ""
 
-#: tickera-custom-forms.php:947
+#: tickera-custom-forms.php:1068
 msgid "Create New Form"
 msgstr ""
 
-#: tickera-custom-forms.php:948
+#: tickera-custom-forms.php:1069
 msgid "Edit Form"
 msgstr ""
 
-#: tickera-custom-forms.php:950
+#: tickera-custom-forms.php:1071
 msgid "New Form"
 msgstr ""
 
-#: tickera-custom-forms.php:951 tickera-custom-forms.php:955
+#: tickera-custom-forms.php:1072 tickera-custom-forms.php:1076
 msgid "View Form"
 msgstr ""
 
-#: tickera-custom-forms.php:953
+#: tickera-custom-forms.php:1074
 msgid "No Forms Found"
 msgstr ""
 
-#: tickera-custom-forms.php:954
+#: tickera-custom-forms.php:1075
 msgid "No Forms found in Trash"
 msgstr ""
 
-#: tickera-custom-forms.php:971
+#: tickera-custom-forms.php:1092
 msgid "Create New Custom Field"
 msgstr ""
 
-#: tickera-custom-forms.php:972
+#: tickera-custom-forms.php:1093
 msgid "Edit Custom Field"
 msgstr ""
 
-#: tickera-custom-forms.php:974
+#: tickera-custom-forms.php:1095
 msgid "New Custom Field"
 msgstr ""
 
-#: tickera-custom-forms.php:975 tickera-custom-forms.php:979
+#: tickera-custom-forms.php:1096 tickera-custom-forms.php:1100
 msgid "View Custom Field"
 msgstr ""
 
-#: tickera-custom-forms.php:976
+#: tickera-custom-forms.php:1097
 msgid "Search Custom Forms"
 msgstr ""
 
-#: tickera-custom-forms.php:977
+#: tickera-custom-forms.php:1098
 msgid "No Custom Forms Found"
 msgstr ""
 
-#: tickera-custom-forms.php:978
+#: tickera-custom-forms.php:1099
 msgid "No Custom Forms found in Trash"
 msgstr ""
 

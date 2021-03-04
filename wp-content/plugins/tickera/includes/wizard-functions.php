@@ -73,7 +73,7 @@ function tc_setup_wizard_header() {
 if (!function_exists('tc_wizard_progress')) {
 
     function tc_wizard_progress() {
-        $steps = tc_get_wizard_steps(false);
+        $steps = tc_get_wizard_steps(true);
 
         $steps_count = count($steps);
         $current_step = isset($_GET['step']) ? sanitize_key($_GET['step']) : 'start';
@@ -206,7 +206,7 @@ if (!function_exists('tc_get_wizard_steps')) {
 if (!function_exists('tc_wizard_wrapper_class')) {
 
     function tc_wizard_wrapper_class() {
-        $steps = tc_get_wizard_steps(false);
+        $steps = tc_get_wizard_steps(true);
         $steps_count = count($steps);
         echo esc_attr('tc-wizard-steps-count-' . $steps_count);
     }

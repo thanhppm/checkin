@@ -3,6 +3,7 @@
  * Data object persisted as a WordPress user meta entry under the loco_prefs key
  * 
  * @property string $credit Last-Translator credit, defaults to current display name
+ * @property string[] $locales List of locales user wants to be restricted to seeing.
  */
 class Loco_data_Preferences extends Loco_data_Serializable {
 
@@ -24,6 +25,7 @@ class Loco_data_Preferences extends Loco_data_Serializable {
      */
     private static $defaults = array (
         'credit' => '',
+        'locales' => array(),
     );
 
 
@@ -34,7 +36,11 @@ class Loco_data_Preferences extends Loco_data_Serializable {
     public static function get(){
         $id = get_current_user_id();
         if( ! $id ){
-            throw new Exception('No current user');
+            // allow null return only on command line. All web users must be logged in
+            if( 'cli' === PHP_SAPI || defined('LOCO_TEST') ){
+                return null;
+            }
+            throw new Exception( 'No current user' ); // @codeCoverageIgnore
         }
         if( isset(self::$current[$id]) ){
             return self::$current[$id];
@@ -48,12 +54,22 @@ class Loco_data_Preferences extends Loco_data_Serializable {
 
     /**
      * Create default settings instance
+     * @param int User ID
      * @return Loco_data_Preferences
      */
     public static function create( $id ){
         $prefs = new Loco_data_Preferences( self::$defaults );
         $prefs->user_id = $id;
         return $prefs;
+    }
+
+
+    /**
+     * Destroy current user's preferences
+     * @return void
+     */
+    public static function clear(){
+        get_current_user_id() && self::get()->remove();
     }
 
 
@@ -72,13 +88,15 @@ class Loco_data_Preferences extends Loco_data_Serializable {
      */
     public function fetch(){
         $data = get_user_meta( $this->user_id, 'loco_prefs', true );
-        try {
+        // See comments in Loco_data_Settings
+        if( is_array($data) ){
             $this->setUnserialized($data);
+            $copy = new Loco_data_Preferences;
+            $this->exchangeArray( $copy->getArrayCopy() + $this->getArrayCopy() );
+            $this->clean();
+            return true;
         }
-        catch( InvalidArgumentException $e ){
-            return false;
-        }
-        return true;
+        return false;
     }
 
 
@@ -110,8 +128,17 @@ class Loco_data_Preferences extends Loco_data_Serializable {
         }
         return $this;
     }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetSet( $prop, $value ){
+        $value = parent::cast($prop,$value,self::$defaults);
+        parent::offsetSet( $prop, $value );
+    }
     
-    
+
     /**
      * Get default Last-Translator credit
      * @return string
@@ -123,6 +150,31 @@ class Loco_data_Preferences extends Loco_data_Serializable {
             $name = '';
         }
         return $name;
+    }
+    
+    
+    /**
+     * Check if user wants to know about this locale
+     * @param Loco_Locale locale to match in whitelist
+     * @return bool
+     */
+    public function has_locale( Loco_Locale $locale ){
+        $haystack = $this->locales;
+        if( $haystack ){
+            foreach( $haystack as $tag ){
+                $tag = strtolower($tag);
+                // allow language wildcard. en_GB allowed by "en" 
+                if( $locale->lang === $tag ){
+                    return true;
+                }
+                // else normalize whitelist before comparison
+                if( Loco_Locale::parse($tag)->__toString() === $locale->__toString() ){
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
     }
 
 }

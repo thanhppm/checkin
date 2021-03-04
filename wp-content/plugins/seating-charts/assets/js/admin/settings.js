@@ -4,7 +4,7 @@ jQuery(document).ready(function ($) {
      */
 
 
-    $('body').on('click', '#tc-seat-labels-settings .tc-change-button', function (e) {
+    $('body').on('click', '#tc-seat-labels-settings .tc-change-button', function (e) {        
         e.preventDefault();
         tc_labels.assign();
     });
@@ -102,6 +102,8 @@ jQuery(document).ready(function ($) {
 
 
     $('body').on('click', '#tc_seating_group_widget #tc_add_seats_button, #tc_standing_widget #tc_add_standing_button, #tc-table .tc-change-button, #tc_element_widget #tc_add_element_button, #tc_text_widget #tc_add_text_button', function (e) {
+
+        tc_icon_type = $(".tc-check-seat-type:checked").val();
         $('#tc_seating_group_title').val('');
         $('#tc_standing_group_title').val('');
         $('.tc_table_title').val('');

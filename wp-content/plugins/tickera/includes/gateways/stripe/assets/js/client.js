@@ -46,62 +46,65 @@ card.addEventListener('change', function(event) {
     }
 });
 
+
 /**
  * Process Payment when "Submit Payment" Button is clicked
  */
-jQuery(document).on('click', '#stripe-submit', function(ev) {
+jQuery( document ).on( 'click', '#stripe-submit', function( ev ) {
     ev.preventDefault();
 
     if ( form_completed ) {
 
         form_loading(true);
-        jQuery.post(tc_ajax.ajaxUrl, {action: "process_payment"}, function (response) {
+        jQuery.post( tc_ajax.ajaxUrl, { action: "process_payment" }, function ( response ) {
 
-            stripe.confirmCardPayment(response.client_secret, {
+            stripe.confirmCardPayment( response.client_secret, {
                 receipt_email: response.email,
                 payment_method: {
                     card: card,
                     billing_details: {
                         name: response.customer_name,
                         email: response.email
-                    },
+                    }
                 }
-            }).then(function (result) {
+            }).then( function ( result ) {
 
-                if (result.error) {
+                if ( typeof result.error !== 'undefined' ) {
 
-                    // Show error to your customer (e.g., insufficient funds)
+                    /*
+                     * Payment intent request has failed
+                     * Allow the user to select another payment method
+                     */
                     display_error.textContent = result.error.message;
-                    order_confirmation(result.error)
+                    order_confirmation( result );
 
                 } else {
 
-                    // The payment has been processed!
-                    if (result.paymentIntent.status === 'succeeded') {
+                    /*
+                     * The payment has been processed!
+                     */
 
-                        /**
-                         * Show a success message to your customer
-                         * There's a risk of the customer closing the window before callback
-                         * execution. Set up a webhook or plugin to listen for the
-                         * payment_intent.succeeded event that handles any business critical
-                         * post-payment actions.
-                         */
-
-                        display_error.textContent = '';
-                        order_confirmation(result.paymentIntent.status);
+                    switch( result.paymentIntent.status ) {
+                        case 'succeeded':
+                        case 'requires_capture':
+                            display_error.textContent = '';
+                            order_confirmation( result.paymentIntent );
+                            break;
                     }
                 }
             });
         });
+
     } else {
         display_error.textContent = error_message;
     }
 });
 
+
 /**
  * Validate Payment
  */
-function order_confirmation( result = null ) {
+function order_confirmation( result ) {
     jQuery.post(tc_ajax.ajaxUrl, { action: "order_confirmation", payment_result: result },
         function (response) {
             if ( response != false ) {
@@ -113,8 +116,10 @@ function order_confirmation( result = null ) {
     );
 }
 
+
 /**
  * Show/Hide elements
+ *
  * @param attr_val
  */
 function form_loading(attr_val) {

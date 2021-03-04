@@ -12,6 +12,5 @@
 }
 
 .tc-cart-seat-wrap {
-    float: left;
-    width: 90%;
+    text-align: left;
 }

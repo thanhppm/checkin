@@ -33,6 +33,39 @@
                 <input type="text" id="tc_seat_add_seats_cols" class="tc-slider-value" />                
 
             </div><!-- .tc-input-slider -->
+            
+            
+            <div class="tc-input-wrap">
+
+                <?php 
+                    $tc_seat_types = array('circle', 'square', 'chair', 'car');                
+                ?>
+                
+                <label><?php _e('Icon Type', 'tcsc'); ?></label>
+
+                <div class="tc-seat-choice">
+                
+                    <ul>
+
+                        <?php foreach($tc_seat_types as $tc_single_seat){ ?>
+                        <li>    
+                            <input type="radio" id="<?php echo $tc_single_seat; ?>" name="tc_seat_choice" value="<?php echo $tc_single_seat; ?>" class="tc-check-seat-type"/>
+                            <label for="<?php echo $tc_single_seat; ?>" class="<?php echo $tc_single_seat; ?>">
+                                <?php if($tc_single_seat == 'circle'){ ?>
+                                    <span class="tc-circle-icon"></span>
+                                <?php } else if($tc_single_seat == 'square') { ?>
+                                    <span class="tc-square-icon"></span>
+                                <?php } else { ?>
+                                    <span class="icon-<?php echo $tc_single_seat; ?> tc-icons-only"></span>
+                                <?php }?>
+                            </label>
+                        </li>
+                        <?php } ?>
+                    </ul>
+                </div>
+
+            </div><!-- .tc-input-slider -->
+            
 
             <div class="tc-clear"></div>
 

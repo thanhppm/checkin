@@ -61,24 +61,6 @@ if (!class_exists('TC_Events')) {
                     'post_type_position' => 'publish_box'
                 ),
                 array(
-                    'field_name' => 'event_absent_attendee_quantity',
-                    'field_title' => __('Số người vắng mặt', 'tc'),
-                    'field_type' => 'text',
-                    'tooltip' => __('Total quantity of absent attendees.', 'tc'),
-                    'table_visibility' => false,
-                    'post_field_type' => 'post_meta',
-                    'show_in_post_type' => true
-                ),
-                array(
-                    'field_name' => 'event_hotline',
-                    'field_title' => __('Hotline', 'tc'),
-                    'field_type' => 'text',
-                    'tooltip' => __('Hotline of event.', 'tc'),
-                    'table_visibility' => false,
-                    'post_field_type' => 'post_meta',
-                    'show_in_post_type' => true
-                ),
-                array(
                     'field_name' => 'event_terms',
                     'field_title' => __('Terms of Use', 'tc'),
                     'field_type' => 'textarea_editor',
@@ -101,6 +83,16 @@ if (!class_exists('TC_Events')) {
                     'field_title' => __('Sponsors Logo', 'tc'),
                     'field_type' => 'image',
                     'tooltip' => sprintf(__('Sponsors logos (one image) which could be shown on the %sticket template%s and/or on the event\'s page via shortcode builder (located above the main content editor). 300 DPI is recommended. Optional field.', 'tc'), '<a href="' . admin_url('edit.php?post_type=tc_events&page=tc_ticket_templates') . '" target="_blank">', '</a>'),
+                    'table_visibility' => false,
+                    'post_field_type' => 'post_meta',
+                    'show_in_post_type' => true
+                ),
+                array(
+                    'field_name' => 'limit_level',
+                    'field_title' => __('Ticket quantity limitation', 'tc'),
+                    'field_type' => 'function',
+                    'function' => 'tc_get_event_limit_level_option',
+                    'tooltip' => __( 'Select the option "Per Event" if you want to limit your tickets by event quantity.  Otherwise, as default, use "Per Ticket Type" to consume its product quantity. Note: If you are using Bridge For Woocommerce, you will need to disable each products "Manage Stock" option.', 'tc' ),
                     'table_visibility' => false,
                     'post_field_type' => 'post_meta',
                     'show_in_post_type' => true
@@ -201,37 +193,34 @@ if (!class_exists('TC_Events')) {
             }
         }
 
+        /**
+         * Collection of Event Ids that will be automatically hidden when the event expires
+         *
+         * @return array
+         */
         public static function get_hidden_events_ids() {
+
             global $wpdb;
-            $hidden_events_ids = array();
 
             $results = $wpdb->get_results(
-                    "SELECT $wpdb->posts.ID as ID FROM $wpdb->posts, $wpdb->postmeta "
-                    . "WHERE $wpdb->posts.ID = $wpdb->postmeta.post_id "
-                    . "AND $wpdb->posts.post_type = 'tc_events' "
-                    . "AND ($wpdb->postmeta.meta_key = 'hide_event_after_expiration') "
-                    . "AND ($wpdb->postmeta.meta_value = '1') "
-                    , ARRAY_A);
+                "SELECT {$wpdb->posts}.ID as ID FROM {$wpdb->posts}, {$wpdb->postmeta} "
+                . "WHERE {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id "
+                . "AND {$wpdb->posts}.post_type = 'tc_events' "
+                . "AND ({$wpdb->postmeta}.meta_key = 'hide_event_after_expiration') "
+                . "AND ({$wpdb->postmeta}.meta_value = '1') "
+                , ARRAY_A);
 
+            $hidden_events_ids = [];
 
-            foreach ($results as $maybe_hidden_event_id) {
-                $maybe_hidden_event_id = (int)$maybe_hidden_event_id['ID'];
-                $event_end_date_time = get_post_meta($maybe_hidden_event_id, 'event_end_date_time', true);
-                //var_dump($event_end_date_time);
-                if ((date('U', current_time('timestamp', false)) > date('U', strtotime($event_end_date_time)))) {
+            foreach ( $results as $maybe_hidden_event_id ) {
+                $maybe_hidden_event_id = (int) $maybe_hidden_event_id['ID'];
+                $event_end_date_time = get_post_meta( $maybe_hidden_event_id, 'event_end_date_time', true );
+
+                if ( ( date_i18n( 'U', current_time( 'timestamp' ) ) > date_i18n( 'U', strtotime( $event_end_date_time ) ) ) )
                     $hidden_events_ids[] = $maybe_hidden_event_id;
-                }else{
-                    //echo 'CURRENT SERVER: '.(date('U', current_time('timestamp', false))).'<br />';
-                    //echo 'EVENT: '.date('U', strtotime($event_end_date_time));
-                }
             }
-           
             return $hidden_events_ids;
         }
-
     }
-
 }
-
-//$events = new TC_Events();
 ?>

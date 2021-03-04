@@ -3,6 +3,9 @@
  * System diagnostics
  */
 $this->extend('../layout');
+
+/* @var Loco_mvc_ViewParams $versions */
+/* @var Loco_mvc_ViewParams $encoding */
 ?> 
     
         <div class="panel" id="loco-versions">
@@ -13,10 +16,11 @@ $this->extend('../layout');
             <dl><?php
             foreach( $versions as $key => $value ): if( $value ):?> 
                 <dt>
-                    <?php echo $versions->escape($key)?>:
+                    <?php self::e($key)?>:
                 </dt>
                 <dd>
-                    <code class="path"><?php $versions->e($key)?></code>
+                    <code class="path" id="loco-vers-<?php self::e(strtolower(strtr($key,' ','-')))?>"><?php
+                        $versions->e($key)?></code>
                 </dd><?php
             endif; endforeach?> 
             </dl>
@@ -32,7 +36,10 @@ $this->extend('../layout');
                 <dd><?php echo $encoding->OK?> <span id="loco-utf8-check"><?php echo $encoding->tick?></span></dd>
 
                 <dt>Multibyte support:</dt>
-                <dd><?php echo $encoding->mbstring?></dd>
+                <dd><?php $encoding->e('mbstring')?></dd>
+
+                <dt>Site character set</dt>
+                <dd><?php $encoding->e('charset')?></dd>
             </dl>
         </div>
     

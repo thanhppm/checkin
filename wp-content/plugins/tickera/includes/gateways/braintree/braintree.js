@@ -251,9 +251,9 @@ payBtn.addEventListener('click', function(event) {
                 streetAddress: billingFields['billing-street-address'].input.value,
                 extendedAddress: billingFields['billing-extended-address'].input.value,
                 locality: billingFields['billing-city'].input.value,
-                region: billingFields['billing-region'].input.value,
                 postalCode: billingFields['billing-postal-code'].input.value,
-                countryCodeAlpha2: billingFields['billing-country-code'].input.value
+                countryCodeAlpha3: billingFields['billing-country-code'].input.value,
+                // region: billingFields['billing-region'].input.value, // TODO: Braintee unable to detect country code when region is enabled
             }
         }
     }, function(err, payload) {
@@ -331,20 +331,12 @@ const dropInObserver = new MutationObserver(dropInCallback);
 // Start observing the target node for configured mutations
 dropInObserver.observe(dropInNode, dropInConfig);
 
-
 /**
  *  Initialize Country and Region Fields
  */
-jQuery('#tbl_braintree #billing-country-code').select2({
-    width: '100%',
-    placeholder: "",
-    data: braintree3ds2.country_data,
-});
-
-jQuery('#tbl_braintree #billing-region').select2({
-    width: '100%',
-    placeholder: "",
-});
+for ( let i = 0;  i < braintree3ds2.country_data.length; i++ ) {
+    jQuery('#tbl_braintree #billing-country-code').append( '<option value="' + braintree3ds2.country_data[i].id + '">' + braintree3ds2.country_data[i].text + '</option>' );
+}
 
 /**
  * Update regions based on selected country
@@ -353,17 +345,16 @@ jQuery(document).on('change', '#tbl_braintree #billing-country-code', function()
 
     let selected_country = jQuery(this).val();
 
-    jQuery.post(tc_ajax.ajaxUrl, { action: "collect_regions_ajax", selected_country: selected_country },
-        function (response) {
-            if ( response ) {
-                // Rebuild Region field
-                jQuery('#tbl_braintree #billing-region').empty();
-                jQuery('#tbl_braintree #billing-region').select2({
-                    width: '100%',
-                    placeholder: "",
-                    data: response
-                })
+    // Make sure to empty field before process
+    jQuery('#tbl_braintree #billing-region').empty();
+    jQuery('#tbl_braintree #billing-region').attr('disabled', true);
+
+    jQuery( braintree3ds2.region_data ).each( function( index, elem ) {
+        if (elem.countryShortCode == selected_country) {
+            for (let i = 0; i < elem.regions.length; i++) {
+                jQuery('#tbl_braintree #billing-region').append('<option value="' + elem.regions[i].name + '">' + elem.regions[i].name + ' | ' + elem.regions[i].shortCode + '</option>');
             }
+            jQuery('#tbl_braintree #billing-region').attr('disabled', false);
         }
-    );
+    });
 });

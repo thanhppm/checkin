@@ -91,26 +91,6 @@ function ai1wm_archive_path( $params ) {
 }
 
 /**
- * Get export log absolute path
- *
- * @param  array  $params Request parameters
- * @return string
- */
-function ai1wm_export_path( $params ) {
-	return ai1wm_storage_path( $params ) . DIRECTORY_SEPARATOR . AI1WM_EXPORT_NAME;
-}
-
-/**
- * Get import log absolute path
- *
- * @param  array  $params Request parameters
- * @return string
- */
-function ai1wm_import_path( $params ) {
-	return ai1wm_storage_path( $params ) . DIRECTORY_SEPARATOR . AI1WM_IMPORT_NAME;
-}
-
-/**
  * Get multipart.list absolute path
  *
  * @param  array  $params Request parameters
@@ -138,6 +118,16 @@ function ai1wm_content_list_path( $params ) {
  */
 function ai1wm_media_list_path( $params ) {
 	return ai1wm_storage_path( $params ) . DIRECTORY_SEPARATOR . AI1WM_MEDIA_LIST_NAME;
+}
+
+/**
+ * Get tables.list absolute path
+ *
+ * @param  array  $params Request parameters
+ * @return string
+ */
+function ai1wm_tables_list_path( $params ) {
+	return ai1wm_storage_path( $params ) . DIRECTORY_SEPARATOR . AI1WM_TABLES_LIST_NAME;
 }
 
 /**
@@ -881,6 +871,13 @@ function ai1wm_plugin_filters( $filters = array() ) {
 		$filters[] = 'plugins' . DIRECTORY_SEPARATOR . 'all-in-one-wp-migration-pcloud-extension';
 	}
 
+	// Pro Plugin
+	if ( defined( 'AI1WMKE_PLUGIN_BASENAME' ) ) {
+		$filters[] = 'plugins' . DIRECTORY_SEPARATOR . dirname( AI1WMKE_PLUGIN_BASENAME );
+	} else {
+		$filters[] = 'plugins' . DIRECTORY_SEPARATOR . 'all-in-one-wp-migration-pro';
+	}
+
 	// S3 Client Extension
 	if ( defined( 'AI1WNE_PLUGIN_BASENAME' ) ) {
 		$filters[] = 'plugins' . DIRECTORY_SEPARATOR . dirname( AI1WMNE_PLUGIN_BASENAME );
@@ -1008,6 +1005,11 @@ function ai1wm_active_servmask_plugins( $plugins = array() ) {
 	// pCloud Extension
 	if ( defined( 'AI1WMPE_PLUGIN_BASENAME' ) ) {
 		$plugins[] = AI1WMPE_PLUGIN_BASENAME;
+	}
+
+	// Pro Plugin
+	if ( defined( 'AI1WMKE_PLUGIN_BASENAME' ) ) {
+		$plugins[] = AI1WMKE_PLUGIN_BASENAME;
 	}
 
 	// S3 Client Extension
@@ -1188,6 +1190,23 @@ function ai1wm_deactivate_jetpack_modules( $modules ) {
 	}
 
 	return update_option( AI1WM_JETPACK_ACTIVE_MODULES, $current );
+}
+
+/**
+ * Deactivate Swift Optimizer rules
+ *
+ * @param  array   $rules List of rules
+ * @return boolean
+ */
+function ai1wm_deactivate_swift_optimizer_rules( $rules ) {
+	$current = get_option( AI1WM_SWIFT_OPTIMIZER_PLUGIN_ORGANIZER, array() );
+
+	// Remove rules
+	foreach ( $rules as $rule ) {
+		unset( $current['rules'][ $rule ] );
+	}
+
+	return update_option( AI1WM_SWIFT_OPTIMIZER_PLUGIN_ORGANIZER, $current );
 }
 
 /**
@@ -1765,36 +1784,46 @@ function ai1wm_escape_windows_directory_separator( $path ) {
 }
 
 /**
- * Returns whether the server supports URL rewriting.
- * Detects Apache's mod_rewrite, IIS 7.0+ permalink support, and nginx.
+ * Should reset WordPress permalinks?
  *
- * @return boolean Whether the server supports URL rewriting.
+ * @param  array   $params Request parameters
+ * @return boolean
  */
-function ai1wm_got_url_rewrite() {
-	if ( iis7_supports_permalinks() ) {
-		return true;
-	} elseif ( ! empty( $GLOBALS['is_nginx'] ) ) {
-		return true;
+function ai1wm_should_reset_permalinks( $params ) {
+	global $wp_rewrite, $is_apache;
+
+	// Permalinks are not supported
+	if ( empty( $params['using_permalinks'] ) ) {
+		if ( $wp_rewrite->using_permalinks() ) {
+			if ( $is_apache ) {
+				if ( ! apache_mod_loaded( 'mod_rewrite', false ) ) {
+					return true;
+				}
+			}
+		}
 	}
 
-	return apache_mod_loaded( 'mod_rewrite', false );
+	return false;
 }
 
 /**
- * Returns whether the server supports URL permalinks.
- * Detects Apache's mod_rewrite and URL permalinks.
+ * Get .htaccess file content
  *
- * @return boolean Whether the server supports URL permalinks.
+ * @return string
  */
-function ai1wm_got_url_permalinks() {
-	global $wp_rewrite, $is_apache;
-	if ( $wp_rewrite->using_permalinks() ) {
-		return true;
+function ai1wm_get_htaccess() {
+	if ( is_file( AI1WM_WORDPRESS_HTACCESS ) ) {
+		return @file_get_contents( AI1WM_WORDPRESS_HTACCESS );
 	}
+}
 
-	if ( $is_apache ) {
-		return apache_mod_loaded( 'mod_rewrite', false );
+/**
+ * Get web.config file content
+ *
+ * @return string
+ */
+function ai1wm_get_webconfig() {
+	if ( is_file( AI1WM_WORDPRESS_WEBCONFIG ) ) {
+		return @file_get_contents( AI1WM_WORDPRESS_WEBCONFIG );
 	}
-
-	return true;
 }

@@ -3,6 +3,10 @@
     display: none;
 }
 
+#tc_export_csv_ticket_type_data ~ .chosen-container {
+    width: 100% !important;
+}
+
 .ui-progressbar {
     position: relative;
 }

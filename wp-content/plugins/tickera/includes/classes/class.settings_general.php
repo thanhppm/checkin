@@ -264,7 +264,13 @@ if (!class_exists('TC_Settings_General')) {
                     'function' => 'tc_yes_no',
                     'default_value' => 'yes',
                     'tooltip' => __('Show Ticket Attendee First and Last Name fields on the Cart page. If this option is not selected, attendee name fields will not be collected. NOTE: you do not need to hide attendee name if you set "Show Ticket Attendee Fields" option to YES.', 'tc'),
-                    'section' => 'store_settings'
+                    'section' => 'store_settings',
+                    'conditional' => array(
+                        'field_name' => 'show_owner_fields',
+                        'field_type' => 'radio',
+                        'value' => 'no',
+                        'action' => 'hide'
+                    )
                 ),
                 array(
                     'field_name' => 'show_owner_email_field',

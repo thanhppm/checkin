@@ -36,8 +36,6 @@ abstract class Loco_admin_file_BaseController extends Loco_admin_bundle_BaseCont
         // security validations
         try {
             Loco_gettext_Data::ext( $file );
-            // TODO also need to block access to files outside content directory
-            // this is more difficult as can symlink into and out of the tree.
         }
         catch( Exception $e ){
             return $this->view( 'admin/errors/file-sec', array( 'reason' => $e->getMessage() ) );
@@ -120,17 +118,14 @@ abstract class Loco_admin_file_BaseController extends Loco_admin_bundle_BaseCont
             }
         }
         
-        // Provide common language creation link if project scope is is valid
-        try {
-            $project = $this->getProject();
+        // Provide common language creation link if project scope is valid
+        $project = $this->getOptionalProject();
+        if( $project ){
             $args = array( 'bundle' => $bundle->getHandle(), 'domain' => $project->getId() );
             $this->set( 'msginit', new Loco_mvc_ViewParams( array (
                 'href' => Loco_mvc_AdminRouter::generate( $prefix.'-msginit', $args ),
                 'text' => __('New language','loco-translate'),
             ) ) );
-        }
-        catch( Exception $e ){
-            
         }
     }
 

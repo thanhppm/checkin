@@ -40,6 +40,7 @@ jQuery(document).ready(function ($) {
         },
         stop: function (template, ui) {
             update_rows();
+            tc_custom_forms_change_events();
         }
     });
 
@@ -79,6 +80,7 @@ jQuery(document).ready(function ($) {
         stop: function (template, ui) {
             update_li();
             $(".rows ul li").last().addClass("last_child");
+             tc_custom_forms_change_events();
         }
     });
 
@@ -172,7 +174,7 @@ jQuery(document).ready(function ($) {
 
 
     /* Native WP media browser for file module (for instructors) */
-    $('.file_url_button').live('click', function ()
+    $('.file_url_button').on('click', function ()
     {
         var target_url_field = jQuery(this).prevAll(".file_url:first");
         wp.media.editor.send.attachment = function (props, attachment)
@@ -187,7 +189,7 @@ jQuery(document).ready(function ($) {
     $('.tc_forms_wrap #side-sortables input[type="hidden"]').val('');
     $('.tc_forms_wrap #side-sortables textarea').val('');
 
-    $('.tc-custom-field-delete').live('click', function () {
+    $('.tc-custom-field-delete').on('click', function () {
         var post_id = $(this).parent().parent().find('.field_post_id').val();
         $(this).parent().parent().remove();
         if (post_id !== '') {
@@ -197,7 +199,8 @@ jQuery(document).ready(function ($) {
         tc_fix_template_elements_sizes();
     });
 
-    $('.required_check').live('change', function () {
+function tc_custom_forms_change_events(){
+    $('.required_check').change( function () {
         if (this.checked) {
             $(this).parent().find('.field_required').val('1');
         } else {
@@ -205,7 +208,7 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    $('.order_column_check').live('change', function () {
+    $('.order_column_check').change( function () {
         if (this.checked) {
             $(this).parent().find('.field_order_column').val('1');
         } else {
@@ -213,7 +216,7 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    $('.order_details_check').live('change', function () {
+    $('.order_details_check').change( function () {
         if (this.checked) {
             $(this).parent().find('.field_order_details').val('1');
         } else {
@@ -221,7 +224,7 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    $('.export_check').live('change', function () {
+    $('.export_check').change( function () {
         if (this.checked) {
             $(this).parent().find('.field_export').val('1');
         } else {
@@ -229,14 +232,16 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    $('.as_ticket_template_check').live('change', function () {
+    $('.as_ticket_template_check').change( function () {
         if (this.checked) {
             $(this).parent().find('.field_as_ticket_template').val('1');
         } else {
             $(this).parent().find('.field_as_ticket_template').val('0');
         }
     });
+    
+}
 
-
+tc_custom_forms_change_events();
 
 });

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Tickera Seating Charts\n"
-"POT-Creation-Date: 2020-05-11 15:35+0200\n"
+"POT-Creation-Date: 2020-12-23 11:13+0100\n"
 "PO-Revision-Date: 2018-07-18 13:47+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -128,22 +128,22 @@ msgid "Background Color"
 msgstr ""
 
 #: includes/admin-pages/element.php:191
-#: includes/admin-pages/seating-group.php:40
-#: includes/admin-pages/standing.php:33 seating-charts.php:474
-#: seating-charts.php:2907
+#: includes/admin-pages/seating-group.php:73
+#: includes/admin-pages/standing.php:33 seating-charts.php:528
+#: seating-charts.php:3093
 msgid "Create"
 msgstr ""
 
 #: includes/admin-pages/element.php:195
-#: includes/admin-pages/seating-group.php:44
+#: includes/admin-pages/seating-group.php:77
 #: includes/admin-pages/standing.php:37 includes/admin-pages/table.php:66
-#: includes/admin-pages/text.php:41 seating-charts.php:473
-#: seating-charts.php:1939
+#: includes/admin-pages/text.php:41 seating-charts.php:527
+#: seating-charts.php:2121
 msgid "Edit"
 msgstr ""
 
 #: includes/admin-pages/element.php:196
-#: includes/admin-pages/seating-group.php:45
+#: includes/admin-pages/seating-group.php:78
 #: includes/admin-pages/standing.php:38 includes/admin-pages/table.php:67
 #: includes/admin-pages/text.php:42 includes/class.shortcodes.php:68
 msgid "Cancel"
@@ -157,15 +157,15 @@ msgstr ""
 msgid "Letter"
 msgstr ""
 
-#: includes/admin-pages/labels.php:18 seating-charts.php:2846
+#: includes/admin-pages/labels.php:18 seating-charts.php:3040
 msgid "From"
 msgstr ""
 
-#: includes/admin-pages/labels.php:25 seating-charts.php:2848
+#: includes/admin-pages/labels.php:25 seating-charts.php:3042
 msgid "To"
 msgstr ""
 
-#: includes/admin-pages/labels.php:35 seating-charts.php:2829
+#: includes/admin-pages/labels.php:35 seating-charts.php:3022
 msgid "Label"
 msgstr ""
 
@@ -173,23 +173,23 @@ msgstr ""
 msgid "Assign"
 msgstr ""
 
-#: includes/admin-pages/seat_charts_admin.php:97
+#: includes/admin-pages/seat_charts_admin.php:84
 msgid "Are you sure that you want to permanently delete the selected object?"
 msgstr ""
 
-#: includes/admin-pages/seat_charts_admin.php:98
+#: includes/admin-pages/seat_charts_admin.php:85
 msgid ""
 "If you change the event all ticket types will be unassigned. Do you want to "
 "change the event?"
 msgstr ""
 
-#: includes/admin-pages/seat_charts_admin.php:99
+#: includes/admin-pages/seat_charts_admin.php:86
 msgid ""
 "WARNING: Seats marked with black do not have assigned labels. Please select "
 "marked seats and add unique label to each."
 msgstr ""
 
-#: includes/admin-pages/seat_charts_admin.php:101
+#: includes/admin-pages/seat_charts_admin.php:88
 msgid ""
 "All seat labels must be unique. Please correct errors and try to assign "
 "label(s) again."
@@ -268,12 +268,12 @@ msgid "Use Firebase Integration"
 msgstr ""
 
 #: includes/admin-pages/seat_charts_settings.php:97 includes/functions.php:38
-#: seating-charts.php:462
+#: seating-charts.php:515
 msgid "Yes"
 msgstr ""
 
 #: includes/admin-pages/seat_charts_settings.php:98 includes/functions.php:39
-#: seating-charts.php:464
+#: seating-charts.php:517
 msgid "No"
 msgstr ""
 
@@ -313,12 +313,16 @@ msgstr ""
 msgid "Seating Group"
 msgstr ""
 
-#: includes/admin-pages/seating-group.php:20 seating-charts.php:2900
+#: includes/admin-pages/seating-group.php:20 seating-charts.php:3086
 msgid "Rows"
 msgstr ""
 
 #: includes/admin-pages/seating-group.php:30
 msgid "Columns"
+msgstr ""
+
+#: includes/admin-pages/seating-group.php:44
+msgid "Icon Type"
 msgstr ""
 
 #: includes/admin-pages/settings.php:4
@@ -337,7 +341,7 @@ msgstr ""
 msgid "Standing Area"
 msgstr ""
 
-#: includes/admin-pages/standing.php:20 seating-charts.php:2918
+#: includes/admin-pages/standing.php:20 seating-charts.php:3105
 msgid "Ticket Type"
 msgstr ""
 
@@ -377,18 +381,17 @@ msgstr ""
 msgid "Assign Ticket Type"
 msgstr ""
 
-#: includes/admin-pages/ticket-type.php:23 seating-charts.php:2928
+#: includes/admin-pages/ticket-type.php:23 seating-charts.php:3115
 msgid "Unset"
 msgstr ""
 
-#: includes/class.shortcodes.php:66 includes/class.shortcodes.php:384
-#: includes/class.shortcodes.php:423
+#: includes/class.shortcodes.php:66 includes/class.shortcodes.php:385
+#: includes/class.shortcodes.php:424
 msgid "Add to Cart"
 msgstr ""
 
-#: includes/class.shortcodes.php:67 includes/class.shortcodes.php:403
-#: seating-charts.php:263 seating-charts.php:282 seating-charts.php:313
-#: seating-charts.php:1341
+#: includes/class.shortcodes.php:67 includes/class.shortcodes.php:404
+#: seating-charts.php:330 seating-charts.php:359 seating-charts.php:1380
 msgid "Remove from Cart"
 msgstr ""
 
@@ -424,7 +427,7 @@ msgstr ""
 msgid "Seat"
 msgstr ""
 
-#: includes/class.shortcodes.php:112 seating-charts.php:493
+#: includes/class.shortcodes.php:112 seating-charts.php:542
 msgid "Left click and drag to pan (or use arrow keys). Use mouse wheel to zoom"
 msgstr ""
 
@@ -448,28 +451,28 @@ msgstr ""
 msgid "Seating chart is not selected."
 msgstr ""
 
-#: includes/class.shortcodes.php:277
+#: includes/class.shortcodes.php:279
 msgid "Reserved"
 msgstr ""
 
-#: includes/class.shortcodes.php:278
+#: includes/class.shortcodes.php:280
 msgid "In Cart"
 msgstr ""
 
-#: includes/class.shortcodes.php:282
+#: includes/class.shortcodes.php:284
 msgid "Unavailable"
 msgstr ""
 
-#: includes/class.shortcodes.php:290
+#: includes/class.shortcodes.php:291
 msgid "In Other's Cart"
 msgstr ""
 
-#: includes/class.shortcodes.php:340
+#: includes/class.shortcodes.php:341
 msgid "Left click and drag to pan. Click on available seats for booking."
 msgstr ""
 
-#: includes/class.shortcodes.php:382 includes/class.shortcodes.php:401
-#: includes/class.shortcodes.php:418
+#: includes/class.shortcodes.php:383 includes/class.shortcodes.php:402
+#: includes/class.shortcodes.php:419
 msgid "Price:"
 msgstr ""
 
@@ -493,344 +496,344 @@ msgstr ""
 msgid "Cart Title"
 msgstr ""
 
-#: seating-charts.php:151
+#: seating-charts.php:229
 msgid "Used for Seatings"
 msgstr ""
 
-#: seating-charts.php:153
+#: seating-charts.php:231
 msgid ""
 "Check this box if you are going to use this product on a seatings map. That "
 "way, product can be purchased only if it's added to cart via a seatings map."
 msgstr ""
 
-#: seating-charts.php:233 seating-charts.php:1137 seating-charts.php:1163
+#: seating-charts.php:296 seating-charts.php:1173 seating-charts.php:1202
 #, php-format
 msgid "Seat %s is already booked. Please remove it from the cart."
 msgstr ""
 
-#: seating-charts.php:236 seating-charts.php:1139 seating-charts.php:1166
+#: seating-charts.php:299 seating-charts.php:1176 seating-charts.php:1206
 #, php-format
 msgid "Seats %s are already booked. Please remove them from the cart."
 msgstr ""
 
-#: seating-charts.php:406
+#: seating-charts.php:450
 #, php-format
 msgid ""
 "<div id=\"message\" class=\"%1$s tc-donothide\"><p>Cannot save! Directory "
 "%2$s is not writable.</p></div> "
 msgstr ""
 
-#: seating-charts.php:407 seating-charts.php:408 seating-charts.php:411
-#: seating-charts.php:412 seating-charts.php:417
+#: seating-charts.php:451 seating-charts.php:452 seating-charts.php:455
+#: seating-charts.php:456 seating-charts.php:461
 #, php-format
 msgid "<div id=\"message\" class=\"%1$s\"><p>%2$s</p> </div> "
 msgstr ""
 
-#: seating-charts.php:407 seating-charts.php:408
+#: seating-charts.php:451 seating-charts.php:452
 msgid "Seating Chart updated."
 msgstr ""
 
 #. translators: %s: date and time of the revision
-#: seating-charts.php:410
+#: seating-charts.php:454
 #, php-format
 msgid ""
 "<div id=\"message\" class=\"%1$s\">Seating Chart restored to revision from "
 "%s</div>"
 msgstr ""
 
-#: seating-charts.php:411
+#: seating-charts.php:455
 msgid "Seating Chart published."
 msgstr ""
 
-#: seating-charts.php:412
+#: seating-charts.php:456
 msgid "Seating Chart saved."
 msgstr ""
 
-#: seating-charts.php:413
+#: seating-charts.php:457
 #, php-format
 msgid ""
 "<div id=\"message\" class=\"%1$s\"><p>Seating Chart submitted. <a target="
 "\"_blank\" href=\"%s\">View Preview</a></p></div>"
 msgstr ""
 
-#: seating-charts.php:415
+#: seating-charts.php:459
 #, php-format
 msgid ""
 "<div id=\"message\" class=\"%1$s\">Seating Chart post scheduled for: <strong>"
 "%1$s</strong>.</div>"
 msgstr ""
 
-#: seating-charts.php:415
+#: seating-charts.php:459
 msgid "M j, Y @ G:i"
 msgstr ""
 
-#: seating-charts.php:417
+#: seating-charts.php:461
 msgid "Seating Chart draft updated."
 msgstr ""
 
-#: seating-charts.php:460
+#: seating-charts.php:513
 msgid "Are you sure?"
 msgstr ""
 
-#: seating-charts.php:461
+#: seating-charts.php:514
 msgid "Label error message"
 msgstr ""
 
-#: seating-charts.php:463
+#: seating-charts.php:516
 msgid "OK"
 msgstr ""
 
-#: seating-charts.php:494
+#: seating-charts.php:543
 msgid "Click and drag to move"
 msgstr ""
 
-#: seating-charts.php:495
+#: seating-charts.php:544
 msgid "Click and drag to rotate. Hold SHIFT key to rotate it in precise steps."
 msgstr ""
 
-#: seating-charts.php:496
+#: seating-charts.php:545
 msgid "Click to remove the object permanently"
 msgstr ""
 
-#: seating-charts.php:497
+#: seating-charts.php:546
 msgid "Click to copy the object"
 msgstr ""
 
-#: seating-charts.php:498
+#: seating-charts.php:547
 msgid "Click to edit the object"
 msgstr ""
 
-#: seating-charts.php:499
+#: seating-charts.php:548
 msgid ""
 "Click and drag to resize. Hold SHIFT key to resize the object proportionally."
 msgstr ""
 
-#: seating-charts.php:500
+#: seating-charts.php:549
 msgid "Drag to change the value"
 msgstr ""
 
-#: seating-charts.php:501
+#: seating-charts.php:550
 msgid "Click to change the value"
 msgstr ""
 
-#: seating-charts.php:502
+#: seating-charts.php:551
 msgid ""
 "Click to select / deselect seats. Use CTRL / CMD keys or mouse lasso to mark "
 "multiple desired seats at once."
 msgstr ""
 
-#: seating-charts.php:503
+#: seating-charts.php:552
 msgid "Click to save changes"
 msgstr ""
 
-#: seating-charts.php:541
+#: seating-charts.php:590
 msgid "Duplicate this Seating Chart"
 msgstr ""
 
-#: seating-charts.php:541
+#: seating-charts.php:590
 msgid "Duplicate"
 msgstr ""
 
-#: seating-charts.php:616
+#: seating-charts.php:658
 msgid " [duplicate]"
 msgstr ""
 
-#: seating-charts.php:620
+#: seating-charts.php:662
 msgid "No seating chart to duplicate has been supplied!"
 msgstr ""
 
-#: seating-charts.php:749 seating-charts.php:1967
+#: seating-charts.php:789 seating-charts.php:2150
 msgid "Seat Color"
 msgstr ""
 
-#: seating-charts.php:751
+#: seating-charts.php:791
 msgid "Color which will be visible on a seating chart(s)"
 msgstr ""
 
-#: seating-charts.php:870
+#: seating-charts.php:910
 msgid "This product is currently out of stock and unavailable."
 msgstr ""
 
-#: seating-charts.php:895
+#: seating-charts.php:924
 msgid "Clear"
 msgstr ""
 
-#: seating-charts.php:925
+#: seating-charts.php:956
 msgid "Seat is currently not available"
 msgstr ""
 
-#: seating-charts.php:963 seating-charts.php:1935
+#: seating-charts.php:992 seating-charts.php:2117
 msgid "Seating Chart"
 msgstr ""
 
-#: seating-charts.php:1049
+#: seating-charts.php:1084
 #, php-format
 msgid "Seat %s is already booked. Please remove it from the %scart%s."
 msgstr ""
 
-#: seating-charts.php:1051
+#: seating-charts.php:1085
 #, php-format
 msgid "Seats %s are already booked. Please remove them from the %scart%s."
 msgstr ""
 
-#: seating-charts.php:1114
+#: seating-charts.php:1152
 #, php-format
 msgid ""
 "Something went wrong. Please remove tickets %s from the %scart%s and try to "
 "add them via a %sSeating map%s once again."
 msgstr ""
 
-#: seating-charts.php:1186 seating-charts.php:1934
+#: seating-charts.php:1227 seating-charts.php:2116
 msgid "Seating Charts"
 msgstr ""
 
-#: seating-charts.php:1208
+#: seating-charts.php:1250
 #, php-format
 msgid ""
 "%s add-on requires at least %s version of %s plugin. Your current version of "
 "%s is %s. Please update it."
 msgstr ""
 
-#: seating-charts.php:1571 seating-charts.php:1678 seating-charts.php:1733
-#: seating-charts.php:1851 seating-charts.php:1918
+#: seating-charts.php:1694 seating-charts.php:1799 seating-charts.php:1858
+#: seating-charts.php:2013 seating-charts.php:2073
 msgid "Ticket added to"
 msgstr ""
 
-#: seating-charts.php:1571 seating-charts.php:1655 seating-charts.php:1678
-#: seating-charts.php:1733 seating-charts.php:1851 seating-charts.php:1918
+#: seating-charts.php:1694 seating-charts.php:1780 seating-charts.php:1799
+#: seating-charts.php:1858 seating-charts.php:2013 seating-charts.php:2073
 msgid "Cart"
 msgstr ""
 
-#: seating-charts.php:1572 seating-charts.php:1656 seating-charts.php:1679
-#: seating-charts.php:1734 seating-charts.php:1852 seating-charts.php:1919
+#: seating-charts.php:1695 seating-charts.php:1781 seating-charts.php:1800
+#: seating-charts.php:1859 seating-charts.php:2014 seating-charts.php:2074
 msgid "Subtotal: "
 msgstr ""
 
-#: seating-charts.php:1655
+#: seating-charts.php:1780
 msgid "Ticket removed from"
 msgstr ""
 
-#: seating-charts.php:1782
+#: seating-charts.php:1947
 msgid "Seat is currently not available."
 msgstr ""
 
-#: seating-charts.php:1936
+#: seating-charts.php:2118
 msgid "Create New"
 msgstr ""
 
-#: seating-charts.php:1937
+#: seating-charts.php:2119
 msgid "Create New Seating Chart"
 msgstr ""
 
-#: seating-charts.php:1938
+#: seating-charts.php:2120
 msgid "Edit Seating Chart"
 msgstr ""
 
-#: seating-charts.php:1940
+#: seating-charts.php:2122
 msgid "New Seating Chart"
 msgstr ""
 
-#: seating-charts.php:1941 seating-charts.php:1945
+#: seating-charts.php:2123 seating-charts.php:2127
 msgid "View Seating Chart"
 msgstr ""
 
-#: seating-charts.php:1942
+#: seating-charts.php:2124
 msgid "Search Seating Charts"
 msgstr ""
 
-#: seating-charts.php:1943
+#: seating-charts.php:2125
 msgid "No Seating Charts Found"
 msgstr ""
 
-#: seating-charts.php:1944
+#: seating-charts.php:2126
 msgid "No Seating Charts found in Trash"
 msgstr ""
 
-#: seating-charts.php:1969
+#: seating-charts.php:2152
 msgid "Color which will be visible on a seating chart"
 msgstr ""
 
-#: seating-charts.php:2297
+#: seating-charts.php:2482
 msgid "Browse"
 msgstr ""
 
-#: seating-charts.php:2343
+#: seating-charts.php:2528
 msgid "Seating Chart Rows"
 msgstr ""
 
-#: seating-charts.php:2348
+#: seating-charts.php:2533
 msgid "Set a number of rows (including the empty ones)"
 msgstr ""
 
-#: seating-charts.php:2353
+#: seating-charts.php:2539
 msgid "Seating Chart Columns"
 msgstr ""
 
-#: seating-charts.php:2358
+#: seating-charts.php:2544
 msgid "Set a number of columns (including the empty ones)"
 msgstr ""
 
-#: seating-charts.php:2364
+#: seating-charts.php:2551
 msgid "Event Name"
 msgstr ""
 
-#: seating-charts.php:2377
+#: seating-charts.php:2565
 msgid "Change & Save"
 msgstr ""
 
-#: seating-charts.php:2457
+#: seating-charts.php:2637
 msgid ""
 "HINT: use SHIFT and CTRL / CMD keys or mouse (lasso) in order to select or "
 "deselect multiple seats at once."
 msgstr ""
 
-#: seating-charts.php:2470
+#: seating-charts.php:2650
 msgid "Seat Cords"
 msgstr ""
 
-#: seating-charts.php:2478
+#: seating-charts.php:2659
 msgid "Seat Ticket Types"
 msgstr ""
 
-#: seating-charts.php:2485
+#: seating-charts.php:2668
 msgid "Seat Signs"
 msgstr ""
 
-#: seating-charts.php:2492
+#: seating-charts.php:2677
 msgid "Seat Directions"
 msgstr ""
 
-#: seating-charts.php:2827
+#: seating-charts.php:3020
 msgid "Select assigned seats and add seat labels."
 msgstr ""
 
-#: seating-charts.php:2836 seating-charts.php:2854 seating-charts.php:2935
+#: seating-charts.php:3029 seating-charts.php:3048 seating-charts.php:3123
 msgid "Set"
 msgstr ""
 
-#: seating-charts.php:2842
+#: seating-charts.php:3036
 msgid "Row Label"
 msgstr ""
 
-#: seating-charts.php:2845
+#: seating-charts.php:3039
 msgid "Col Label (from - to)"
 msgstr ""
 
-#: seating-charts.php:2868
+#: seating-charts.php:3063
 msgid "Select assigned seats and set their direction."
 msgstr ""
 
-#: seating-charts.php:2892
+#: seating-charts.php:3078
 msgid ""
 "Select one or more seats which have assigned ticket type in order to set "
 "seat(s) sign."
 msgstr ""
 
-#: seating-charts.php:2901
+#: seating-charts.php:3087
 msgid "Cols"
 msgstr ""
 
-#: seating-charts.php:2920
+#: seating-charts.php:3107
 msgid "Loading..."
 msgstr ""
 

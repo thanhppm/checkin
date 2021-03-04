@@ -1,6 +1,26 @@
 jQuery(document).ready(function ($) {
 
-    //set legend invisible when on phone
+    window.tc_front = {
+
+        /**
+         * Get inset property
+         *
+         * @param allStyle
+         * @returns {undefined|*}
+         */
+        getInsetStyle: function( allStyle ) {
+            let styles = allStyle.split( '; ' );
+            for ( let i = 0; i < styles.length; i++ ) {
+                let astyle = styles[i].split( ': ' );
+                if ( 'inset' == astyle[0] ){
+                    return astyle[1];
+                }
+            }
+            return undefined;
+        }
+    }
+
+    // Set legend invisible when on phone
     function tc_legend_set() {
         if ($('.tc-legend-arrow').hasClass('tc-legend-open')) {
             var tc_seating_legend = $('.tc-seating-legend-wrap').outerWidth();
@@ -35,7 +55,7 @@ jQuery(document).ready(function ($) {
         var cart_title = $(this).data('cart_title');
 
         var seating_map_html = $('.tc_seating_map_' + seating_map_id).html();
-                    
+
         $(window).on('resize', function (e) {
             tc_controls.centerPoint(seating_map_id);
             tc_controls.reposition();
@@ -60,112 +80,95 @@ jQuery(document).ready(function ($) {
             button_title: button_title,
             subtotal_title: subtotal_title,
             cart_title: cart_title
-        },
-                function (data) {
 
-                    $('.tc_seating_map_' + seating_map_id).html(data);
-                    $('html').css('overflow', 'hidden');
+        }, function (data) {
 
-                    function tc_cart_hover() {
-                        var tc_ticket_cart_height = $('.tc-tickets-cart').height();
-                        $('.tc-tickets-cart').css('bottom', tc_ticket_cart_height * -1);
-                    }
+            $('.tc_seating_map_' + seating_map_id).html(data);
+            $('html').css('overflow', 'hidden');
 
-                    /* MARK SEATS */
-                    tc_mark_in_cart_seats(seating_map_id);
-                    tc_mark_reserved_seats(seating_map_id);
-                    tc_mark_reserved_standings(seating_map_id);
-                    tc_mark_unavailable_seats(seating_map_id);
+            function tc_cart_hover() {
+                var tc_ticket_cart_height = $('.tc-tickets-cart').height();
+                $('.tc-tickets-cart').css('bottom', tc_ticket_cart_height * -1);
+            }
 
-                    /*REMOVE UNNEEDED CLASSES*/
-                    $('.tc-group-wrap').removeClass('ui-draggable');
-                    $(".tc-group-wrap *").removeClass('ui-draggable-handle');
-                    $(".tc-group-wrap").find('.tc-group-controls').remove();
-                    $(".tc-group-wrap").find('.ui-resizable-handle').remove();
-                    $(".tc-group-wrap").find('.ui-resizable-autohide').removeClass('ui-resizable-autohide');
-                    $(".tc-group-wrap").find('.ui-resizable').removeClass('ui-resizable');
+            // Mark Seats
+            tc_mark_in_cart_seats(seating_map_id);
+            tc_mark_reserved_seats(seating_map_id);
+            tc_mark_reserved_standings(seating_map_id);
+            tc_mark_unavailable_seats(seating_map_id);
 
-                    /* SELECTABLES */
-                    tc_front_selectables();
+            // Remove Unneeded Classes
+            $('.tc-group-wrap').removeClass('ui-draggable');
+            $(".tc-group-wrap *").removeClass('ui-draggable-handle');
+            $(".tc-group-wrap").find('.tc-group-controls').remove();
+            $(".tc-group-wrap").find('.ui-resizable-handle').remove();
+            $(".tc-group-wrap").find('.ui-resizable-autohide').removeClass('ui-resizable-autohide');
+            $(".tc-group-wrap").find('.ui-resizable').removeClass('ui-resizable');
 
-                    /* SET WRAPPER HEIGHT */
-                    tc_controls.set_wrapper_height();
+            // Selectables
+            tc_front_selectables();
 
-                    /* INITIALIZE ZOOM SLIDER */
-                    $(".tc-zoom-slider").slider({
-                        value: tc_common_vars.front_zoom_level,
-                        orientation: "horizontal",
-                        min: 0.30,
-                        max: 1,
-                        step: 0.10,
-                        slide: function (event, ui) {
-                            var init_zoom = window.tc_seat_zoom_level;
+            // Set Wrapper Height
+            tc_controls.set_wrapper_height();
 
-                            $(this).parent().find('.tc-slider-value').val(ui.value);
+            // Initialize Zoom Slider
+            $(".tc-zoom-slider").slider({
+                value: tc_common_vars.front_zoom_level,
+                orientation: "horizontal",
+                min: 0.30,
+                max: 1,
+                step: 0.10,
+                slide: function (event, ui) {
+                    var init_zoom = window.tc_seat_zoom_level;
 
-                            window.tc_seat_zoom_level = ui.value;
+                    $(this).parent().find('.tc-slider-value').val(ui.value);
 
-                            tc_controls.zoom();
-                        },
-                        create: function (event, ui) {
-                            var bar = $(this).slider('value');
-                            $(this).parent().find('.tc-slider-value').val(bar);
-                        }
-                    });
+                    window.tc_seat_zoom_level = ui.value;
 
+                    tc_controls.zoom();
+                },
+                create: function (event, ui) {
+                    var bar = $(this).slider('value');
+                    $(this).parent().find('.tc-slider-value').val(bar);
+                }
+            });
 
+            // Make sure to always replace inset property with the general top, right, bottom, left properties
+            $.each( $( '.tc-group-wrap' ), function () {
 
-                        //fix issue with Firefox Inset
-                        Browser = navigator.userAgent;
-                        if (!$.browser.mozilla || (Browser.indexOf("Trident") > 0 && $.browser.mozilla)) { 
-                        jQuery(jQuery(".tc-group-wrap")).each(function () {
-                            var getStyle = $(this).attr("style");
-                            var element = getInsetStyle(getStyle);
-                            if(element !== undefined){
-                                var value = element.split(' ');
-                                var topPosition = value[0] ? value[0] : 'auto';
-                                var rightPosition = value[1] ? value[1] : 'auto';
-                                var bottomPosition = value[2] ? value[2] : 'auto';
-                                var leftPosition = value[3] ? value[3] : 'auto';
-                                var removeTrail = leftPosition.replace(";", "");
-                                $(this).css({"top": topPosition, "left": removeTrail});
-                            }
-                        });
+                let getStyle = $(this).attr( 'style' ),
+                    element = tc_front.getInsetStyle( getStyle );
 
+                if ( element !== undefined ) {
 
-             // Get inset property
-                         function getInsetStyle(allStyle) {
-                             var styles = allStyle.split('; ');
-                             var astyle;
-                             for (var i = 0; i < styles.length; i++) {
-                                 astyle = styles[i].split(': ');
-                                 if (astyle[0] == 'inset'){
-                                     return (astyle[1]);
-                                 }
-                             }
-                             return undefined;
-                         }
-                     }
+                    let value = element.split(' '),
+                        topPosition = value[0] ? value[0] : 'auto',
+                        rightPosition = value[1] ? value[1] : 'auto',
+                        bottomPosition = value[2] ? value[2] : 'auto',
+                        leftPosition = value[3] ? value[3] : 'auto',
+                        removeTrail = leftPosition.replace( ';', '' );
 
+                    $(this).css( { 'inset': '', 'top': topPosition, 'left': removeTrail } );
+                }
+            });
 
-                    /* INIT CONROLS */
-                    tc_controls.init();
-                    window.dispatchEvent(new Event('resize'));
-                    tc_controls.centerPoint();
-                    tc_controls.reposition();
-                    tc_controls.centerPoint();
+            // Init Controls
+            tc_controls.init();
+            window.dispatchEvent(new Event('resize'));
+            tc_controls.centerPoint();
+            tc_controls.reposition();
+            tc_controls.centerPoint();
 
-                    //tc_cart_hover();
-                    $('.tc-chart-preloader').remove();
-                    tc_controls.tc_legend_set();
-
-                });
-
-        //check requirement of minimum tickets
-        $('body').on('click', '.tc-checkout-button', function (event) {
-            tc_check_minimum_tickets(event);
+            $('.tc-chart-preloader').remove();
+            tc_controls.tc_legend_set();
         });
 
+        /**
+         * Validates in cart data when proceeding to cart page
+         */
+        $('body').on('click', '.tc-checkout-button', function( event ) {
+            tc_check_minimum_tickets( event );
+        });
     });
 
     $('body').on('click', '#tc-regular-modal .tc_cart_button', function (e) {
@@ -176,41 +179,50 @@ jQuery(document).ready(function ($) {
         tc_seat_chart_remove_from_cart($(this));
     });
 
-    function tc_seat_chart_remove_from_cart(button) {
+    /**
+     * Remove seat from cart
+     *
+     * @param button
+     */
+    function tc_seat_chart_remove_from_cart( button ) {
 
-        button.prop("disabled", true);
-        $('#tc-modal-added-to-cart button.tc_remove_from_cart_button').html(tc_seat_chart_ajax.tc_removing_from_cart_title);
+        button.prop( 'disabled', true );
+        $( '#tc-modal-added-to-cart button.tc_remove_from_cart_button' ).html( tc_seat_chart_ajax.tc_removing_from_cart_title );
 
-        $.each($(".ui-selected"), function () {
-            $(this).removeClass('tc_seat_in_cart');
-            var ticket_type = $(this).attr('data-tt-id');
-            var color = $('li.tt_' + ticket_type).css('color');
-            $(this).css({'background-color': color});
-        })
+        let selected_seat = $( '.ui-selected' ),
+            ticket_type = selected_seat.attr( 'data-tt-id' ),
+            color = $( 'li.tt_' + ticket_type ).css( 'color' ),
+            chart_id = button.parent().find( '.tc_regular_modal_seating_chart_id' ).val(),
+            ticket_type_id = button.parent().find( '.tc_regular_modal_ticket_type_id' ).val(),
+            seat_id = button.parent().find( '.tc_regular_modal_seat_id' ).val(),
+            seat_label = $( '.tc_regular_modal_seat_label' ).html(),
+            is_standee = selected_seat.hasClass( 'tc-object-selectable' ),
+            tcsc_seat = chart_id + '-' + seat_id + '-' + ticket_type_id;
 
-        var chart_id = button.parent().find('.tc_regular_modal_seating_chart_id').val();
-        var ticket_type_id = button.parent().find('.tc_regular_modal_ticket_type_id').val();
-        var seat_id = button.parent().find('.tc_regular_modal_seat_id').val();
-        var seat_label = $('.tc_regular_modal_seat_label').html();
+        selected_seat.removeClass( 'tc_seat_in_cart' );
+        selected_seat.css( { 'background-color': color } );
 
-        $.post(tc_seat_chart_ajax.ajaxUrl, {action: "tc_remove_seat_from_firebase_cart", seat_id: seat_id, chart_id: chart_id}, function (data) {
-        });
+        if ( 1 == tc_seat_chart_ajax.tc_check_firebase && !is_standee ) {
+            $.post(tc_seat_chart_ajax.ajaxUrl, { action: "tc_remove_seat_from_firebase_cart", seat_id: seat_id, chart_id: chart_id }, function ( data ) {} );
+        }
 
-        $.post(tc_seat_chart_ajax.ajaxUrl, {action: "tc_remove_seat_from_cart", seat_ticket_type_id: ticket_type_id, seat_sign: seat_label, seat_id: seat_id, chart_id: chart_id}, function (data) {
-            var response = jQuery.parseJSON(data);
-            if (response) {
-                $('#tc-modal-added-to-cart .tc_remove_from_cart_button').prop("disabled", false);
-                $(".ui-dialog-content").dialog("close");
-                $('.tc-seatchart-subtotal strong').html(response.total);
-                $('.tc-seatchart-in-cart-count').val(response.in_cart_count);
-                $('#tc-modal-added-to-cart button.tc_remove_from_cart_button').html(tc_seat_chart_ajax.tc_remove_from_cart_button_title);
+        $.post( tc_seat_chart_ajax.ajaxUrl, { action: 'tc_remove_seat_from_cart_ajax', tcsc_seat: tcsc_seat }, function ( response ) {
+
+            if ( response ) {
+                $( '#tc-modal-added-to-cart .tc_remove_from_cart_button' ).prop( 'disabled', false );
+                $( '.ui-dialog-content' ).dialog('close' );
+                $( '.tc-seatchart-subtotal strong' ).html( response.total );
+                $( '.tc-seatchart-in-cart-count' ).val( response.in_cart_count );
+                $( '#tc-modal-added-to-cart button.tc_remove_from_cart_button' ).html( tc_seat_chart_ajax.tc_remove_from_cart_button_title );
                 tc_mark_in_cart_seat();
             }
         });
     }
 
-    /* Function checks if requirement of minimum tickets is met*/
-
+    /**
+     * Function checks if requirement of minimum tickets is met
+     * @param event
+     */
     function tc_check_minimum_tickets(event) {
         jQuery('.tc-seating-legend ul li.tc-ticket-listing').each(function () {
 
@@ -230,8 +242,7 @@ jQuery(document).ready(function ($) {
                         i++;
                     }
 
-                }); //jQuery('.tc_seat_in_cart').each(function() {
-
+                });
 
                 if (tc_min_tickets_per_order > i && i !== 0 && tc_min_tickets_per_order != '') {
                     $("#tc-ticket-requirements").dialog({
@@ -260,8 +271,7 @@ jQuery(document).ready(function ($) {
 
                     jQuery('#tc-ticket-requirements').html(tc_seat_chart_ajax.tc_minimum_tickets_message + tc_ticket_title + tc_seat_chart_ajax.tc_minimum_tickets_message_is + tc_min_tickets_per_order + '!');
 
-                } //if(tc_min_tickets_per_order > i)
-
+                }
 
                 if (tc_max_tickets_per_order < i && i !== 0 && tc_max_tickets_per_order != '') {
 
@@ -291,85 +301,114 @@ jQuery(document).ready(function ($) {
 
                     jQuery('#tc-ticket-requirements').html(tc_seat_chart_ajax.tc_maximum_tickets_message + tc_ticket_title + tc_seat_chart_ajax.tc_minimum_tickets_message_is + tc_max_tickets_per_order + '!');
 
-                } //if(tc_min_tickets_per_order > i)
-
-            } //if (tc_min_tickets_per_order != 0)
-
-
+                }
+            }
         });
     }
 
-    function tc_seat_chart_add_to_cart(button) {
-        $('#tc-regular-modal button.tc_cart_button').html(tc_seat_chart_ajax.tc_adding_to_cart_title);
-        var get_href_value = jQuery('.tc-checkout-button').attr("href");
-        jQuery('.tc-checkout-button').removeAttr("href");
-        jQuery('.tc-checkout-button').attr("style", "opacity: 0.4;");
-        button.prop("disabled", true);
+    /**
+     * Call this method to display error dialog box
+     * @param error_message
+     */
+    function display_error_dialog_box( error_message ) {
 
-        var tc_seat_cart_items = new Array();
-        var tc_seat_cart_items_firebase = new Array();
-
-        $.each($(".ui-selected"), function () {
-            var chart_id = button.parent().find('.tc_regular_modal_seating_chart_id').val();
-            var ticket_type_id = button.parent().find('.tc_regular_modal_ticket_type_id').val();
-            var seat_id = button.parent().find('.tc_regular_modal_seat_id').val();
-            var seat_label = $('#tc-regular-modal .tc_regular_modal_seat_label').html();
-
-            $(this).addClass('tc_seat_in_cart');
-            var seat = ticket_type_id + '-' + seat_id + '-' + seat_label + '-' + chart_id;
-            tc_seat_cart_items.push(seat);
-
-            var seat_firebase = chart_id + '-' + seat_id;
-            tc_seat_cart_items_firebase.push(seat_firebase);
+        // Display a dialog box with error message
+        $("#tc-ticket-requirements").dialog({
+            bgiframe: true,
+            closeOnEscape: false,
+            draggable: false,
+            resizable: false,
+            dialogClass: "no-close",
+            modal: true,
+            title: false,
+            closeText: "<i class='fa fa-times'></i>",
+            buttons: [ { text: 'OK', click: function () { $(this).dialog("destroy");  $(".tc-group-wrap *").removeClass('ui-selected'); } } ]
         });
 
-        if (tc_seat_chart_ajax.tc_check_firebase == 1) {
-            $.post(tc_seat_chart_ajax.ajaxUrl, {action: "tc_add_seat_to_firebase_cart", tc_seat_cart_items: tc_seat_cart_items_firebase}, function (data) {});
-        }
+        jQuery('#tc-ticket-requirements').html( error_message );
+    }
 
-        tc_mark_in_cart_seat();
+    /**
+     * Add seat to cart
+     *
+     * @param button
+     */
+    function tc_seat_chart_add_to_cart( button ) {
 
-        var standing_qty = $('.model_extras .tc_quantity_selector').val();
+        $( '#tc-regular-modal button.tc_cart_button' ).html( tc_seat_chart_ajax.tc_adding_to_cart_title );
 
-        if (typeof (standing_qty) != "undefined") {
-            //it has qty set
-        } else {
+        let standing_qty = $( '.model_extras .tc_quantity_selector' ).val(),
+            get_href_value = $( '.tc-checkout-button' ).attr( 'href' ),
+            tc_seat_cart_items = [],
+            tc_seat_cart_items_firebase = []
+
+        $( '.tc-checkout-button' ).removeAttr( 'href' );
+        $( '.tc-checkout-button' ).attr( 'style', 'opacity: 0.4;' );
+        button.prop( 'disabled', true );
+
+        if ( typeof standing_qty === 'undefined' ) {
             standing_qty = 0;
         }
 
+        let selected_seat = $( '.ui-selected' ),
+            chart_id = button.parent().find( '.tc_regular_modal_seating_chart_id' ).val(),
+            ticket_type_id = button.parent().find( '.tc_regular_modal_ticket_type_id' ).val(),
+            seat_id = button.parent().find( '.tc_regular_modal_seat_id' ).val(),
+            seat_label = $( '#tc-regular-modal .tc_regular_modal_seat_label' ).html(),
+            seat = ticket_type_id + '-' + seat_id + '-' + seat_label + '-' + chart_id,
+            seat_firebase = chart_id + '-' + seat_id + '-' + ticket_type_id,
+            is_standee = selected_seat.hasClass( 'tc-object-selectable' );
 
-        $.post(tc_seat_chart_ajax.ajaxUrl, {action: "tc_add_seat_to_cart", tc_seat_cart_items: tc_seat_cart_items, standing_qty: standing_qty}, function (data) {
-            var response = jQuery.parseJSON(data);
-            if (response) {
-                $('#tc-regular-modal .tc_cart_button').prop("disabled", false);
-                button.prop("disabled", false);
-                $(".ui-dialog-content").dialog("close");
-                $('.tc-seatchart-subtotal strong').html(response.total);//response.subtotal + 
-                $('.tc-seatchart-in-cart-count').val(response.in_cart_count);
-                jQuery(".tc-checkout-button").attr("href",get_href_value);
-                jQuery('.tc-checkout-button').attr("style", "opacity: 1; cursor: pointer;");
+        tc_seat_cart_items.push( seat );
+        tc_seat_cart_items_firebase.push( seat_firebase );
+        selected_seat.addClass( 'tc_seat_in_cart' );
+
+        if ( 1 == tc_seat_chart_ajax.tc_check_firebase && !is_standee ) {
+            $.post(tc_seat_chart_ajax.ajaxUrl, { action: "tc_add_seat_to_firebase_cart", tc_seat_cart_items: tc_seat_cart_items_firebase, tc_standing_qty: standing_qty }, function ( data ) {});
+        }
+
+        $.post( tc_seat_chart_ajax.ajaxUrl, { action: "tc_add_seat_to_cart", tc_seat_cart_items: tc_seat_cart_items, standing_qty: standing_qty }, function ( data ) {
+
+            // Remove BOM from string and parse
+            var response = jQuery.parseJSON( data.replace( /\0/g, '' ) );
+
+            if ( response ) {
+
+                $( '#tc-regular-modal .tc_cart_button' ).prop( 'disabled', false );
+                button.prop( 'disabled', false );
+                $( '.ui-dialog-content' ).dialog( 'close' );
+                $( '.tc-seatchart-subtotal strong' ).html( response.total );
+                $( '.tc-seatchart-in-cart-count' ).val( response.in_cart_count );
+                $( '.tc-checkout-button' ).attr( 'href', get_href_value );
+                $( '.tc-checkout-button' ).attr( 'style', 'opacity: 1; cursor: pointer;' );
             }
-            $('#tc-regular-modal .tc_cart_button').prop("disabled", false);
+
+            $('#tc-regular-modal .tc_cart_button').prop( 'disabled', false );
         });
+
+        tc_mark_in_cart_seat();
     }
 
     function tc_mark_in_cart_seat() {
         $.each($(".tc_seat_in_cart"), function () {
             $(this).css('background-color', tc_seat_chart_ajax.tc_in_cart_seat_color);
+            $(this).css('color', tc_seat_chart_ajax.tc_in_cart_seat_color);
             $(this).addClass('tc_seat_in_cart');
             $(this).removeClass('ui-selected');
         });
     }
+
     /**
      * Mark in-cart seats on the specified chart
      * @param {type} seat_chart_id
      * @returns {undefined}
      */
-    function tc_mark_in_cart_seats(seat_chart_id) {
+    function tc_mark_in_cart_seats( seat_chart_id ) {
         for (var k in tc_in_cart_seats[seat_chart_id]) {
             if (tc_in_cart_seats[seat_chart_id].hasOwnProperty(k)) {
 
                 $('.tc_seating_map_' + seat_chart_id + ' #' + k).css('background-color', tc_seat_chart_ajax.tc_in_cart_seat_color);
+                $('.tc_seating_map_' + seat_chart_id + ' #' + k).css('color', tc_seat_chart_ajax.tc_in_cart_seat_color);
                 $('.tc_seating_map_' + seat_chart_id + ' #' + k).addClass('tc_seat_in_cart');
                 $('.tc_seating_map_' + seat_chart_id + ' #' + k).removeClass('ui-selected ui-selectee');
             }
@@ -378,15 +417,17 @@ jQuery(document).ready(function ($) {
 
     /**
      * Mark reserved seats on the chart
+     *
      * @param {type} seat_chart_id
      * @returns {undefined}
      */
-    function tc_mark_reserved_seats(seat_chart_id) {
-        for (var k in tc_reserved_seats[seat_chart_id]) {
-            if (tc_reserved_seats[seat_chart_id].hasOwnProperty(k)) {
-                $('.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)').css('background-color', tc_seat_chart_ajax.tc_reserved_seat_color);
-                $('.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)').addClass('tc_seat_reserved');
-                $('.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)').removeClass('ui-selected ui-selectee');
+    function tc_mark_reserved_seats( seat_chart_id ) {
+        for ( var k in tc_reserved_seats[seat_chart_id] ) {
+            if ( tc_reserved_seats[seat_chart_id].hasOwnProperty(k) ) {
+                $( '.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)' ).css( 'background-color', tc_seat_chart_ajax.tc_reserved_seat_color );
+                $( '.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)' ).css( 'color', tc_seat_chart_ajax.tc_reserved_seat_color );
+                $( '.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)' ).addClass( 'tc_seat_reserved' );
+                $( '.tc_seating_map_' + seat_chart_id + ' #' + k + ':not(.tc-object-selectable)' ).removeClass( 'ui-selected ui-selectee tc_seat_in_cart' );
             }
         }
     }
@@ -402,6 +443,7 @@ jQuery(document).ready(function ($) {
                     var tc_this_ticket_id = $(this).attr('data-tt-id');
                     if (ticket_type_id == tc_this_ticket_id) {
                         $(this).css('background-color', tc_seat_chart_ajax.tc_unavailable_seat_color);
+                        $(this).css('color', tc_seat_chart_ajax.tc_unavailable_seat_color);
                         $(this).addClass('tc_seat_unavailable');
                         $(this).removeClass('ui-selected ui-selectee');
                     }
@@ -410,17 +452,21 @@ jQuery(document).ready(function ($) {
         });
     }
 
-    //
+    /**
+     * Mark standee Seats as reserved
+     *
+     * @param seat_chart_id
+     */
+    function tc_mark_reserved_standings( seat_chart_id ) {
 
-    function tc_mark_reserved_standings(seat_chart_id) {
-        $.each($(".tc-object-selectable"), function () {
-            var ticket_type_id = $(this).data('tt-id');
-            var qty_left = $('.tc-seating-legend .tt_' + ticket_type_id).data('qty-left');
+        $.each( $( '.tc-object-selectable' ), function () {
+            let ticket_type_id = $( this ).data( 'tt-id' ),
+                qty_left = $( '.tc-seating-legend .tt_' + ticket_type_id ).data( 'qty-left' );
 
-            if (qty_left == 0) {
-                $(this).css('background-color', tc_seat_chart_ajax.tc_reserved_seat_color);
-                $(this).addClass('tc_seat_reserved');
-                $(this).removeClass('ui-selected ui-selectee');
+            if ( 0 == qty_left ) {
+                $( this ).css( 'background-color', tc_seat_chart_ajax.tc_reserved_seat_color );
+                $( this ).addClass( 'tc_seat_reserved' );
+                $( this ).removeClass( 'ui-selected ui-selectee tc_seat_in_cart' );
             }
         });
     }
@@ -557,6 +603,4 @@ jQuery(document).ready(function ($) {
             },
         });
     }
-
-
 });

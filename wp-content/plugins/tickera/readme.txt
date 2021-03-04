@@ -2,7 +2,7 @@
 Contributors: tickera, freemius
 Tags: event ticketing, ticketing, ticket, e-tickets, sell tickets, event, event management, event registration, wordpress events, booking, events, venue, e-commerce, payment, registration, concert, conference
 Requires at least: 4.1
-Tested up to: 5.4.2
+Tested up to: 5.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -121,15 +121,54 @@ You can find [setup instructions here >](http://tickera.com/documentation-catego
 
 == Changelog ==
 
-= 3.4.7.1 - 01/07/2020 =
+= 3.4.7.8 09/12/2020 =
+- Ability to restrict API Access by Event Category. Page: Tickera > Settings > API Access
+- Event Quantity Limit: Adjusted to base the calculation from Paid, Received and Fraud Order Statuses
+- Fixed issue with the date select calendar not showing properly with the WordPress 5.6
+
+= 3.4.7.7 24/11/2020 =
+- Bug fixed: “There was an issue determining where Barcode Reader is installed."
+
+= 3.4.7.6 23/11/2020 =
+- Stripe payment gateway: update payment intent with an existing customer.
+- Stripe payment gateway: Webhook marked as failed regardless it succeeded or not. [Fixed]
+- Paytabs payment gateway unable to proceed to order confirmation page. [Fixed]
+- Ability to update order ticket instances: Applicable only when an order status is not yet paid. [Fixed]
+- Ability to update order ticket instances: Missing event quantity limit validation. [Fixed]
+- Multiple events in one API KEY. Configuration page: Tickera > Settings > API Access
+- Events suddenly disappears prior to its expiration. [Fixed]
+- TCPDF Image output Forbidden 403 error on some servers. [Fixed]
+
+= 3.4.7.5 29/09/2020 =
+- Reverting back Paytabs filename from "paytabs-paypage.php" to "paytabs.php". PHP Error duplicated "TC_Gateway_PayTabs" class [Fixed]
+- Stripe "Auth and Capture" Integration
+- Missing paid tickets on success checkout [Fixed]
+- [event_ticket_left] shortcode incorrect value when "Ticket quantity limitation" is activated. [Fixed]
+- Additional filter "tc_discount_code_post_validation" for discount code post validation. Return custom error message if not validated.
+
+= 3.4.7.4 - 13/08/2020 =
+- Integrate permission_callback for Rest API Route
+
+= 3.4.7.3 - 12/08/2020=
+- Bug fixed: Dropdown menu sometimes not working when two different versions of Select2 JQuery loaded in the site
+- Bug fixed: Missing WPML Language Switcher in Home Page. Compatibility issue with WPML Multilingual CMS
+- Ability to Select limit level based on ticket type or event. Can be configured in Tickera > Event
+- Bug fixed: Returns PHP deprecation notices when checking in attendees (Check-in API)
+- Bug fixed: Age verification not working in Tickera Standalone
+- Admin email notification for refunded orders
+- Added "Send Receipt" option in Stripe Payment Gateway
+
+= 3.4.7.2 - 12/08/2020 =
+- Update for WordPress 5.5
+
+= 3.4.7.1 - 01/JUL/2020 =
 - Bug fixed: Template preview and download returning unnecessary contents
 - Bug fixed on ability to change Ticket Instances within an order: misalignments of the fields when clicking on them
 - Bug fixed on "Client order complete email": Multiple emails sent even Attendees fields are disabled.
 - Updated Paytabs Payment Gateway (Paypage) from API1 to API2
 - Additional Discount code filters. Usage limit per user, user roles and returning customers [Reverted]
 
-
-= 3.4.7.0 - 26/06/2020 =
+= 3.4.7.0 - 26/JUN/2020 =
 - Bug fixed: Error notification for required fields (Custom Forms).
 - Added display how many times discount code was used.
 - Bug fixed: Discount code usage count

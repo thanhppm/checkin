@@ -49,8 +49,8 @@ If you use Composer, these dependencies should be handled automatically. If you 
 Simple usage looks like:
 
 ```php
-\Stripe\Stripe::setApiKey('sk_test_BQokikJOvBiI2HlWgH4olfQ2');
-$charge = \Stripe\Charge::create(['amount' => 2000, 'currency' => 'usd', 'source' => 'tok_189fqt2eZvKYlo2CTGBeg6Uq']);
+\TCStripe\Stripe::setApiKey('sk_test_BQokikJOvBiI2HlWgH4olfQ2');
+$charge = \TCStripe\Charge::create(['amount' => 2000, 'currency' => 'usd', 'source' => 'tok_189fqt2eZvKYlo2CTGBeg6Uq']);
 echo $charge;
 ```
 
@@ -84,15 +84,15 @@ To modify request timeouts (connect or total, in seconds) you'll need to tell th
 
 ```php
 // set up your tweaked Curl client
-$curl = new \Stripe\HttpClient\CurlClient();
-$curl->setTimeout(10); // default is \Stripe\HttpClient\CurlClient::DEFAULT_TIMEOUT
-$curl->setConnectTimeout(5); // default is \Stripe\HttpClient\CurlClient::DEFAULT_CONNECT_TIMEOUT
+$curl = new \TCStripe\HttpClient\CurlClient();
+$curl->setTimeout(10); // default is \TCStripe\HttpClient\CurlClient::DEFAULT_TIMEOUT
+$curl->setConnectTimeout(5); // default is \TCStripe\HttpClient\CurlClient::DEFAULT_CONNECT_TIMEOUT
 
 echo $curl->getTimeout(); // 10
 echo $curl->getConnectTimeout(); // 5
 
 // tell Stripe to use the tweaked client
-\Stripe\ApiRequestor::setHttpClient($curl);
+\TCStripe\ApiRequestor::setHttpClient($curl);
 
 // use the Stripe API client as you normally would
 ```
@@ -103,9 +103,9 @@ Need to set a proxy for your requests? Pass in the requisite `CURLOPT_*` array t
 
 ```php
 // set up your tweaked Curl client
-$curl = new \Stripe\HttpClient\CurlClient([CURLOPT_PROXY => 'proxy.local:80']);
+$curl = new \TCStripe\HttpClient\CurlClient([CURLOPT_PROXY => 'proxy.local:80']);
 // tell Stripe to use the tweaked client
-\Stripe\ApiRequestor::setHttpClient($curl);
+\TCStripe\ApiRequestor::setHttpClient($curl);
 ```
 
 Alternately, a callable can be passed to the CurlClient constructor that returns the above array based on request inputs. See `testDefaultOptions()` in `tests/CurlClientTest.php` for an example of this behavior. Note that the callable is called at the beginning of every API request, before the request is sent.
@@ -117,7 +117,7 @@ with a [`PSR-3` compatible logger][psr3] so that messages
 end up there instead of `error_log`:
 
 ```php
-\Stripe\Stripe::setLogger($logger);
+\TCStripe\Stripe::setLogger($logger);
 ```
 
 ### Accessing response data
@@ -125,7 +125,7 @@ end up there instead of `error_log`:
 You can access the data from the last API response on any object via `getLastResponse()`.
 
 ```php
-$charge = \Stripe\Charge::create(['amount' => 2000, 'currency' => 'usd', 'source' => 'tok_visa']);
+$charge = \TCStripe\Charge::create(['amount' => 2000, 'currency' => 'usd', 'source' => 'tok_visa']);
 echo $charge->getLastResponse()->headers['Request-Id'];
 ```
 
@@ -136,8 +136,8 @@ Stripe's API now requires that [all connections use TLS 1.2](https://stripe.com/
 The recommended course of action is to [upgrade your cURL and OpenSSL packages](https://support.stripe.com/questions/how-do-i-upgrade-my-stripe-integration-from-tls-1-0-to-tls-1-2#php) so that TLS 1.2 is used by default, but if that is not possible, you might be able to solve the issue by setting the `CURLOPT_SSLVERSION` option to either `CURL_SSLVERSION_TLSv1` or `CURL_SSLVERSION_TLSv1_2`:
 
 ```php
-$curl = new \Stripe\HttpClient\CurlClient([CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1]);
-\Stripe\ApiRequestor::setHttpClient($curl);
+$curl = new \TCStripe\HttpClient\CurlClient([CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1]);
+\TCStripe\ApiRequestor::setHttpClient($curl);
 ```
 
 ### Per-request Configuration
@@ -147,12 +147,12 @@ one that uses [Stripe Connect][connect], it's also possible to set a
 per-request key and/or account:
 
 ```php
-\Stripe\Charge::all([], [
+\TCStripe\Charge::all([], [
     'api_key' => 'sk_test_...',
     'stripe_account' => 'acct_...'
 ]);
 
-\Stripe\Charge::retrieve("ch_18atAXCdGbJFKhCuBAa4532Z", [
+\TCStripe\Charge::retrieve("ch_18atAXCdGbJFKhCuBAa4532Z", [
     'api_key' => 'sk_test_...',
     'stripe_account' => 'acct_...'
 ]);
@@ -164,7 +164,7 @@ By default, the library will use its own internal bundle of known CA
 certificates, but it's possible to configure your own:
 
 ```php
-\Stripe\Stripe::setCABundlePath("path/to/ca/bundle");
+\TCStripe\Stripe::setCABundlePath("path/to/ca/bundle");
 ```
 
 ### Configuring Automatic Retries
@@ -173,7 +173,7 @@ The library can be configured to automatically retry requests that fail due to
 an intermittent network problem:
 
 ```php
-\Stripe\Stripe::setMaxNetworkRetries(2);
+\TCStripe\Stripe::setMaxNetworkRetries(2);
 ```
 
 [Idempotency keys][idempotency-keys] are added to requests to guarantee that
@@ -225,7 +225,7 @@ Update bundled CA certificates from the [Mozilla cURL release][curl]:
 Are you writing a plugin that integrates Stripe and embeds our library? Then please use the `setAppInfo` function to identify your plugin. For example:
 
 ```php
-\Stripe\Stripe::setAppInfo("MyAwesomePlugin", "1.2.34", "https://myawesomeplugin.info");
+\TCStripe\Stripe::setAppInfo("MyAwesomePlugin", "1.2.34", "https://myawesomeplugin.info");
 ```
 
 The method should be called once, before any request is sent to the API. The second and third parameters are optional.

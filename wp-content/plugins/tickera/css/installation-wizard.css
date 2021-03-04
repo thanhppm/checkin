@@ -548,6 +548,93 @@ input[type='radio']:checked:before {
     font-weight: normal;
 }
 
+.tc-aplications-half {
+    width: 45%;
+    float: left;
+}
+
+.tc-aplications-or {
+    width: 10%;
+    float: left;
+    min-height: 100px;
+}
+
+.tc-wiz-left-wrap {
+    padding-right: 25px;
+}
+
+.tc-wiz-right-wrap {
+    padding-left: 25px;
+}
+
+.tc-app-or {
+    width: 67px;
+    height: 67px;
+    border-radius:50%;
+    -webkit-border-radius: 50%;
+    background-color: #ededed;
+    text-align: center;
+    padding: 20px 0 0 0;
+    font-size: 20px;
+    margin: 150px 0 0 0;
+}
+
+.tc-wiz-image-wrap {
+    height: 130px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.tc-wiz-image-wrap img {
+    width: auto;
+    height: auto;
+    align-self: center;
+}
+
+.tc-lock-icon {
+    background: url(../images/lock-icons-sprite.png) no-repeat 0 0;
+    width: 23px;
+    height: 21px;
+    display: inline-block;
+    margin: 2px 0 0 2px;
+    float: left;
+}
+
+.tc-aplications-half h2 {
+    margin-bottom: 5px;
+}
+
+.tc-feature-lock-wrap span {
+    float: left;
+    margin:2px 0 0 0;
+    color: #8d8d8d;
+}
+
+.tc-feature-lock-wrap {
+    background-color: #e4e2e7;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.tc-feature-lock-wrap.premium {
+    background-color: #8a7da9;
+    float: right;
+}
+
+.tc-feature-lock-wrap.premium span {
+    color: #fff;
+}
+
+.tc-feature-lock-wrap.premium .tc-lock-icon {
+    background-position: -69px 0;
+    margin-right: 5px;
+}
 
 @media (max-width: 1000px){
 
@@ -558,6 +645,8 @@ input[type='radio']:checked:before {
     .tc-wiz-screen {
         width: 100%;
     }
+    
+
 
 }
 
@@ -596,8 +685,32 @@ input[type='radio']:checked:before {
         width: 85%;
     }
     
+    .tc-aplications-half {
+        padding: 0;
+        width: 100%;
+    }
+    
+    .tc-aplications-or {
+        width: 100%;
+    }
+    
+    .tc-app-or {
+        margin: 0 auto;
+        text-align: center;
+    }
+    
+    
 }
 
+
+@media (max-width: 680px){
+    
+    .tc-aplications-half {
+        width: 100%;
+    }
+
+    
+}
 
 @media (max-width: 560px){ 
     .tc-wiz-screen {

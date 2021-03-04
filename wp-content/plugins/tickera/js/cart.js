@@ -1,8 +1,8 @@
 jQuery(document).ready(function ($) {
 
     let error_message = '<div class="tc_field_errors">'+tc_ajax.tc_field_error+'</div>';
-    
-    //check age restriction
+
+    // Check age restriction
     if (tc_ajax.tc_show_age_check == 'yes' && jQuery('#tc_age_check').length !== 0) {
 
         var checkout_form = $('form.checkout');
@@ -18,24 +18,7 @@ jQuery(document).ready(function ($) {
             } else {
                 return true;
             }
-
         });
-
-        jQuery("#proceed_to_checkout").click(function (e) {
-
-
-            jQuery('.tc-age-check-error').each(function () {
-                jQuery(this).remove();
-            });
-
-            var tc_get_check = jQuery("#tc_age_check").is(':checked');
-            if (tc_get_check == false) {
-                jQuery('.tc_cart_errors').append('<li class="tc-age-check-error">' + tc_ajax.tc_error_message + '</li>');
-                e.preventDefault();
-            }
-
-        });
-
     }
 
     if (jQuery(".tc_cart_widget").length > 0){
@@ -63,7 +46,7 @@ jQuery(document).ready(function ($) {
     }
 
 
-    /*
+    /**
      * payment gateway show order
      */
     var $tc_payment_gateway_wrapper = $('#tc_payment_form');
@@ -76,6 +59,7 @@ jQuery(document).ready(function ($) {
     $("#tc_payment_form").submit(function (event) {
         $('#tc_payment_confirm').attr("disabled", "disabled");
     });
+
 
     /**
      * Check if cart update is needed
@@ -94,17 +78,20 @@ jQuery(document).ready(function ($) {
 
                 $('.tc_cart_errors').html('<ul><li><a href="cjsea" class="cjsea"></a>' + tc_ajax.update_cart_message + '</li></ul>');
 
-                var $target = $('.cjsea');
+                let target = $('.cjsea');
 
                 $('html, body').stop().animate({
-                    'scrollTop': ($target.offset().top) - 40
+                    'scrollTop': (target.offset().top) - 40
                 }, 350, 'swing', function () {
                     window.location.hash = target;
                 });
+
                 return false;
+
             } else {
                 return true;
             }
+
         } else {
             return true;
         }
@@ -143,9 +130,32 @@ jQuery(document).ready(function ($) {
     });
 
     /**
+     * Toggle Customer Age Checkbox
+     */
+    $("#tc_age_check").change( function() {
+        if ( $(this).is(':checked') ) {
+            $(this).removeClass('has-error');
+            $('.tc-age-check-error').remove();
+
+        } else {
+            $(this).addClass('has-error');
+            $('.tc-age-check-error').remove();
+            $(this).parent().append('<div class="tc-age-check-error">' + tc_ajax.tc_error_message + '</div>');
+        }
+    });
+
+    /**
      * when user click on the proceed to checkout button
      */
     $(document).on('click', '#proceed_to_checkout', function (event) {
+
+        /*
+         *  Make sure to update the cart if there's some changes before moving to checkout page.
+         */
+        if ( ! tc_check_cart_update() ) {
+            event.preventDefault();
+            return false;
+        }
 
         // Check Validation Fields
         $('#tickera_cart .tickera-input-field').each(function() {
@@ -153,22 +163,31 @@ jQuery(document).ready(function ($) {
             let required_field = ( typeof $(this).attr('name') !== "undefined" ) ?
                 $('input[value="'+ $(this).attr('name').split('[')[0] + '"]').attr('name') :
                 $('input[value="'+ $(this).parent().siblings('.checkbox_values').attr('name').split('[')[0] +'"]').attr('name');
-
             // IF: Required fields
             if ( typeof required_field !== 'undefined') {
 
-                // IF: Select fields
+
                 if ( $(this).is('select') && !$(this).children('option:selected').val() && !$(this).parent().siblings('.tc_field_errors').length ) {
+
+                    /**
+                     * IF: Select fields
+                     */
                     $(this).addClass('has-error');
                     $(this).closest('div').append(error_message);
 
-                    // IF: Checkbox fields
                 } else if ( $(this).is('input[type="checkbox"]') && !$(this).parent().siblings('.checkbox_values').val() && !$(this).parent().siblings('.tc_field_errors').length ) {
+
+                    /**
+                     * IF: Checkbox fields
+                     */
                     $(this).addClass('has-error');
                     $(this).closest('div').append(error_message);
 
-                    // IF: Input and Textarea fields
                 } else if ( ( $(this).is('textarea') && !$(this).val() || ( $(this).is('input') ) && !$(this).val() ) ) {
+
+                    /**
+                     * IF: Input and Textarea fields
+                     */
                     $(this).addClass('has-error');
                     $(this).css('border-left', '2px solid rgb(225, 0, 0)');
                 }
@@ -182,36 +201,43 @@ jQuery(document).ready(function ($) {
                 $(this).parent().siblings('.tc_field_errors').remove();
             }
         });
-		
-		/*
-        **check email verification for buyer field
-        */
+
+        // Validate Customer Age
+        if ( $('#tc_age_check').is(':checked') ) {
+            $('#tc_age_check').removeClass('has-error');
+            $('.tc-age-check-error').remove();
+
+        } else {
+            $('#tc_age_check').addClass('has-error');
+            $('.tc-age-check-error').remove();
+            $('#tc_age_check').parent().append('<div class="tc-age-check-error">' + tc_ajax.tc_error_message + '</div>');
+        }
+
+        // Check email verification for buyer field
         if ( $( '#tickera_cart input' ).hasClass( "tc_validate_field_type_confirm_email" ) ) {
-          var buyer_email = $('.tc_validate_field_type_email').val();
-          var buyer_confirm_email = $('.tc_validate_field_type_confirm_email ').val();
+            var buyer_email = $('.tc_validate_field_type_email').val();
+            var buyer_confirm_email = $('.tc_validate_field_type_confirm_email ').val();
             if ( (buyer_email) != (buyer_confirm_email) || buyer_email == "" || buyer_confirm_email == "" ){
-              $('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').addClass('has-error');
-              jQuery('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').css('border-left','2px solid #ff0000');
+                $('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').addClass('has-error');
+                jQuery('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').css('border-left','2px solid #ff0000');
 
             }else {
-              $('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').removeClass('has-error');
-              jQuery('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').css('border-left','2px solid #09a10f');
+                $('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').removeClass('has-error');
+                jQuery('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').css('border-left','2px solid #09a10f');
             }
         }
 
-        /*
-        **check email verification for owner field
-        */
+        // Check email verification for owner field
         if ( $( '#tickera_cart input' ).hasClass( "tc_owner_confirm_email" ) ) {
-          var owner_email = $('.tc_owner_email').val();
-          var owner_confirm_email = $('.tc_owner_confirm_email ').val();
+            var owner_email = $('.tc_owner_email').val();
+            var owner_confirm_email = $('.tc_owner_confirm_email ').val();
             if ( (owner_email) != (owner_confirm_email) || owner_email == "" || owner_confirm_email == "" ){
-              $('.tc_owner_email,.tc_owner_confirm_email').addClass('has-error');
-              jQuery('.tc_owner_email,.tc_owner_confirm_email').css('border-left','2px solid #ff0000');
+                $('.tc_owner_email,.tc_owner_confirm_email').addClass('has-error');
+                jQuery('.tc_owner_email,.tc_owner_confirm_email').css('border-left','2px solid #ff0000');
 
             }else {
-              $('.tc_owner_email,.tc_owner_confirm_email').removeClass('has-error');
-              jQuery('.tc_owner_email,.tc_owner_confirm_email').css('border-left','2px solid #09a10f');
+                $('.tc_owner_email,.tc_owner_confirm_email').removeClass('has-error');
+                jQuery('.tc_owner_email,.tc_owner_confirm_email').css('border-left','2px solid #09a10f');
             }
         }
 
@@ -227,7 +253,8 @@ jQuery(document).ready(function ($) {
      */
     $(document).on('change', '.tickera_additional_info .tickera-input-field', function() {
 
-        // IF: Select fields
+        if($(this).parent().siblings('span').children().hasClass('required')) {        
+        // IF: Select field
         if ( $(this).is('select') && $(this).children('option:selected').val() ) {
             $(this).removeClass('has-error');
             $(this).parent().siblings('.tc_field_errors').remove();
@@ -242,6 +269,7 @@ jQuery(document).ready(function ($) {
             $(this).addClass('has-error');
             $(this).closest('div').append(error_message);
         }
+    }
     });
 	
 	/**
@@ -261,9 +289,9 @@ jQuery(document).ready(function ($) {
     });
 	
 	
-	/*
-    ** check email-verification for buyer field
-    */
+	/**
+     * check email-verification for buyer field
+     */
     if ( $( '#tickera_cart input' ).hasClass( "tc_validate_field_type_confirm_email" ) ) {
       $('.tc_validate_field_type_email,.tc_validate_field_type_confirm_email').keyup(function() {
         if(($(this).val() != $('.tc_validate_field_type_email').val()) || (!$(this).val()) || ($(this).val() != $('.tc_validate_field_type_confirm_email').val())){
@@ -278,9 +306,9 @@ jQuery(document).ready(function ($) {
       });
     }
 
-    /*
-    ** check email-verification for owner field
-    */
+    /**
+     * check email-verification for owner field
+     */
     if ( $( '#tickera_cart input' ).hasClass( "tc_owner_confirm_email" ) ) {
       $('.tc_owner_email,.tc_owner_confirm_email').keyup(function() {
         if(($(this).val() != $('.tc_owner_email').val()) || (!$(this).val()) || ($(this).val() != $('.tc_owner_confirm_email').val())){
@@ -423,12 +451,7 @@ jQuery(document).ready(function ($) {
      * Proceed to checkout button
      */
     $('body').on('click', '#proceed_to_checkout', function (event) {
-        $('input[name="cart_action"]').val('proceed_to_checkout'); //when user click on the proceed to checkout button
-        if (tc_check_cart_update()) {
-            //all good, do not prevent the click
-        } else {
-            event.preventDefault();
-        }
+        $('input[name="cart_action"]').val('proceed_to_checkout');
     });
 	
 	// check email-verification for owner field with woocommerce
@@ -441,7 +464,6 @@ jQuery(document).ready(function ($) {
 			var owner_confirm_email = $('.tc_owner_confirm_email ').val();
 			if( (owner_email && owner_confirm_email)){
 				if ( (owner_email !== owner_confirm_email) || owner_email === "" || owner_confirm_email === "" ){
-					e.preventDefault();
 					jQuery('.tc_owner_email,.tc_owner_confirm_email').css('border-left','2px solid #ff0000');
 
 				}else {
@@ -484,13 +506,11 @@ jQuery(document).ready(function ($) {
     })
 
     $('body').on('change', '.buyer-field-checkbox, .owner-field-checkbox', function (event) {
-
         var checkbox_values_field = $(this).parent().parent().find('.checkbox_values');
-
         checkbox_values_field.val('');
 
         $(this).parent().parent().find('input').each(function (key, value) {
-            if ($(this).attr('checked')) {
+            if ($(this).is(":checked")) {
                 checkbox_values_field.val(checkbox_values_field.val() + '' + $(this).val() + ', ');
             }
         });
@@ -569,7 +589,7 @@ jQuery(document).ready(function ($) {
 	/*
 	** After click place order check error notification
 	*/
-	$(document).on('click', '#place_order', function (event) {
+	$(document).on('click', '#place_order', function (event) { 
 		// Check Validation Fields
 		$('form.woocommerce-checkout .tickera_additional_info input,form.woocommerce-checkout .tickera_additional_info textarea').each(function() {
 		  let required_field = ( typeof $(this).attr('name') !== "undefined" ) ?
@@ -584,12 +604,12 @@ jQuery(document).ready(function ($) {
 			  $(this).addClass('has-error');
 			  $(this).closest('div').append(error_message);
 
-			  // IF: Checkbox fields
+            // IF: Checkbox fields
 			} else if ( $(this).is('input[type="checkbox"]') && !$(this).parent().siblings('.checkbox_values').val() && !$(this).parent().siblings('.tc_field_errors').length ) {
-			  $(this).addClass('has-error');
+                            $(this).addClass('has-error');
 			  $(this).closest('div').append(error_message);
 
-			  // IF: Input and Textarea fields
+            // IF: Input and Textarea fields
 			} else if ( ( $(this).is('textarea') && !$(this).val() || ( $(this).is('input') ) && !$(this).val() ) ) {
 			  $(this).addClass('has-error');
 			  $(this).css('border-left', '2px solid rgb(225, 0, 0)');

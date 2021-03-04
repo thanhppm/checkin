@@ -1,9 +1,9 @@
 <?php
 
-if (!defined('ABSPATH'))
+if ( !defined( 'ABSPATH' ) )
     exit; // Exit if accessed directly
 
-if (!class_exists('TC_Checkin_API')) {
+if ( !class_exists( 'TC_Checkin_API' ) ) {
 
     class TC_Checkin_API {
 
@@ -13,12 +13,14 @@ if (!class_exists('TC_Checkin_API')) {
         var $results_per_page = 10;
         var $keyword = '';
 
-        function __construct($api_key, $request, $return_method = 'echo', $ticket_code = '', $execute_request = true) {
+        function __construct( $api_key, $request, $return_method = 'echo', $ticket_code = '', $execute_request = true ) {
+
             global $wp;
 
-            if (defined('TC_DEBUG') || isset($_GET['tc_debug'])) {
-                error_reporting(E_ALL);
-                @ini_set('display_errors', 'On');
+            if ( defined( 'TC_DEBUG' ) || isset( $_GET['tc_debug'] ) ) {
+                error_reporting( E_ALL );
+                @ini_set( 'display_errors', 'On' );
+
             } else {
                 error_reporting(0);
             }
@@ -34,7 +36,7 @@ if (!class_exists('TC_Checkin_API')) {
                 $findme = 'checksum'; //old QR code character
                 $pos = strpos($checksum, $findme);
                 if ($pos === false) {//new code
-                    //$checksum
+                    // $checksum
                 } else {//old code
                     $ticket_strings_array = explode('%7C', $checksum); //%7C = |
                     $checksum = end($ticket_strings_array);
@@ -45,9 +47,6 @@ if (!class_exists('TC_Checkin_API')) {
             $this->page_number = apply_filters('tc_tickets_info_page_number_var_name', $page_number);
             $this->results_per_page = apply_filters('tc_tickets_info_results_per_page_var_name', $results_per_page);
             $this->keyword = apply_filters('tc_tickets_info_keyword_var_name', $keyword);
-
-
-
 
             if ($execute_request) {
 
@@ -244,81 +243,90 @@ if (!class_exists('TC_Checkin_API')) {
             }
         }
 
-        /*'no_found_rows'          => true,
-        'update_post_term_cache' => false,
-        'update_post_meta_cache' => false,
-        'cache_results'          => false*/
-        function get_event_essentials($echo = true) {
-            $start = microtime(true);
-            if ($this->get_api_key_id()) {
+        /**
+         * Render Event's Collection/Essentials.
+         * Intitialize Ticket Check-in app with Event's essentials
+         *
+         * @param bool $echo
+         * @return bool|false|float|string
+         */
+        function get_event_essentials( $echo = true ) {
+
+            $start = microtime( true );
+
+            if ( $this->get_api_key_id() ) {
 
                 global $wpdb;
 
-                $event_id = $this->get_api_event();
+                $event_ids = (array) $this->get_api_event();
+                $event_ids = self::maybe_format_event_ids_array( $event_ids );
 
-                if ($event_id == 'all') {
-                    //show all events
-                    $event_id_query = '';
-                } else {
-                    $event_id_query = 'AND wp_pm.meta_value = ' . (int) $event_id;
+                $_event_ids = implode( ',', $event_ids );
+                $event_id_query = ( in_array( 'all', $event_ids ) ) ? '' : 'AND wp_pm.meta_value IN(' . $_event_ids . ')';
+
+                /*
+                 * Event IDs has been reformatted.
+                 * Now remove 'all' from the array
+                 */
+                if ( ( $index = array_search( 'all', $event_ids ) ) !== false ) {
+                    unset( $event_ids[ $index ] );
                 }
 
-                $order_post_statuses = apply_filters('tc_paid_post_statuses', array('order_paid'));
-
                 $having_statuses = "(";
-                foreach ($order_post_statuses as $order_post_statuses_key => $order_post_statuses_val) {
-                    $order_post_statuses[$order_post_statuses_key] = $order_post_statuses_val;
+                $order_post_statuses = apply_filters( 'tc_paid_post_statuses', array( 'order_paid' ) );
+                foreach ( $order_post_statuses as $order_post_statuses_key => &$order_post_statuses_val ) {
+                    $order_post_statuses[ $order_post_statuses_key ] = $order_post_statuses_val;
                     $having_statuses .= "parent_status = '" . $order_post_statuses_val . "' OR ";
                 }
 
-                $having_statuses = rtrim($having_statuses, 'OR ');
-
+                $having_statuses = rtrim( $having_statuses, 'OR ' );
                 $having_statuses .= ")";
 
-                global $wpdb;
-
-                $results = $wpdb->get_results("
-    SELECT
-    ID,
-    (SELECT post_status FROM {$wpdb->prefix}posts wp2 WHERE wp2.ID = wp.post_parent) as parent_status
-    FROM {$wpdb->prefix}posts wp, {$wpdb->prefix}postmeta wp_pm
-    WHERE post_type = 'tc_tickets_instances'
-    AND wp.ID = wp_pm.post_id
-    AND wp_pm.meta_key = 'event_id'
-    {$event_id_query}
-    AND post_status = 'publish'
-    GROUP BY wp.ID
-    HAVING {$having_statuses}", ARRAY_A);
+                $query = "SELECT ID, ( SELECT post_status FROM {$wpdb->prefix}posts wp2 WHERE wp2.ID = wp.post_parent ) as parent_status FROM {$wpdb->prefix}posts wp, {$wpdb->prefix}postmeta wp_pm WHERE post_type = 'tc_tickets_instances' AND wp.ID = wp_pm.post_id AND wp_pm.meta_key = 'event_id' {$event_id_query} AND post_status = 'publish' GROUP BY wp.ID HAVING {$having_statuses}";
+                $results = $wpdb->get_results( $query, ARRAY_A);
 
                 $event_tickets_total = 0;
                 $event_checkedin_tickets = 0;
 
-                foreach ($results as $result_id) {
+                foreach ( $results as $result_id ) {
+
                     $event_tickets_total++;
                     $result_id = $result_id['ID'];
 
                     $checkins = get_post_meta($result_id, 'tc_checkins', true);
 
-                    if (isset($checkins) && is_array($checkins) && count($checkins) > 0) {
+                    if ( isset( $checkins ) && is_array( $checkins ) && count( $checkins ) > 0 ) {
                         $event_checkedin_tickets++;
                     }
                 }
 
-                $data = array(
-                    'event_name' => $event_id == 'all' ? __('Multiple Events', 'tc') : html_entity_decode(stripslashes(get_the_title($event_id))),
-                    'event_date_time' => $event_id == 'all' ? __('N/A', 'tc') : date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime(get_post_meta($event_id, 'event_date_time', true)), false),
-                    'event_location' => $event_id == 'all' ? __('N/A', 'tc') : stripslashes(get_post_meta($event_id, 'event_location', true)),
-                    'sold_tickets' => $event_tickets_total,
-                    'checked_tickets' => $event_checkedin_tickets,
-                    'execution_time' => microtime(true) - $start,
-                    'pass' => true
-                );
+                $data = [
+                    'sold_tickets'      => $event_tickets_total,
+                    'checked_tickets'   => $event_checkedin_tickets,
+                    'execution_time'    => microtime( true ) - $start,
+                    'pass'              => true
+                ];
 
-                $json = json_encode(apply_filters('tc_get_event_essentials_data_output', $data, $event_id, $this->get_api_key_id()));
+                // Multiple Events
+                if ( count( $event_ids ) > 1  ) {
 
-                if ($echo) {
+                    $data['event_name'] = __( 'Multiple Events', 'tc' );
+                    $data['event_date_time'] = __( 'N/A', 'tc' );
+                    $data['event_location'] = __( 'N/A', 'tc' );
+
+                } else {
+
+                    $data['event_name'] = html_entity_decode( stripslashes( get_the_title( reset( $event_ids ) ) ) );
+                    $data['event_date_time'] = date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( get_post_meta( reset( $event_ids ), 'event_date_time', true ) ), false );
+                    $data['event_location'] = stripslashes( get_post_meta( reset( $event_ids ), 'event_location', true ) );
+                }
+
+                $json = json_encode( apply_filters( 'tc_get_event_essentials_data_output', $data, $event_ids, $this->get_api_key_id() ) );
+
+                if ( $echo ) {
                     echo $json;
                     exit;
+
                 } else {
                     return $json;
                 }
@@ -385,392 +393,417 @@ if (!class_exists('TC_Checkin_API')) {
             }
         }
 
+
         /**
+         * Check if the number is from ean13 barcode
+         *
          * @param type $digits
          * @return boolean
-         *
-         * check if the number is from ean13 barcode
          */
-        function tc_ean13_check_digit($digits) {
+        function tc_ean13_check_digit( $digits ) {
 
-            $digits_new = $this->tc_ean13_convert($digits);
+            $digits_new = $this->tc_ean13_convert( $digits );
 
-            //first change digits to a string so that we can access individual numbers
+            // First change digits to a string so that we can access individual numbers
             $digits_new = (string) $digits_new;
 
             // 1. Add the values of the digits in the even-numbered positions: 2, 4, 6, etc.
-            $even_sum = $digits_new{1} + $digits_new{3} + $digits_new{5} + $digits_new{7} + $digits_new{9} + $digits_new{11};
+            $even_sum = (int) $digits_new[1] + (int) $digits_new[3] + (int) $digits_new[5] + (int) $digits_new[7] + (int) $digits_new[9] + (int) $digits_new[11];
             // 2. Multiply this result by 3.
             $even_sum_three = $even_sum * 3;
             // 3. Add the values of the digits in the odd-numbered positions: 1, 3, 5, etc.
-            $odd_sum = $digits_new{0} + $digits_new{2} + $digits_new{4} + $digits_new{6} + $digits_new{8} + $digits_new{10};
+            $odd_sum = (int) $digits_new[0] + (int) $digits_new[2] + (int) $digits_new[4] + (int) $digits_new[6] + (int) $digits_new[8] + (int) $digits_new[10];
             // 4. Sum the results of steps 2 and 3.
             $total_sum = $even_sum_three + $odd_sum;
             // 5. The check character is the smallest number which, when added to the result in step 4,  produces a multiple of 10.
-            $next_ten = (ceil($total_sum / 10)) * 10;
+            $next_ten = ( ceil( $total_sum / 10 ) ) * 10;
             $check_digit = $next_ten - $total_sum;
             $tc_new_digit = $digits_new . $check_digit;
 
-            if ($tc_new_digit == $digits) {
-                return true;
-            } else {
-                return false;
-            }
+            return ( $tc_new_digit == $digits ) ? true : false;
         }
 
-        /*
-         * convert ean13 to normal barcode
-         */
 
-        function tc_ean13_convert($digits) {
-            $digits_count = strlen($digits);
-            $check_first = substr($digits, 0, 1);
-            if ($check_first !== 0 && $digits_count == 13) {
+        /**
+         * Convert ean13 to normal barcode
+         *
+         * @param $digits
+         * @return false|string
+         */
+        function tc_ean13_convert( $digits ) {
+            $digits_count = strlen( $digits );
+            $check_first = substr( $digits, 0, 1 );
+            if ( $check_first !== 0 && 13 == $digits_count ) {
                 $check_first = '';
             }
-            $digits_new = substr($digits, 0, -1);
+            $digits_new = substr( $digits, 0, -1 );
             $digits_new = $check_first . $digits_new;
             return $digits_new;
         }
 
-        function ticket_checkin($echo = true) {
 
-            $tc_general_settings = get_option('tc_general_setting', false);
-            $ean13_convert_enabled = isset($tc_general_settings['ean_13_checker']) ? $tc_general_settings['ean_13_checker'] : 'no';
+        /**
+         * Check-in Attendee
+         *
+         * @param bool $echo
+         * @return array|int|mixed|void
+         */
+        function ticket_checkin( $echo = true ) {
 
-            if ($this->get_api_key_id()) {
+            $tc_general_settings = get_option( 'tc_general_setting', false );
+            $ean13_convert_enabled = isset( $tc_general_settings['ean_13_checker'] ) ? $tc_general_settings['ean_13_checker'] : 'no';
+
+            if ( $this->get_api_key_id() ) {
 
                 $api_key_id = $this->get_api_key_id();
-                $tc_code_lenght = strlen($this->ticket_code);
+                $tc_code_lenght = strlen( $this->ticket_code );
                 $ticket_code = $this->ticket_code;
 
-                if ($ean13_convert_enabled == 'yes') {
-                    //ean 13 contains 12 numberic characters
-                    if ($tc_code_lenght == 12 || $tc_code_lenght == 13 && is_numeric($this->ticket_code)) {
-                        $tc_check_ean13 = $this->tc_ean13_check_digit($this->ticket_code);
-                        if ($tc_check_ean13 == true) {
-                            $ticket_code = $this->tc_ean13_convert($this->ticket_code);
-                        }
+                if ( 'yes' == $ean13_convert_enabled ) {
+
+                    /*
+                     * Ean 13 contains 12 numberic characters
+                     */
+                    if ( $tc_code_lenght == 12 || 13 == $tc_code_lenght && is_numeric( $this->ticket_code ) ) {
+
+                        $tc_check_ean13 = $this->tc_ean13_check_digit( $this->ticket_code );
+
+                        if ( true == $tc_check_ean13 )
+                            $ticket_code = $this->tc_ean13_convert( $this->ticket_code );
                     }
                 }
 
-                $ticket_id = ticket_code_to_id($ticket_code);
+                $ticket_id = ticket_code_to_id( $ticket_code );
 
-                if ($ticket_id) {
+                if ( $ticket_id ) {
 
-                    $ticket_instance = new TC_Ticket_Instance($ticket_id);
-                    $ticket_type_id = apply_filters('tc_ticket_type_id', $ticket_instance->details->ticket_type_id);
+                    $ticket_instance = new TC_Ticket_Instance( $ticket_id );
+                    $ticket_type_id = apply_filters( 'tc_ticket_type_id', $ticket_instance->details->ticket_type_id );
 
-                    $ticket_type = new TC_Ticket($ticket_type_id);
-                    $order = new TC_Order($ticket_instance->details->post_parent);
+                    $ticket_type = new TC_Ticket( $ticket_type_id );
+                    $order = new TC_Order( $ticket_instance->details->post_parent );
 
-                    if ($order->details->post_status == 'order_paid') {
-                        $order_is_paid = true;
+                    $order_is_paid = ( 'order_paid' == $order->details->post_status ) ? true : false;
+                    $order_is_paid = apply_filters( 'tc_order_is_paid', $order_is_paid, $order->details->ID );
+
+                    if ( $order_is_paid ) {
+
+                        /*
+                         * No errors found, continue with check-in process
+                         */
+
                     } else {
-                        $order_is_paid = false;
-                    }
 
-                    $order_is_paid = apply_filters('tc_order_is_paid', $order_is_paid, $order->details->ID);
-
-                    if ($order_is_paid) {
-                        //all good, continue with check-in process
-                    } else {
-                        if ($echo) {
-                            _e('Ticket does not exist', 'tc');
+                        if ( $echo ) {
+                            _e( 'Ticket does not exist', 'tc' );
                             exit;
+
                         } else {
                             return 11;
                         }
                     }
 
-                    $ticket_event_id = $ticket_type->get_ticket_event($ticket_type_id);
+                    $ticket_event_id = $ticket_type->get_ticket_event( $ticket_type_id );
+
                 } else {
-                    if ($echo) {
-                        _e('Ticket does not exist', 'tc');
+
+                    if ( $echo ) {
+                        _e( 'Ticket does not exist', 'tc' );
                         exit;
+
                     } else {
                         return 11;
                     }
                 }
 
-                if ($this->get_api_event() != $ticket_event_id) {//Only API key for the parent event can check-in this ticket
-                    if ($this->get_api_event() !== 'all') {
-                        if ($echo) {
-                            _e('Insufficient permissions. This API key cannot check in this ticket.', 'tc');
+                /*
+                 * Only API key for the parent event can check-in this ticket
+                 */
+
+                $event_ids = (array) $this->get_api_event();
+                $event_ids = self::maybe_format_event_ids_array( $event_ids );
+
+                if ( !in_array( $ticket_event_id, $event_ids )  ) {
+
+                    if ( !in_array( 'all', $event_ids ) ) {
+
+                        if ( $echo ) {
+                            _e( 'Insufficient permissions. This API key cannot check in this ticket.', 'tc' );
+
                         } else {
-                            return 403; //error code for incufficient persmissions
+
+                            /*
+                             * Error code for insufficient permissions
+                             */
+                            return 403;
                         }
+
                         exit;
                     }
                 }
 
                 $check_ins = $ticket_instance->get_ticket_checkins();
+                $allowed_checkins = TC_Checkin_API::get_number_of_allowed_checkins_for_ticket_instance( $ticket_id, $ticket_type );
 
-                /* $num_of_check_ins = apply_filters('tc_num_of_checkins', (is_array($check_ins) ? count($check_ins) : 0));
-
-                  $available_checkins = get_post_meta($ticket_type_id, 'available_checkins_per_ticket', true);
-                  $alternate_available_checkins = get_post_meta($ticket_type_id, '_available_checkins_per_ticket', true);
-
-                  $available_checkins = !empty($available_checkins) ? $available_checkins : $alternate_available_checkins;
-                  $available_checkins = (is_numeric($available_checkins) ? $available_checkins : 9999); //9999 means unlimited check-ins but it's set for easier comparation
-                 */
-                $allowed_checkins = TC_Checkin_API::get_number_of_allowed_checkins_for_ticket_instance($ticket_id, $ticket_type);
-
-                if ($allowed_checkins > 0) {
-                    $check_in_status = apply_filters('tc_checkin_status_name', true);
+                if ( $allowed_checkins > 0 ) {
+                    $check_in_status = apply_filters( 'tc_checkin_status_name', true );
                     $check_in_status_bool = true;
-                    do_action('tc_check_in_notification', $ticket_id, $api_key_id);
+                    do_action( 'tc_check_in_notification', $ticket_id, $api_key_id );
+
                 } else {
-                    $check_in_status = apply_filters('tc_checkin_status_name', false);
-                    $check_in_status_bool = false;
-                }
-                /* if ($available_checkins > $num_of_check_ins) {
-                  $check_in_status = apply_filters('tc_checkin_status_name', true);
-                  $check_in_status_bool = true;
-                  do_action('tc_check_in_notification', $ticket_id);
-                  } else {
-                  $check_in_status = apply_filters('tc_checkin_status_name', false);
-                  $check_in_status_bool = false;
-                  } */
-
-                if (!TC_Ticket::is_checkin_available($ticket_type_id, $order, $ticket_id)) {
-                    $check_in_status = apply_filters('tc_checkin_status_name', false);
+                    $check_in_status = apply_filters( 'tc_checkin_status_name', false );
                     $check_in_status_bool = false;
                 }
 
+                if ( !TC_Ticket::is_checkin_available( $ticket_type_id, $order, $ticket_id ) ) {
+                    $check_in_status = apply_filters( 'tc_checkin_status_name', false );
+                    $check_in_status_bool = false;
+                }
 
                 $new_checkins = array();
 
-                if (is_array($check_ins)) {
-                    foreach ($check_ins as $check_in) {
+                if ( is_array( $check_ins ) ) {
+                    foreach ( $check_ins as $check_in )
                         $new_checkins[] = $check_in;
-                    }
                 }
 
-                $new_checkin = array(
-                    "date_checked" => isset($_GET['timestamp']) ? $this->right_timestamp($_GET['timestamp']) : time(),
-                    "status" => $check_in_status ? apply_filters('tc_checkin_status_name', 'Pass') : apply_filters('tc_checkin_status_name', 'Fail'),
-                    "api_key_id" => $api_key_id
-                );
+                $new_checkin = [
+                    "date_checked"  => isset( $_GET['timestamp'] ) ? $this->right_timestamp( $_GET['timestamp'] ) : time(),
+                    "status"        => $check_in_status ? apply_filters( 'tc_checkin_status_name', 'Pass' ) : apply_filters( 'tc_checkin_status_name', 'Fail' ),
+                    "api_key_id"    => $api_key_id
+                ];
 
-                $new_checkins[] = apply_filters('tc_new_checkin_array', $new_checkin);
+                $new_checkins[] = apply_filters( 'tc_new_checkin_array', $new_checkin );
 
-                do_action('tc_before_checkin_array_update', $new_checkins);
+                do_action( 'tc_before_checkin_array_update', $new_checkins );
 
-                $new_checkins = apply_filters('tc_all_attendee_checkin_records', $new_checkins);
+                $new_checkins = apply_filters( 'tc_all_attendee_checkin_records', $new_checkins );
 
-                update_post_meta($ticket_id, "tc_checkins", $new_checkins);
+                update_post_meta( $ticket_id, "tc_checkins", $new_checkins );
 
-                do_action('tc_after_checkin_array_update');
+                do_action( 'tc_after_checkin_array_update' );
 
-                $payment_date = apply_filters('tc_checkin_payment_date', tc_format_date(apply_filters('tc_ticket_checkin_order_date', $order->details->tc_order_date, $order->details->ID))); //date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $order->details->tc_order_date, false )
+                $payment_date = apply_filters( 'tc_checkin_payment_date', tc_format_date( apply_filters( 'tc_ticket_checkin_order_date', $order->details->tc_order_date, $order->details->ID ) ) );
+                $payment_date = ( !$payment_date ) ? 'N/A' : $payment_date;
 
-                if ($payment_date == '') {
-                    $payment_date = 'N/A';
+                $name = apply_filters( 'tc_checkin_owner_name', $ticket_instance->details->first_name . ' ' . $ticket_instance->details->last_name );
+                $name = ( !trim( $name ) ) ? 'N/A' : $name;
+
+                $address = apply_filters( 'tc_checkin_owner_address', $ticket_instance->details->address );
+                $address = ( !$address ) ? 'N/A' : $address;
+
+                $city = apply_filters( 'tc_checkin_owner_city', $ticket_instance->details->city );
+                $city = ( !$city ) ? 'N/A' : $city;
+
+                $state = apply_filters( 'tc_checkin_owner_state', $ticket_instance->details->state );
+                $state = ( !$state ) ? 'N/A' : $state;
+
+                $country = apply_filters( 'tc_checkin_owner_country', $ticket_instance->details->country );
+                $country = ( !$country ) ? 'N/A' : $country;
+
+                $data = [
+                    'status'            => $check_in_status_bool, // False
+                    'previous_status'   => '',
+                    'pass'              => true, // Api is valid
+                    'name'              => $name,
+                    'payment_date'      => $payment_date,
+                    'address'           => $address,
+                    'city'              => $city,
+                    'state'             => $state,
+                    'country'           => $country,
+                    'checksum'          => $this->ticket_code
+                ];
+
+                if ( isset( $_GET['timestamp'] ) ) {
+                    $data['timestamp'] = $this->right_timestamp( $_GET['timestamp'] );
                 }
 
-                $name = apply_filters('tc_checkin_owner_name', $ticket_instance->details->first_name . ' ' . $ticket_instance->details->last_name);
+                $buyer_full_name = isset( $order->details->tc_cart_info['buyer_data']['first_name_post_meta'] ) ? ( $order->details->tc_cart_info['buyer_data']['first_name_post_meta'] . ' ' . $order->details->tc_cart_info['buyer_data']['last_name_post_meta'] ) : '';
+                $buyer_email = isset( $order->details->tc_cart_info['buyer_data']['email_post_meta'] ) ? $order->details->tc_cart_info['buyer_data']['email_post_meta'] : '';
 
-                if (trim($name) == '') {
-                    $name = 'N/A';
-                }
+                $data['custom_fields'] = [
+                    array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Ticket Type' ), apply_filters( 'tc_checkout_owner_info_ticket_title', $ticket_type->details->post_title, $ticket_type->details->ID, array(), $ticket_instance->details->ID ) ),
+                    array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Buyer Name' ), apply_filters( 'tc_ticket_checkin_buyer_full_name', $buyer_full_name, $order->details->ID ) ),
+                    array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Buyer E-mail' ), apply_filters( 'tc_ticket_checkin_buyer_email', $buyer_email, $order->details->ID ) ),
+                ];
 
-                $address = apply_filters('tc_checkin_owner_address', $ticket_instance->details->address);
+                $data['custom_fields'] = apply_filters( 'tc_checkin_custom_fields', $data['custom_fields'], $ticket_instance->details->ID, $ticket_event_id, $order, $ticket_type );
 
-                if ($address == '') {
-                    $address = 'N/A';
-                }
+                $data = apply_filters( 'tc_checkin_output_data', $data, $api_key_id );
 
-                $city = apply_filters('tc_checkin_owner_city', $ticket_instance->details->city);
-
-                if ($city == '') {
-                    $city = 'N/A';
-                }
-
-                $state = apply_filters('tc_checkin_owner_state', $ticket_instance->details->state);
-
-                if ($state == '') {
-                    $state = 'N/A';
-                }
-
-                $country = apply_filters('tc_checkin_owner_country', $ticket_instance->details->country);
-
-                if ($country == '') {
-                    $country = 'N/A';
-                }
-
-                $data = array(
-                    'status' => $check_in_status_bool, //false
-                    'previous_status' => '',
-                    'pass' => true, //api is valid
-                    'name' => $name,
-                    'payment_date' => $payment_date,
-                    'address' => $address,
-                    'city' => $city,
-                    'state' => $state,
-                    'country' => $country,
-                    'checksum' => $this->ticket_code
-                );
-
-                if (isset($_GET['timestamp'])) {
-                    $data['timestamp'] = $this->right_timestamp($_GET['timestamp']);
-                }
-
-                $buyer_full_name = isset($order->details->tc_cart_info['buyer_data']['first_name_post_meta']) ? ($order->details->tc_cart_info['buyer_data']['first_name_post_meta'] . ' ' . $order->details->tc_cart_info['buyer_data']['last_name_post_meta']) : '';
-                $buyer_email = isset($order->details->tc_cart_info['buyer_data']['email_post_meta']) ? $order->details->tc_cart_info['buyer_data']['email_post_meta'] : '';
-
-                $data['custom_fields'] = array(
-                    array(apply_filters('tc_ticket_checkin_custom_field_title', 'Ticket Type'), apply_filters('tc_checkout_owner_info_ticket_title', $ticket_type->details->post_title, $ticket_type->details->ID, array(), $ticket_instance->details->ID)),
-                    array(apply_filters('tc_ticket_checkin_custom_field_title', 'Buyer Name'), apply_filters('tc_ticket_checkin_buyer_full_name', $buyer_full_name, $order->details->ID)),
-                    array(apply_filters('tc_ticket_checkin_custom_field_title', 'Buyer E-mail'), apply_filters('tc_ticket_checkin_buyer_email', $buyer_email, $order->details->ID)),
-                );
-
-                $data['custom_fields'] = apply_filters('tc_checkin_custom_fields', $data['custom_fields'], $ticket_instance->details->ID, $ticket_event_id, $order, $ticket_type);
-
-                $data = apply_filters('tc_checkin_output_data', $data, $api_key_id);
-
-                if ($echo === true || $echo == 'echo') {
+                if ( $echo === true || 'echo' == $echo ) {
                     echo json_encode($data);
                     exit;
+
                 } else {
                     return $data;
                 }
             }
         }
 
-        function tickets_info($echo = true) {
-            do_action('TC_Checkin_API_tickets_info', $echo, $this);
+        /**
+         * Render Ticket Check-in App List of Attendees and their details
+         *
+         * @param bool $echo
+         */
+        function tickets_info( $echo = true ) {
 
-            $start = microtime(true);
-            if ($this->get_api_key_id()) {
+            do_action( 'TC_Checkin_API_tickets_info', $echo, $this );
+
+            $start = microtime( true );
+
+            if ( $this->get_api_key_id() ) {
 
                 global $wpdb;
 
-                $event_id = $this->get_api_event();
+                $event_ids = (array) $this->get_api_event();
+                $event_ids = self::maybe_format_event_ids_array( $event_ids );
 
-                if ($event_id == 'all') {
-                    //show all events
-                    $event_id_query = '';
-                } else {
-                    $event_id_query = 'AND wp_pm.meta_value = ' . (int) $event_id;
-                }
+                $_event_ids = implode( ',', $event_ids );
+                $event_id_query = ( in_array( 'all', $event_ids ) ) ? '' : 'AND wp_pm.meta_value IN(' . $_event_ids . ')';
 
-                $order_post_statuses = apply_filters('tc_paid_post_statuses', array('order_paid'));
+                $order_post_statuses = apply_filters( 'tc_paid_post_statuses', array( 'order_paid' ) );
 
                 $having_statuses = "(";
-                foreach ($order_post_statuses as $order_post_statuses_key => $order_post_statuses_val) {
+                foreach ( $order_post_statuses as $order_post_statuses_key => &$order_post_statuses_val ) {
                     $order_post_statuses[$order_post_statuses_key] = $order_post_statuses_val;
                     $having_statuses .= "parent_status = '" . $order_post_statuses_val . "' OR ";
                 }
 
-                $having_statuses = rtrim($having_statuses, 'OR ');
+                $having_statuses = rtrim( $having_statuses, 'OR ' );
 
                 $having_statuses .= ")";
 
-                $offset = (( $this->page_number - 1 ) * $this->results_per_page );
+                $offset = ( ( $this->page_number - 1 ) * $this->results_per_page );
 
-                $results = $wpdb->get_results("
-                    SELECT
-                    ID,
-                    post_parent as parent,
-                    post_status,
-                    (SELECT post_status FROM {$wpdb->prefix}posts wp2 WHERE wp2.ID = wp.post_parent) as parent_status
-                    FROM {$wpdb->prefix}posts wp, {$wpdb->prefix}postmeta wp_pm
-                    WHERE post_type = 'tc_tickets_instances'
-                    AND wp.ID = wp_pm.post_id
-                    AND wp_pm.meta_key = 'event_id'
-                    {$event_id_query}
-                    AND post_status = 'publish'
-                    GROUP BY wp.ID
-                    HAVING {$having_statuses}
-                    ORDER BY post_date DESC
-                    LIMIT {$this->results_per_page} OFFSET {$offset};", ARRAY_A
-                  );
-
+                $query = "SELECT ID, post_parent as parent, post_status, ( SELECT post_status FROM {$wpdb->prefix}posts wp2 WHERE wp2.ID = wp.post_parent ) as parent_status FROM {$wpdb->prefix}posts wp, {$wpdb->prefix}postmeta wp_pm WHERE post_type = 'tc_tickets_instances' AND wp.ID = wp_pm.post_id AND wp_pm.meta_key = 'event_id' {$event_id_query} AND post_status = 'publish' GROUP BY wp.ID HAVING {$having_statuses} ORDER BY post_date DESC LIMIT {$this->results_per_page} OFFSET {$offset}";
+                $results = $wpdb->get_results( $query, ARRAY_A );
                 $results_count = 0;
 
-                $bridge_is_active = (apply_filters('tc_bridge_for_woocommerce_is_active', false) == true && is_plugin_active('woocommerce/woocommerce.php')) ? true : false;
+                $bridge_is_active = ( apply_filters( 'tc_bridge_for_woocommerce_is_active', false ) == true && is_plugin_active( 'woocommerce/woocommerce.php' ) ) ? true : false;
 
-                foreach ($results as $result_id) {
+                foreach ( $results as $result_id ) {
+
                     $result_id = $result_id['ID'];
-                    $ticket_code = get_post_meta($result_id, 'ticket_code', true);
-                    $ticket_first_name = get_post_meta($result_id, 'first_name', true);
-                    $ticket_last_name = get_post_meta($result_id, 'last_name', true);
-                    $attendee_email = get_post_meta($result_id, 'owner_email', true);
-                    $ticket_type_id = get_post_meta($result_id, 'ticket_type_id', true);
-                    $ticket_post_parent = wp_get_post_parent_id($result_id);
+                    $ticket_code = get_post_meta( $result_id, 'ticket_code', true );
+                    $ticket_first_name = get_post_meta( $result_id, 'first_name', true );
+                    $ticket_last_name = get_post_meta( $result_id, 'last_name', true );
+                    $attendee_email = get_post_meta( $result_id, 'owner_email', true );
+                    $ticket_type_id = get_post_meta( $result_id, 'ticket_type_id', true );
+                    $ticket_post_parent = wp_get_post_parent_id( $result_id );
 
                     $ticket_type = new TC_Ticket($ticket_type_id);
-
                     $order = new TC_Order($ticket_post_parent);
 
-
                     /* OLD */
-                    $check_ins = get_post_meta($result_id, 'tc_checkins', true);
+                    $check_ins = get_post_meta( $result_id, 'tc_checkins', true );
                     $checkin_date = '';
 
-                    if (!empty($check_ins)) {
-                        foreach ($check_ins as $check_in) {
+                    if ( !empty( $check_ins ) ) {
+                        foreach ( $check_ins as $check_in )
                             $checkin_date = tc_format_date($check_in['date_checked']);
-                        }
                     }
 
                     $r['date_checked'] = $checkin_date;
 
-                    if ($bridge_is_active && $order->details->post_type == 'shop_order') {
-                        //$wc_post = get_post($result_id, 'OBJECT');
+                    if ( $bridge_is_active && 'shop_order' == $order->details->post_type ) {
                         $format = get_option('date_format') . ' - ' . get_option('time_format');
+                        $r['payment_date'] = get_the_date( $format, $result_id );
 
-                        $r['payment_date'] = get_the_date( $format, $result_id );//date($format, strtotime($wc_post->post_date));
                     } else {
-                        $r['payment_date'] = tc_format_date($order->details->tc_order_date);
+                        $r['payment_date'] = tc_format_date( $order->details->tc_order_date );
                     }
-
 
                     $r['transaction_id'] = $ticket_code;
                     $r['checksum'] = $ticket_code;
 
-                    $buyer_full_name = isset($order->details->tc_cart_info['buyer_data']['first_name_post_meta']) ? ($order->details->tc_cart_info['buyer_data']['first_name_post_meta'] . ' ' . $order->details->tc_cart_info['buyer_data']['last_name_post_meta']) : '';
-                    $buyer_email = isset($order->details->tc_cart_info['buyer_data']['email_post_meta']) ? $order->details->tc_cart_info['buyer_data']['email_post_meta'] : '';
+                    $buyer_full_name = isset( $order->details->tc_cart_info['buyer_data']['first_name_post_meta'] ) ? ( $order->details->tc_cart_info['buyer_data']['first_name_post_meta'] . ' ' . $order->details->tc_cart_info['buyer_data']['last_name_post_meta'] ) : '';
+                    $buyer_email = isset( $order->details->tc_cart_info['buyer_data']['email_post_meta'] ) ? $order->details->tc_cart_info['buyer_data']['email_post_meta'] : '';
 
-                    if (!empty($ticket_first_name) && !empty($ticket_last_name)) {
+                    if ( !empty( $ticket_first_name ) && !empty( $ticket_last_name ) ) {
                         $r['buyer_first'] = $ticket_first_name;
                         $r['buyer_last'] = $ticket_last_name;
+
                     } else {
-                        $r['buyer_first'] = apply_filters('tc_ticket_checkin_buyer_first_name', $order->details->tc_cart_info['buyer_data']['first_name_post_meta'], $order->details->ID);
-                        $r['buyer_last'] = apply_filters('tc_ticket_checkin_buyer_last_name', $order->details->tc_cart_info['buyer_data']['last_name_post_meta'], $order->details->ID);
+                        $r['buyer_first'] = apply_filters( 'tc_ticket_checkin_buyer_first_name', @$order->details->tc_cart_info['buyer_data']['first_name_post_meta'], $order->details->ID );
+                        $r['buyer_last'] = apply_filters( 'tc_ticket_checkin_buyer_last_name', @$order->details->tc_cart_info['buyer_data']['last_name_post_meta'], $order->details->ID );
                     }
 
                     $r['custom_fields'] = array(
-                        array(apply_filters('tc_ticket_checkin_custom_field_title', 'Ticket Type'), apply_filters('tc_checkout_owner_info_ticket_title', $ticket_type->details->post_title, $ticket_type->details->ID, array(), $result_id)),
-                        array(apply_filters('tc_ticket_checkin_custom_field_title', 'Buyer Name'), apply_filters('tc_ticket_checkin_buyer_full_name', $buyer_full_name, $order->details->ID)),
-                        array(apply_filters('tc_ticket_checkin_custom_field_title', 'Buyer E-mail'), apply_filters('tc_ticket_checkin_buyer_email', $buyer_email, $order->details->ID)),
+                        array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Ticket Type' ), apply_filters( 'tc_checkout_owner_info_ticket_title', $ticket_type->details->post_title, $ticket_type->details->ID, array(), $result_id ) ),
+                        array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Buyer Name' ), apply_filters( 'tc_ticket_checkin_buyer_full_name', $buyer_full_name, $order->details->ID ) ),
+                        array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Buyer E-mail' ), apply_filters( 'tc_ticket_checkin_buyer_email', $buyer_email, $order->details->ID ) ),
                     );
 
-                    if (isset($attendee_email) && !empty($attendee_email)) {
-                        $r['custom_fields'][] = array(apply_filters('tc_ticket_checkin_custom_field_title', 'Attendee E-mail'), apply_filters('tc_ticket_checkin_attendee_email', $attendee_email, $result_id));
+                    if ( isset( $attendee_email ) && !empty( $attendee_email ) ) {
+                        $r['custom_fields'][] = array( apply_filters( 'tc_ticket_checkin_custom_field_title', 'Attendee E-mail' ), apply_filters( 'tc_ticket_checkin_attendee_email', $attendee_email, $result_id ) );
                     }
 
-                    $r = apply_filters('tc_checkins_row', $r, $result_id, $event_id, $order, $ticket_type);
+                    $r = apply_filters( 'tc_checkins_row', $r, $result_id, $event_ids, $order, $ticket_type );
 
-                    $r['custom_fields'] = apply_filters('tc_checkin_custom_fields', $r['custom_fields'], $result_id, $event_id, $order, $ticket_type);
-                    $r['custom_field_count'] = count($r['custom_fields']);
-                    $r['allowed_checkins'] = TC_Checkin_API::get_number_of_allowed_checkins_for_ticket_instance($result_id, $ticket_type);
+                    $r['custom_fields'] = apply_filters( 'tc_checkin_custom_fields', $r['custom_fields'], $result_id, $event_ids, $order, $ticket_type );
+                    $r['custom_field_count'] = count( $r['custom_fields'] );
+                    $r['allowed_checkins'] = TC_Checkin_API::get_number_of_allowed_checkins_for_ticket_instance( $result_id, $ticket_type );
 
-                    $rows[] = array('data' => $r);
-
+                    $rows[] = [ 'data' => $r ];
                     $results_count++;
                 }
 
                 $additional['results_count'] = $results_count;
-                $additional['execution_time'] = microtime(true) - $start;
-                $rows[] = array('additional' => $additional);
-                echo json_encode($rows);
+                $additional['execution_time'] = microtime( true ) - $start;
+                $rows[] = [ 'additional' => $additional ];
+
+                echo json_encode( $rows );
                 exit;
             }
         }
 
-    }
+        /**
+         * Format Event IDs with backward compatibility
+         *
+         * @param $event_ids
+         * @return int[]|mixed|WP_Post[]
+         */
+        function maybe_format_event_ids_array( $event_ids ) {
 
+            /*
+             * Identify dynamic field
+             * Preserve previous format for backward compatibility
+             */
+            if ( is_array( reset( $event_ids ) ) ) {
+
+                // Term/Category ID
+                $term_id = array_keys( $event_ids )[0];
+
+                // Update event ids format. Multidimentional Array Event IDs
+                $md_event_ids = reset( $event_ids );
+
+                if ( in_array( 'all', $md_event_ids ) ) {
+
+                    /*
+                     * Filter event ids based on term/category
+                     */
+                    $event_args = [
+                        'posts_per_page' => -1,
+                        'post_type' => 'tc_events',
+                        'fields' => 'ids',
+                    ];
+
+                    if ( 'all' != array_keys( $event_ids )[0] ) {
+                        $event_args['tax_query'] = [
+                            [ 'taxonomy' => 'event_category', 'terms' => $term_id ]
+                        ];
+                    }
+
+                    $event_ids = get_posts( $event_args );
+
+                } else {
+                    $event_ids = $md_event_ids;
+                }
+            }
+
+            return $event_ids;
+        }
+    }
 }
 ?>

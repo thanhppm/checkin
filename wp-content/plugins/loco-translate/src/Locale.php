@@ -76,14 +76,18 @@ class Loco_Locale implements JsonSerializable {
      * @param string
      */
     public function __construct( $lang = '', $region = '', $variant = '' ){
+        if( 1 == func_num_args() && isset($lang[3]) ){
+            throw new BadMethodCallException('Did you mean Loco_Locale::parse('.var_export($lang,1).') ?');
+        }
         $this->tag = compact('lang','region','variant');
     }
 
 
-
     /**
-     * @internal
      * Allow read access to subtags
+     * @internal 
+     * @param string
+     * @return string
      */
     public function __get( $t ){
         return isset($this->tag[$t]) ? $this->tag[$t] : '';
@@ -91,8 +95,11 @@ class Loco_Locale implements JsonSerializable {
 
 
     /**
-     * @internal
      * Allow write access to subtags
+     * @internal
+     * @param string
+     * @param string
+     * @return void
      */
     public function __set( $t, $s ){
         if( isset($this->tag[$t]) ){
@@ -104,6 +111,7 @@ class Loco_Locale implements JsonSerializable {
 
     /**
      * Set subtags as produced from loco_parse_wp_locale
+     * @param string[]
      * @return Loco_Locale
      */
     public function setSubtags( array $tag ){
@@ -119,10 +127,10 @@ class Loco_Locale implements JsonSerializable {
             throw new Loco_error_LocaleException('Locale must have a language');
         }
         // no UN codes in Wordpress
-        if( is_numeric($tag['region']) ){
+        if( preg_match('/^\\d+$/',$tag['region']) ){
             throw new Loco_error_LocaleException('Numeric regions not supported');
         }
-        // single, scalar variant. Only using for Formal german currently.
+        // non-standard variant code. e.g. formal/informal
         if( is_array($tag['variant']) ){
             $tag['variant'] = implode('_',$tag['variant']);
         }
@@ -171,22 +179,27 @@ class Loco_Locale implements JsonSerializable {
 
 
     /**
-     * Get stored name in current display language.
-     * Note that no dynamic translation of English name is performed, but can be altered with loco_parse_locale filter
+     * @param bool whether to get name in current display language
      * @return string | null
      */    
-    public function getName(){
-        if( $name = $this->name ){
-            // use canonical native name only when current language matches
-            // deliberately not matching whole tag such that fr_CA would show native name of fr_FR
-            if( $_name = $this->getNativeName() ){
-                $locale = self::parse( function_exists('get_user_locale') ? get_user_locale() : get_locale() );
-                if( $this->lang === $locale->lang ){
-                    $name = $_name;
-                }
+    public function getName( $translate = true ){
+        $name = $this->name;
+        // use canonical native name only when current language matches
+        // deliberately not matching whole tag such that fr_CA would show native name of fr_FR
+        if( $translate ){
+            $locale = self::parse( function_exists('get_user_locale') ? get_user_locale() : get_locale() );
+            if( $this->lang === $locale->lang && $this->_name ){
+                $name = $this->_name;
             }
+            /*/ Note that no dynamic translation of English name is performed, but can be filtered with loco_parse_locale
+            else {
+                $name = __($name,'loco-translate-languages');
+            }*/
+        }
+        if( is_string($name) && '' !== $name ){
             return $name;
         }
+        return null;
     }
 
 
@@ -195,9 +208,11 @@ class Loco_Locale implements JsonSerializable {
      * @return string | null
      */    
     public function getNativeName(){
-        if( $name = $this->_name ){
+        $name = $this->_name;
+        if( is_string($name) && '' !== $name ){
             return $name;
         }
+        return null;
     }
 
 
@@ -224,6 +239,7 @@ class Loco_Locale implements JsonSerializable {
 
 
     /**
+     * @param string CSS icon name
      * @return Loco_Locale
      */
     public function setIcon( $css ){
@@ -238,6 +254,8 @@ class Loco_Locale implements JsonSerializable {
 
 
     /**
+     * @param string
+     * @param string
      * @return Loco_Locale
      */
     public function setName( $english_name, $native_name = '' ){
@@ -249,6 +267,7 @@ class Loco_Locale implements JsonSerializable {
 
     /**
      * Test whether locale is valid
+     * @return bool
      */    
     public function isValid(){
         if( is_null($this->valid) ){
@@ -260,15 +279,17 @@ class Loco_Locale implements JsonSerializable {
 
     /**
      * Resolve this locale's "official" name from WordPress's translation api
+     * @param Loco_api_WordPressTranslations 
      * @return string English name currently set
      */    
     public function fetchName( Loco_api_WordPressTranslations $api ){
         $tag = (string) $this;
         // pull from WordPress translations API if network allowed
-        if( $locale = $api->getLocale($tag) ){
-            $this->setName( $locale->getName(), $locale->getNativeName() );
+        $locale = $api->getLocale($tag);
+        if( $locale ){
+            $this->setName( $locale->getName(false), $locale->getNativeName() );
         }
-        return $this->getName();
+        return $this->getName(false);
     }
 
 
@@ -277,7 +298,6 @@ class Loco_Locale implements JsonSerializable {
      * @return string English name currently set
      */
     public function buildName(){
-        $names = array();
         // should at least have a language or not valid
         if( $this->isValid() ){
             $code = $this->tag['lang'];
@@ -309,6 +329,7 @@ class Loco_Locale implements JsonSerializable {
 
     /**
      * Ensure locale has a label, even if it has to fall back to language code or error
+     * @param Loco_api_WordPressTranslations
      * @return string
      */
     public function ensureName( Loco_api_WordPressTranslations $api ){
@@ -373,6 +394,7 @@ class Loco_Locale implements JsonSerializable {
 
 
     /**
+     * @param array[]
      * @return array
      */
     private function setPlurals( array $raw ){
@@ -468,6 +490,6 @@ class Loco_Locale implements JsonSerializable {
 
 // Depends on compiled library
 if( ! function_exists('loco_parse_wp_locale') ){
-    loco_include('lib/compiled/locales.php');
+    loco_require_lib('compiled/locales.php');
 }
 

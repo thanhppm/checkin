@@ -17,6 +17,7 @@ class TC_Gateway_Stripe extends TC_Gateway_API {
   var $currencies = array();
   var $automatically_activated = false;
   var $skip_payment_screen = false;
+  var $send_receipt = 0;
 
   //Support for older payment gateway API
   public function on_creation() {
@@ -212,17 +213,23 @@ class TC_Gateway_Stripe extends TC_Gateway_API {
 
     $this->init_stripe();
 
-    $stripe_session = \TCStripe\Checkout\Session::create([
-      'client_reference_id' => $order_id,
-      'customer_email' => $this->buyer_info('email'),
-      'success_url' => add_query_arg( 'stripe_session_id', '{CHECKOUT_SESSION_ID}', $tc->get_confirmation_slug(true, $order_id) ),//
-      'cancel_url' => $tc->get_cancel_url($order_id),
-      'payment_method_types' => ['card'],
-      'payment_intent_data' => [
-        'description' => $this->cart_items(),
-      ],
-      'line_items' => $line_items
-    ]);
+    $checkout_session_args = [
+        'client_reference_id' => $order_id,
+        'customer_email' => $this->buyer_info('email'),
+        'success_url' => add_query_arg( 'stripe_session_id', '{CHECKOUT_SESSION_ID}', $tc->get_confirmation_slug(true, $order_id) ),//
+        'cancel_url' => $tc->get_cancel_url($order_id),
+        'payment_method_types' => ['card'],
+        'payment_intent_data' => [
+            'description' => $this->cart_items(),
+        ],
+        'line_items' => $line_items
+    ];
+
+    if ( $this->send_receipt ) {
+        $checkout_session_args['payment_intent_data']['receipt_email'] = $this->buyer_info( 'email' );
+    }
+
+    $stripe_session = \TCStripe\Checkout\Session::create( $checkout_session_args );
 
     $_SESSION['stripe_session_id'] = $stripe_session['id'];
     $_SESSION['stripe_payment_intent'] = $stripe_session['payment_intent'];
@@ -381,30 +388,44 @@ class TC_Gateway_Stripe extends TC_Gateway_API {
 
         <?php
         $fields = array(
-          'is_ssl' => array(
-            'title' => __('Mode', 'tc'),
-            'type' => 'select',
-            'options' => array(
-              '0' => __('Sandbox / Test', 'tc'),
-              '1' => __('Live', 'tc')
+            'is_ssl' => array(
+                'title' => __('Mode', 'tc'),
+                'type' => 'select',
+                'options' => array(
+                    '0' => __('Sandbox / Test', 'tc'),
+                    '1' => __('Live', 'tc')
+                ),
+                'default' => '0',
             ),
-            'default' => '0',
-          ),
-          'publishable_key' => array(
-            'title' => __('Publishable API Key', 'tc'),
-            'type' => 'text',
-          ),
-          'private_key' => array(
-            'title' => __('Secret API Key', 'tc'),
-            'type' => 'text',
-            'description' => __('You must login to Stripe to <a target="_blank" href="https://manage.stripe.com/#account/apikeys">get your API credentials</a>. You can enter your test credentials, then live ones when ready.', 'tc'),
-          ),
-          'currency' => array(
-            'title' => __('Currency', 'tc'),
-            'type' => 'select',
-            'options' => $this->currencies,
-            'default' => 'AUD',
-          ),
+
+            'publishable_key' => array(
+                'title' => __('Publishable API Key', 'tc'),
+                'type' => 'text',
+            ),
+
+            'private_key' => array(
+                'title' => __('Secret API Key', 'tc'),
+                'type' => 'text',
+                'description' => __('You must login to Stripe to <a target="_blank" href="https://manage.stripe.com/#account/apikeys">get your API credentials</a>. You can enter your test credentials, then live ones when ready.', 'tc'),
+            ),
+
+            'currency' => array(
+                'title' => __('Currency', 'tc'),
+                'type' => 'select',
+                'options' => $this->currencies,
+                'default' => 'AUD',
+            ),
+
+            'send_receipt' => array(
+                'title' => __( 'Send Receipt', 'tc' ),
+                'type' => 'select',
+                'options' => array(
+                    '1' => __( 'Yes', 'tc' ),
+                    '0' => __( 'No', 'tc' )
+                ),
+                'default' => 0,
+                'description' => __( 'Allow stripe to automatically send receipt to customer when payment has been made.', 'tc' )
+            )
         );
         $form = new TC_Form_Fields_API($fields, 'tc', 'gateways', $this->plugin_name);
         ?>

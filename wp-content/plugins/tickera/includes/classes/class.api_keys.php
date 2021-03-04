@@ -42,7 +42,7 @@ if (!class_exists('TC_API_Keys')) {
             $default_fields = array(
                 array(
                     'field_name' => 'event_name',
-                    'field_title' => __('Event', 'tc'),
+                    'field_title' => __('Events', 'tc'),
                     'field_type' => 'function',
                     'function' => 'tc_get_api_keys_events',
                     'field_description' => '',
@@ -126,11 +126,36 @@ if (!class_exists('TC_API_Keys')) {
             
         }
 
-        function maybe_sanitize_text_or_textarea_field($text) {
-            if (strstr($text, "\n")) {
-                return sanitize_textarea_field($text);
+        /**
+         * Sanitize text or textarea fields
+         *
+         * @param $text
+         * @return array|mixed|string|void
+         */
+        function maybe_sanitize_text_or_textarea_field( $text ) {
+
+            if ( is_array( $text ) ) {
+
+                $temp = [];
+                foreach ( $text as $key => &$val ) {
+
+                    if ( is_array( $val ) ) {
+
+                        // Multidimensional Array
+                        foreach ( $val as &$md_val ) {
+                            $temp[ $key ][] = ( strstr( $md_val, "\n" ) ) ? sanitize_textarea_field( $md_val ) : sanitize_text_field( $md_val );
+                        }
+
+                    } else {
+
+                        // Regular Array
+                        $temp[] = ( strstr( $val, "\n" ) ) ? sanitize_textarea_field( $val ) : sanitize_text_field( $val );
+                    }
+                }
+                return $temp;
+
             } else {
-                return sanitize_text_field($text);
+                return ( strstr( $text, "\n" ) ) ? sanitize_textarea_field( $text ) : sanitize_text_field( $text );
             }
         }
 

@@ -39,16 +39,10 @@ function clearPaytabsFieldValidations (field) {
 /**
  *  Initialize Country and Region Fields
  */
-jQuery('#tbl_paytabs #paytabs-billing-country-code').select2({
-    width: '100%',
-    placeholder: "",
-    data: paytabs.country_data,
-});
+for ( let i = 0;  i < paytabs.country_data.length; i++ ) {
+    jQuery('#tbl_paytabs #paytabs-billing-country-code').append( '<option value="' + paytabs.country_data[i].id + '">' + paytabs.country_data[i].text + '</option>' );
+}
 
-jQuery('#tbl_paytabs #paytabs-billing-region').select2({
-    width: '100%',
-    placeholder: ""
-});
 
 /**
  * Validate Billing Fields
@@ -87,24 +81,22 @@ jQuery(document).on('change', '#tbl_paytabs #paytabs-billing-country-code', func
 
     let selected_country = jQuery(this).val();
 
-    jQuery.post(tc_ajax.ajaxUrl, { action: "paytabs_collect_regions_ajax", paytabs_selected_country: selected_country },
-        function (response) {
-            if ( response ) {
-                // Rebuild Region field
-                jQuery('#tbl_paytabs #paytabs-billing-region').empty();
-                jQuery('#tbl_paytabs #paytabs-billing-region').select2({
-                    width: '100%',
-                    placeholder: "",
-                    data: response
-                });
+    // Make sure to empty field before process
+    jQuery('#tbl_paytabs #paytabs-billing-region').empty();
+    jQuery('#tbl_paytabs #paytabs-billing-region').attr('disabled', true);
+
+    jQuery( paytabs.region_data ).each( function( index, elem ) {
+        if ( elem.countryShortCode == selected_country ) {
+            for ( let i = 0;  i < elem.regions.length; i++ ) {
+                jQuery('#tbl_paytabs #paytabs-billing-region').append( '<option value="' + elem.regions[i].name + '">' + elem.regions[i].name + ' | ' + elem.regions[i].shortCode + '</option>' );
             }
+            jQuery('#tbl_paytabs #paytabs-billing-region').attr('disabled', false);
         }
-    );
+    });
 });
 
 
-jQuery(document).on('click', '#paytabs #tc_payment_confirm', function( event ){
-
+jQuery(document).on('click', '#paytabs .tc_payment_confirm', function( event ){
     event.preventDefault();
 
     let billingIsValid = validatePaytabsBillingFields();
@@ -130,9 +122,21 @@ jQuery(document).on('click', '#paytabs #tc_payment_confirm', function( event ){
 
         function( response ) {
 
-            if ( response.response_code != 4012 ) { // Error found
+            if ( '4012' == response.response_code ) {
 
-                // Display error on failed page creation
+                /*
+                 * Redirect to Pay Page
+                 */
+
+                window.location.href = response.payment_url;
+
+            } else {
+
+                /*
+                 * Handle Pay Page Error
+                 * Display error on failed page creation
+                 */
+
                 let errorContainer = document.getElementById('paytabs_errors');
                 if ( typeof response.result !== "undefined" ) {
                     errorContainer.innerText = "Error: " + response.result;
@@ -143,10 +147,6 @@ jQuery(document).on('click', '#paytabs #tc_payment_confirm', function( event ){
 
                 errorContainer.className += ' _active';
                 paytabs_overlay.style.display = 'none';
-
-            } else {
-                // Redirect to paytabs payment page
-                window.location.href = response.payment_url;
             }
         }
     );

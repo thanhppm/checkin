@@ -6,7 +6,7 @@
  Description: Translate Tickera check-in apps
  Author: Tickera.com
  Author URI: http://tickera.com/
- Version: 1.0.9
+ Version: 1.1
  Text Domain: tran
  Domain Path: /languages/
  Copyright 2015 Tickera (http://tickera.com/)
@@ -97,9 +97,12 @@ function tcciat_fs_init()
 {
     
     if ( tcciat_fs_is_parent_active_and_loaded() ) {
+        // Parent is active, add your init code here.
         // Init Freemius.
         tcciat_fs();
-        // Parent is active, add your init code here.
+        if ( !tcciat_fs()->can_use_premium_code() ) {
+            return;
+        }
     } else {
         // Parent is inactive, add your error handling here.
     }
@@ -122,9 +125,6 @@ if ( tcciat_fs_is_parent_active_and_loaded() ) {
 
 }
 
-if ( !tcciat_fs()->can_use_premium_code() ) {
-    return;
-}
 if ( !class_exists( 'TC_Check_in_app_translation' ) ) {
     class TC_Check_in_app_translation
     {

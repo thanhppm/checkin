@@ -15,7 +15,10 @@ So, from now on, instead of random letters and numbers, you can shape your ticke
 
 == Changelog ==
 
-= 1.0.8 XX/XX/XXXX =
+= 1.0.9 =
+- Fixed issue when add-on is activated on multisite
+
+= 1.0.8 =
 - Better license update / license check handling
 
 = 1.0.7 =

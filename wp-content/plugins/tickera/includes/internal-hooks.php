@@ -154,7 +154,6 @@ function tc_show_extra_profile_fields_order_history($user) {
 }
 
 add_action('tc_cart_col_title_before_total_price', 'tc_cart_col_title_before_total_price');
-
 function tc_is_disabled_fee_column() {
     $tc_general_settings = get_option('tc_general_setting', false);
     $use_global_fees = isset($tc_general_settings['use_global_fees']) ? $tc_general_settings['use_global_fees'] : 'no';
@@ -216,7 +215,6 @@ function tc_cart_col_title_before_total_price() {
 }
 
 add_action('tc_cart_col_value_before_total_price', 'tc_cart_col_value_before_total_price', 10, 3);
-
 function tc_cart_col_value_before_total_price($ticket_type, $ordered_count, $ticket_price) {
     global $tc, $total_fees;
 
@@ -283,7 +281,6 @@ function tc_cart_col_value_before_total_price($ticket_type, $ordered_count, $tic
 }
 
 add_filter('tc_total_fees_value', 'tc_total_fees_value_modify', 10, 7);
-
 function tc_total_fees_value_modify($total_fees, $use_global_fees, $global_fee_scope, $ordered_count, $global_fee_value, $ticket_price, $global_fee_type) {
     if ($use_global_fees == 'yes' && $global_fee_scope == 'order' && $global_fee_type == 'fixed') {
         $total_fees = $global_fee_value;
@@ -300,7 +297,6 @@ function tc_global_percentage_fee_value($value, $ticket_price, $ordered_count, $
 }
 
 add_action('tc_cart_col_value_before_total_price_total', 'tc_cart_col_value_before_total_price_total', 11, 1);
-
 function tc_cart_col_value_before_total_price_total($total) {
     global $tc, $total_fees;
     $tc_general_settings = get_option('tc_general_setting', false);
@@ -327,7 +323,6 @@ function tc_cart_col_value_before_total_price_total($total) {
 }
 
 add_action('tc_cart_col_value_before_total_price_total', 'tc_cart_tax', 12, 1);
-
 function tc_cart_tax($total) {
     global $tc, $total_fees, $tax_value;
 
@@ -381,35 +376,26 @@ function tc_cart_tax($total) {
 }
 
 add_filter('tc_discounted_total', 'tc_discounted_total', 10, 1);
-
 function tc_discounted_total($total) {
-    $tax_inclusive = tc_is_tax_inclusive();
-    $tax_value = $_SESSION['tc_tax_value'];
-    $total_fees = $_SESSION['tc_total_fees'];
+    $tax_value = isset( $_SESSION['tc_tax_value'] ) ? $_SESSION['tc_tax_value'] : 0;
+    $total_fees = isset( $_SESSION['tc_total_fees'] ) ? $_SESSION['tc_total_fees'] : 0;
 
-    if ($tax_inclusive) {
-        $discounted_total = round($total + $total_fees, 2);
-    } else {
-        $discounted_total = round($total + $total_fees + $tax_value, 2);
-    }
-
-    return $discounted_total;
+    return ( tc_is_tax_inclusive() )
+        ? round($total + $total_fees, 2)
+        : round($total + $total_fees + $tax_value, 2);
 }
 
 add_filter('tc_event_date_time_element', 'tc_event_date_time_element', 10, 1);
-
 function tc_event_date_time_element($date) {
     return date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($date), false);
 }
 
 add_filter('tc_checkins_date_checked', 'tc_checkins_date_checked', 10, 1);
-
 function tc_checkins_date_checked($date) {
     return tc_format_date($date); //date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $date, false );
 }
 
 add_filter('tc_checkins_status', 'tc_checkins_status', 10, 1);
-
 function tc_checkins_status($status) {
     if ($status == 'Pass') {
         $status = '<span class="status_green">' . $status . '</span>';
@@ -421,7 +407,6 @@ function tc_checkins_status($status) {
 }
 
 add_filter('tc_checkins_api_key_id', 'tc_checkins_api_key_id', 10, 1);
-
 function tc_checkins_api_key_id($api_key_id) {
     $api_key = new TC_API_Key($api_key_id);
     $api_key_name = '<a target="_blank" href="' . admin_url('edit.php?post_type=tc_events&page=tc_settings&tab=api&action=edit&ID=' . $api_key_id) . '">' . $api_key->details->api_key_name . '</a>';
@@ -541,10 +526,10 @@ function tc_order_field_value( $order_id, $value, $meta_key, $field_type, $field
     }
 }
 
-/* Add additional fields to events admin */
-
+/**
+ * Add additional fields to events admin
+ */
 add_filter('tc_event_fields', 'my_custom_events_admin_fields');
-
 function my_custom_events_admin_fields($event_fields) {
 
     $event_fields[] = array(
@@ -570,7 +555,6 @@ function my_custom_events_admin_fields($event_fields) {
 }
 
 add_filter('tc_event_object_details', 'my_custom_tc_event_object_details');
-
 function my_custom_tc_event_object_details($object_details) {
     $object_details->event_shortcode = '[event id="' . $object_details->ID . '"]';
 
@@ -581,18 +565,11 @@ function my_custom_tc_event_object_details($object_details) {
     return $object_details;
 }
 
-/* Add custom fields to tickets admin */
+/**
+ * Add custom fields to tickets admin
+ */
 add_filter('tc_ticket_fields', 'my_custom_tickets_admin_fields');
-
 function my_custom_tickets_admin_fields($ticket_fields) {
-
-    /* $ticket_fields[] = array(
-      'field_name'		 => 'tickets_sold',
-      'field_title'		 => __( 'Quantity Sold', 'tc' ),
-      'field_type'		 => 'read-only',
-      'table_visibility'	 => true,
-      'post_field_type'	 => 'read-only'
-      ); */
 
     $ticket_fields[] = array(
         'field_name' => 'ticket_shortcode',
@@ -606,7 +583,6 @@ function my_custom_tickets_admin_fields($ticket_fields) {
 }
 
 add_filter('tc_ticket_object_details', 'my_custom_tc_ticket_object_details');
-
 function my_custom_tc_ticket_object_details($object_details) {
     $object_details->ticket_shortcode = '[ticket id="' . $object_details->ID . '"]';
 
@@ -637,7 +613,6 @@ function my_custom_tc_ticket_object_details($object_details) {
 }
 
 add_filter('tc_ticket_instance_field_value', 'tc_ticket_instance_field_value', 10, 5);
-
 function tc_ticket_instance_field_value($value = false, $field_value = false, $post_field_type = false, $col_field_id = false, $field_id = false) {//$value, $post_field_type, $var_name
     if ($field_id == 'order') {
 
@@ -727,37 +702,53 @@ function tc_ticket_instance_field_value($value = false, $field_value = false, $p
     return apply_filters('tc_column_value', $value, $field_id);
 }
 
-add_filter('tc_api_key_field_value', 'tc_api_key_field_value', 10, 3);
+/**
+ * Render API Key Table Values
+ */
+add_filter( 'tc_api_key_field_value', 'tc_api_key_field_value', 10, 3 );
+function tc_api_key_field_value( $value, $post_field_type, $var_name ) {
 
-function tc_api_key_field_value($value, $post_field_type, $var_name) {
-    if ($var_name == 'event_name') {
-        if ($value == 'all') {
-            $value = __('All Events', 'tc');
+    if ( 'event_name' == $var_name ) {
+
+        $values = (array) $value;
+
+        // Searching through Multidimensional Array
+        if ( is_array( $is_array = reset( $values ) ) && in_array( 'all', $is_array ) ) {
+            $value = __( 'All Events', 'tc' );
+
+        } elseif ( ! is_array( reset( $values ) ) &&  in_array( 'all', $values ) ) {
+            $value = __( 'All Events', 'tc' );
+
         } else {
-            $event_obj = new TC_Event($value);
-            $event_object = $event_obj->details;
-            $value = $event_object->post_title;
+
+            $values = is_array( $is_array = reset( $values ) ) ? $is_array : $values;
+
+            $temp = '';
+            foreach ( $values as &$value ) {
+
+                $event_obj = new TC_Event( $value );
+                $event_object = $event_obj->details;
+                $temp .= $event_object->post_title . '<br>';
+            }
+            $value = $temp;
         }
-    }
 
-    if ($var_name == 'api_username') {
-        if (trim($value) == '') {
+    } elseif ( 'api_username' == $var_name ) {
+
+        if ( '' == trim( $value ) ) {
             $value = __('Administrator', 'tc');
+
         } else {
-            $args = array(
+
+            $users = get_users( [
                 'blog_id' => $GLOBALS['blog_id'],
                 'search' => $value
-            );
-            $users = get_users($args);
-            if (isset($users[0])) {
-                $user = $users[0];
-            }
+            ]);
 
-            if (isset($user)) {
-                $value = '<a target="_blank" href="' . admin_url('user-edit.php?user_id=' . $user->ID) . '">' . $user->user_login . ' ' . (isset($user->display_name) && $user->display_name != '' ? '(' . $user->display_name . ')' : '') . '</a>';
-            } else {
-                $value = __('Wrong user. API will be available to the administrators only.', 'tc');
-            }
+            $user = ( isset( $users[0] ) ) ? $users[0] : $users;
+            $value = isset( $user )
+                ? '<a target="_blank" href="' . admin_url( 'user-edit.php?user_id=' . @$user->ID ) . '">' . @$user->user_login . ' ' . ( isset( $user->display_name ) && '' != $user->display_name ? '(' . $user->display_name . ')' : '') . '</a>'
+                : __( 'Wrong user. API will be available to the administrators only.', 'tc' );
         }
     }
 
@@ -765,7 +756,6 @@ function tc_api_key_field_value($value, $post_field_type, $var_name) {
 }
 
 add_filter('tc_ticket_field_value', 'tc_ticket_field_value', 10, 3);
-
 function tc_ticket_field_value($value, $post_field_type, $var_name) {
 
     $quantity_available = 0;

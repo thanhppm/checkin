@@ -124,7 +124,10 @@ jQuery(document).ready(function ($) {
      */
 
     $('body').on('mousewheel DOMMouseScroll', '.tc-wrapper', function (e) {
-        e.preventDefault();
+
+        // Returns an error on browsers that supports passive event listener
+        // Solution: Disable PreventDefault()
+        // e.preventDefault();
 
         if (e.type == 'DOMMouseScroll') {//Firefox
             scroll = e.originalEvent.detail * (40 * -1);
@@ -138,17 +141,11 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    /*$('body').on('hover', '.tc-checkout-button, .tc-tickets-cart', function () {
-     $('.tc-tickets-cart').css('bottom', 71);
-     }, function () {
-     var tc_ticket_cart_height = $('.tc-tickets-cart').height();
-     $('.tc-tickets-cart').css('bottom', tc_ticket_cart_height * -1);
-     });*/
-
     var supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
 
-    if (supportsTouch !== true) {
-        $('body').on('hover', '.tc_set_seat, .tc-object-selectable.ui-selectee', function (event) {
+    if ( supportsTouch !== true ) {
+
+        $('body').on('mouseenter', '.tc_set_seat, .tc-object-selectable.ui-selectee', function (event) {
             if (!$(event.target).is(".tc_seat_unavailable")) {
                 var ticket_type = $(this).attr('data-tt-id');
                 var ticket_type_title = $('li.tt_' + ticket_type).attr('data-tt-title');
@@ -172,7 +169,7 @@ jQuery(document).ready(function ($) {
             }
         });
 
-        $('body').on('mouseout', '.tc_set_seat, .tc-object-selectable.ui-selectee', function () {
+        $('body').on( 'mouseout', '.tc_set_seat, .tc-object-selectable.ui-selectee', function () {
             $(".tc-wrapper").find('span.tc-ticket-info-wrap').remove();
         });
     }

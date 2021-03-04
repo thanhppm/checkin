@@ -378,7 +378,7 @@ h1, h2, h3, h4, h5 ,h6, label {
 }
 
 .tc-table .tc-table-chair.ui-selected{
-    background-color: #6b5f89 !important;
+    /*background-color: #6b5f89 !important;*/
 }
 
 .tc-input-wrap {
@@ -2467,6 +2467,101 @@ button.tc_modal_close {
 .single-tc_seat_charts .settings-error {
     display: none;
 }
+
+
+
+
+/* SEAT ICONS */
+.tc_icon_type_square .tc-seat-row span:before,
+.tc_icon_type_square .tc-group-content span {
+    border-radius: 0;
+    border: none;
+}
+
+.tc_icon_type_car .tc-seat-row span:before, 
+.tc_icon_type_car .tc-group-content span,
+.tc_icon_type_chair .tc-seat-row span:before, 
+.tc_icon_type_chair .tc-group-content span {
+    background-color: transparent !important;
+    border: none;
+    border-radius: 0;
+}
+
+.tc-group-content span:after {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.tc_icon_type_car .tc-group-content span:before {
+    content: "\e906";
+    font-family: 'tickera-icons' !important;
+    width: 90%;
+    display: inline-block;
+    float: left;
+    font-size: 1.1em;
+    transform: rotate(90deg);
+    width: 16.3px;
+    height: 16.3px;
+}
+
+.tc_icon_type_chair .tc-group-content span:before {
+    content: "\e900";
+    font-family: 'tickera-icons' !important;
+    width: 90%;
+    display: inline-block;
+    float: left;
+    width: 16.3px;
+    height: 16.3px;
+    font-size: 0.85em;
+}
+
+.tc_icon_type_chair .tc-group-content span,
+.tc_icon_type_chair-2 .tc-group-content span,
+.tc_icon_type_car .tc-group-content span {
+    /*background: url('../assets/images/seat-type/chair.svg') no-repeat;*/
+    background-color: transparent !important;
+    background-size: 28px;
+    border-radius: 0;
+    background-repeat: no-repeat;
+}
+
+.tc_icon_type_chair-2 .tc-group-content span:before {
+    content: "\54";
+    font-family: 'tickera-icons' !important;
+    width: 90%;
+    display: inline-block;
+    float: left;
+    transform: rotate(180deg);
+    width: 16.3px;
+    height: 16.3px;
+    font-size: 0.9em;
+    border: none;
+
+}
+
+.icon-car:before {
+  content: "\e906";
+  font-family: 'tickera-icons' !important;
+  font-size: 1.7em;
+  transform: rotate(90deg);
+  display: inline-block;
+}
+
+.icon-chair-2:before {
+  content: "\e900";
+  font-family: 'tickera-icons' !important;
+  font-size: 1.7em;
+  transform: rotate(-180deg);
+  display: inline-block;
+}
+
+.icon-chair:before {
+  content: "\54";
+  font-family: 'tickera-icons' !important;
+  font-size: 1.7em;
+}
+
 
 @media screen and (max-width: 1300px) {
 

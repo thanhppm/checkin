@@ -39,15 +39,12 @@ class TC_Gateway_Braintree_3ds2 extends TC_Gateway_API {
 
         require_once($tc->plugin_dir . "includes/gateways/braintree/lib/Braintree.php");
 
-        // Register Ajax Actions
-        add_action('wp_ajax_collect_regions_ajax', array(&$this, 'collect_regions_ajax') );
-        add_action('wp_ajax_nopriv_collect_regions_ajax', array(&$this, 'collect_regions_ajax') );
-
         // Register API Route
         add_action( 'rest_api_init', function () {
             register_rest_route( 'tc-braintree-3ds2/v1', '/callback/', array(
                 'methods' => 'POST',
                 'callback' =>  array($this, 'process_payment'),
+                'permission_callback' => '__return_true'
             ) );
         } );
 
@@ -324,21 +321,16 @@ class TC_Gateway_Braintree_3ds2 extends TC_Gateway_API {
             $_SESSION[ 'tc_gateway_error' ] = sprintf( __( 'Error: "%s".', 'tc' ), $e->getMessage());
         }
 
-        // Retrieve json file for country code field
-        $jsonFileUrl = plugins_url('braintree/assets/json/country-code.json',__FILE__);
-        $jsonFileData = $this->retrieve_json_file($jsonFileUrl);
-
-        $country_data = [];
-        foreach($jsonFileData as $key => $val ) {
-            $country_data[$key]['id'] = $val['countryShortCode'];
-            $country_data[$key]['text'] = $val['countryName'] . " | " . $val['countryShortCode'];
-        }
+        // Define Country and Region data
+        $country_data = $this->get_country_data();
+        $region_data = $this->get_region_data();
 
         // Pass data to braintree.js script
         $total = $_SESSION['cart_info']['total'];
         $cart_total = (intval($total) || floatval($total)) ? $total : null;
         $formData= array(
-            'country_data' => $country_data,
+            'country_data' => json_decode( $country_data, true ),
+            'region_data' => json_decode( $region_data, true ),
             'token' => $this->clientToken,
             'amount' => $cart_total,
             'callback' => get_site_url() . '/wp-json/tc-braintree-3ds2/v1/callback/',
@@ -424,45 +416,6 @@ class TC_Gateway_Braintree_3ds2 extends TC_Gateway_API {
             'privateKey' => $this->private_key
         ]);
         return $gateway;
-    }
-
-    /**
-     * Collect Region data based on selected country
-     */
-    function collect_regions_ajax() {
-
-        $selected_country = sanitize_text_field($_POST['selected_country']);
-
-        // Retrieve json file for country code field
-        $jsonFileUrl = plugins_url('braintree/assets/json/country-code.json',__FILE__);
-        $country_data = $this->retrieve_json_file($jsonFileUrl);
-
-        $regions = [];
-        foreach ( $country_data as $key => $val ) {
-            if ( $selected_country == $val['countryShortCode'] ) {
-                foreach ( $val['regions'] as $inner_key => $inner_value) {
-                    $regions[$inner_key]['id'] = $inner_value['shortCode'];
-                    $regions[$inner_key]['text'] = $inner_value['name'] . " | " . $inner_value['shortCode'];
-                }
-            }
-        }
-        wp_send_json($regions);
-    }
-
-    /**
-     * Retrive JSON file
-     * @param $file
-     * @return array|mixed
-     */
-    function retrieve_json_file($file) {
-        $jsonFileRequest = wp_remote_get( $file );
-
-        $jsonFileData = [];
-        if( !is_wp_error( $jsonFileRequest ) ) {
-            $jsonFileBody = wp_remote_retrieve_body( $jsonFileRequest );
-            $jsonFileData = json_decode( $jsonFileBody, true );
-        }
-        return $jsonFileData;
     }
 
     /**

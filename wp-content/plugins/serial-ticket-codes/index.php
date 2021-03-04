@@ -6,7 +6,7 @@
  Description: Generate serial ticket codes
  Author: Tickera.com
  Author URI: https://tickera.com/
- Version: 1.0.8
+ Version: 1.0.9
  Text Domain: serial
  Domain Path: /languages/
 
@@ -98,9 +98,12 @@ function tcstc_fs_init()
 {
     
     if ( tcstc_fs_is_parent_active_and_loaded() ) {
+        // Parent is active, add your init code here.
         // Init Freemius.
         tcstc_fs();
-        // Parent is active, add your init code here.
+        if ( !tcstc_fs()->can_use_premium_code() ) {
+            return;
+        }
     } else {
         // Parent is inactive, add your error handling here.
     }
@@ -123,9 +126,6 @@ if ( tcstc_fs_is_parent_active_and_loaded() ) {
 
 }
 
-if ( !tcstc_fs()->can_use_premium_code() ) {
-    return;
-}
 if ( !class_exists( 'TC_Serial_Ticket_Codes' ) ) {
     class TC_Serial_Ticket_Codes
     {

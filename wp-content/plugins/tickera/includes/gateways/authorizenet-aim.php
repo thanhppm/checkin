@@ -165,18 +165,13 @@ class TC_Gateway_AuthorizeNet_AIM extends TC_Gateway_API {
         $content .= '</tr>';
         $content .= '</tbody></table>';
 
-        // Retrieve json file for country code field
-        $jsonFileUrl = plugins_url('authorizenet-aim/assets/json/country-code.json',__FILE__);
-        $jsonFileData = $this->retrieve_json_file($jsonFileUrl);
-
-        $country_data = [];
-        foreach($jsonFileData as $key => $val ) {
-            $country_data[$key]['id'] = $val['countryShortCode'];
-            $country_data[$key]['text'] = $val['countryName'] . " | " . $val['countryShortCode'];
-        }
+        // Define Country and Region data
+        $country_data = $this->get_country_data();
+        $region_data = $this->get_region_data();
 
         $formData= array(
-            'country_data' => $country_data,
+            'country_data' => json_decode( $country_data, true ),
+            'region_data' => json_decode( $region_data, true ),
             'billing_error' => __('Field cannot be blank.', 'tc'),
         );
         $params = json_encode($formData);
@@ -428,22 +423,6 @@ class TC_Gateway_AuthorizeNet_AIM extends TC_Gateway_API {
             </div>
         </div>
         <?php
-    }
-
-    /**
-     * Retrive JSON file
-     * @param $file
-     * @return array|mixed
-     */
-    function retrieve_json_file($file) {
-        $jsonFileRequest = wp_remote_get( $file );
-
-        $jsonFileData = [];
-        if( !is_wp_error( $jsonFileRequest ) ) {
-            $jsonFileBody = wp_remote_retrieve_body( $jsonFileRequest );
-            $jsonFileData = json_decode( $jsonFileBody, true );
-        }
-        return $jsonFileData;
     }
 }
 

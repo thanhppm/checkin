@@ -10,8 +10,10 @@ namespace TCStripe\ApiOperations;
 trait All
 {
     /**
-     * @param array|null $params
-     * @param array|string|null $opts
+     * @param null|array $params
+     * @param null|array|string $opts
+     *
+     * @throws \TCStripe\Exception\ApiErrorException if the request fails
      *
      * @return \TCStripe\Collection of ApiResources
      */
@@ -22,13 +24,14 @@ trait All
 
         list($response, $opts) = static::_staticRequest('get', $url, $params, $opts);
         $obj = \TCStripe\Util\Util::convertToStripeObject($response->json, $opts);
-        if (!is_a($obj, 'TCStripe\\Collection')) {
-            $class = get_class($obj);
-            $message = "Expected type \"TCStripe\\Collection\", got \"$class\" instead";
-            throw new \TCStripe\Error\Api($message);
+        if (!($obj instanceof \TCStripe\Collection)) {
+            throw new \TCStripe\Exception\UnexpectedValueException(
+                'Expected type ' . \TCStripe\Collection::class . ', got "' . \get_class($obj) . '" instead.'
+            );
         }
         $obj->setLastResponse($response);
-        $obj->setRequestParams($params);
+        $obj->setFilters($params);
+
         return $obj;
     }
 }

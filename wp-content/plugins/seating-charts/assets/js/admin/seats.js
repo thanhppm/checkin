@@ -38,11 +38,19 @@ jQuery(document).ready(function ($) {
         edit: function () {
             var holder = $('.tc-group-seats.tc-edit-mode');
             var title = $('#tc_seating_group_widget #tc_seating_group_title').val();
+            var tc_icon_type = $(".tc-check-seat-type:checked").val();
             var rows_prev = holder.find('.tc-group-content .tc-seat-row').length;
             var cols_prev = holder.find('.tc-group-content .tc-seat-row:first-child .tc_seat_unit').length;
             var rows = $('#tc_seating_group_widget #tc_seat_add_seats_rows').val();
             var cols = $('#tc_seating_group_widget #tc_seat_add_seats_cols').val();
             var seat_group_html = '';
+
+            $(holder).removeClass (function (index, className) {
+                return (className.match (/(^|\s)tc_icon_type\S+/g) || []).join(' ');
+            });
+
+            jQuery(holder).addClass('tc_icon_type_'+tc_icon_type);
+
 
             if (title == '') {
                 title = '&nbsp;';
@@ -72,7 +80,6 @@ jQuery(document).ready(function ($) {
                         }
 
                         holder.find('.tc-group-content').append(seat_group_html);
-
                     } else {//delete rows
                         deleted_rows = 0;
                         rows_to_delete = rows_prev - rows;
@@ -135,6 +142,8 @@ jQuery(document).ready(function ($) {
         },
         create_group: function ()
         {
+            
+            var tc_icon_type = $(".tc-check-seat-type:checked").val();
             var rows = $('#tc_seat_add_seats_rows').val();
             var cols = $('#tc_seat_add_seats_cols').val();
             var group_size = (parseInt($('#tc_square_size').val()) * parseInt(cols));
@@ -151,7 +160,7 @@ jQuery(document).ready(function ($) {
                 empty_class = '';
             }
 
-            seat_group_html += '<div class="tc-group-wrap tc-group-seats" style="width:' + group_size + 'px" data-init-width=' + group_size + '><div class="tc-seat-group tc-group-background">';
+            seat_group_html += '<div class="tc-group-wrap tc_icon_type_'+tc_icon_type+' tc-group-seats" style="width:' + group_size + 'px" data-init-width=' + group_size + '><div class="tc-seat-group tc-group-background">';
             seat_group_html += '<div class="tc-heading ' + empty_class + '"><h3>' + header_title + '</h3></div><!-- .tc-heading --><div class="tc-group-content">';
 
             for (i = 1; i < (parseInt(rows) + 1); i++) {

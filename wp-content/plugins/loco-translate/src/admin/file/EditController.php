@@ -43,25 +43,6 @@ class Loco_admin_file_EditController extends Loco_admin_file_BaseController {
 
 
     /**
-     * @param bool whether po files is in read-only mode
-     * @return array
-     */
-    private function getApiProviders( $readonly ){
-        return $readonly ? null : array_values( array_filter(Loco_api_Providers::export(),array(__CLASS__,'filterApiProvider') ) );
-    }
-
-
-    /**
-     * @internal
-     * @param string[]
-     * @return bool
-     */
-    private static function filterApiProvider( array $api ){
-        return (bool) $api['key'];
-    }
-
-
-    /**
      * {@inheritdoc}
      */
     public function render(){
@@ -89,27 +70,35 @@ class Loco_admin_file_EditController extends Loco_admin_file_BaseController {
 
         // default is to permit editing of any file
         $readonly = false;
+        
+        // All files must belong to a bundle.
+        $bundle = $this->getBundle();
 
         // Establish if file belongs to a configured project
         try {
-            $bundle = $this->getBundle();
             $project = $this->getProject();
         }
         // Fine if not, this just means sync isn't possible.
         catch( Loco_error_Exception $e ){
             Loco_error_AdminNotices::add( $e );
-            Loco_error_AdminNotices::debug( sprintf("Sync is disabled because this file doesn't relate to a known set of translations", $bundle ) );
+            Loco_error_AdminNotices::debug("Sync is disabled because this file doesn't relate to a known set of translations");
             $project = null;
         }
             
         // Establish PO/POT edit mode
         $potfile = null;
+        $syncmode = null;
         $locale = $this->getLocale();
         if( $locale instanceof Loco_Locale ){
             // alternative POT file may be forced by PO headers
-            if( $value = $head['X-Loco-Template'] ){
-                $potfile = new Loco_fs_File($value);
+            if( $head->has('X-Loco-Template') ){
+                $potfile = new Loco_fs_File( $head['X-Loco-Template'] );
                 $potfile->normalize( $bundle->getDirectoryPath() );
+                // sync mode permits copying of translations since 2.4.3
+                // legacy sync behaviour was copy msgstr fields when they exist (no strip)
+                if( $head->has('X-Loco-Template-Mode') ){
+                    $syncmode = $head['X-Loco-Template-Mode'];
+                }
             }
             // else use project-configured template, assuming there is one
             // no way to get configured POT if invalid project
@@ -185,6 +174,7 @@ class Loco_admin_file_EditController extends Loco_admin_file_BaseController {
             'multipart' => (bool) $settings->ajax_files,
             'locale' => $locale ? $locale->jsonSerialize() : null,
             'potpath' => $locale && $potfile ? $potfile->getRelativePath($wp_content) : null,
+            'syncmode' => $syncmode,
             'popath' => $this->get('path'),
             'readonly' => $readonly,
             'project' => $project ? array (
@@ -192,7 +182,7 @@ class Loco_admin_file_EditController extends Loco_admin_file_BaseController {
                 'domain' => (string) $project->getId(),
             ) : null,
             'nonces' => $this->getNonces($readonly),
-            'apis' => $locale ? $this->getApiProviders($readonly) : null,
+            'apis' => $locale && ! $readonly ? Loco_api_Providers::configured() : null,
         ) ) );
         $this->set( 'ui', new Loco_mvc_ViewParams( array(
              // Translators: button for adding a new string when manually editing a POT file

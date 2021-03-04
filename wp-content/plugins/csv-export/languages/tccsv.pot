@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: Tickera CSV Export\n"
-"POT-Creation-Date: 2020-04-07 15:06+0200\n"
+"POT-Creation-Date: 2021-02-05 08:00+0100\n"
 "PO-Revision-Date: 2018-07-18 13:51+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -21,230 +21,252 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:47
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:62
 msgid "Attendee List (CSV Export)"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:52
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:67
 msgid "Event"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:75
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:167
-#: index.php:601
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:84
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:164
+#: index.php:579
 msgid "Ticket Type"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:111
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:113
-msgid "ALL"
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:103
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:105
+#: index.php:311
+msgid "All"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:138
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:126
 msgid "Export From"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:140
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:128
 msgid "From Date"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:142
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:130
 msgid "To"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:144
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:132
 msgid "To Date"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:150
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:137
 msgid "Show Columns"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:154
-msgid "Attendee First Name"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:155
-msgid "Attendee Last Name"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:156
-msgid "Attendee Full Name"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:157
-#: index.php:480
-msgid "Attendee E-mail"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:158
-#: index.php:492
-msgid "Payment Date"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:159
-#: index.php:500
-msgid "Order Number"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:160
-#: index.php:550
-msgid "Order Total"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:161
-#: index.php:571 index.php:573
-msgid "Order Total (Shown Once)"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:162
-#: index.php:507
-msgid "Payment Gateway"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:163
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:223
-#: index.php:542
-msgid "Order Status"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:164
-#: index.php:515
-msgid "Discount Code"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:165
-#: index.php:583
-msgid "Ticket Code"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:166
-#: index.php:592
-msgid "Ticket ID"
-msgstr ""
-
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:168
-#: index.php:611
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:142
+#: index.php:588
 msgid "Buyer First Name"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:169
-#: index.php:620
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:143
+#: index.php:597
 msgid "Buyer Last Name"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:170
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:144
 msgid "Buyer Full Name"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:171
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:145
 msgid "Buyer Email"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:172
-#: index.php:656
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:146
+msgid "Attendee First Name"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:147
+msgid "Attendee Last Name"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:148
+msgid "Attendee Full Name"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:149
+#: index.php:503
+msgid "Attendee E-mail"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:150
+#: index.php:507
+msgid "Payment Date"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:151
+#: index.php:512
+msgid "Payment Gateway"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:152
+#: index.php:509
+msgid "Order Number"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:153
+#: index.php:533
+msgid "Order Total"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:154
+#: index.php:541 index.php:544
+msgid "Order Total (Shown Once)"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:155
+msgid "Ticket Subtotal"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:156
+msgid "Ticket Fee"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:157
+msgid "Ticket Discount"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:158
+msgid "Ticket Tax"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:159
+msgid "Ticket Total"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:160
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:207
+#: index.php:530
+msgid "Order Status"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:161
+#: index.php:516
+msgid "Discount Code"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:162
+#: index.php:570
+msgid "Ticket Code"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:163
+#: index.php:574
+msgid "Ticket ID"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:165
+#: index.php:626
 msgid "Checked-in"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:173
-#: index.php:686
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:166
+#: index.php:657
 msgid "Check-ins"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:174
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:167
 msgid "Api Key"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:175
-#: index.php:713 index.php:716
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:168
+#: index.php:682 index.php:686
 msgid "Price"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:228
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:211
 msgid "Any"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:229
-#: index.php:527
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:212
 msgid "Paid"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:230
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:213
 msgid "Pending / Received"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:231
-#: index.php:536
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:215
 msgid "Cancelled"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:244
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:216
+msgid "Refunded"
+msgstr ""
+
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:227
 msgid "Document Title"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:246
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:229
 msgid "Attendee List"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:250
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:233
 msgid "Select / Deselect All"
 msgstr ""
 
-#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:257
+#: includes/admin-pages/settings-tickera_export_csv_mixed_data.php:240
 msgid "Remember Export Fields"
 msgstr ""
 
-#: index.php:291
+#: index.php:293
 #, php-format
 msgid ""
 "There was an issue determining where %s is installed. Please reinstall it."
 msgstr ""
 
-#: index.php:306
+#: index.php:312
 msgid "There are no ticket type for this event"
 msgstr ""
 
-#: index.php:307
+#: index.php:313
 msgid "There are no exporting data"
 msgstr ""
 
-#: index.php:456
+#: index.php:326
+#, php-format
+msgid ""
+"%s add-on requires at least %s version of %s plugin. Your current version "
+"of %s is %s. Please update it."
+msgstr ""
+
+#: index.php:491
 msgid "First Name"
 msgstr ""
 
-#: index.php:464
+#: index.php:495
 msgid "Last Name"
 msgstr ""
 
-#: index.php:472
+#: index.php:499
 msgid "Name"
 msgstr ""
 
-#: index.php:530
-msgid "Received / Pending"
-msgstr ""
-
-#: index.php:533
-msgid "Fraud Detected"
-msgstr ""
-
-#: index.php:629
+#: index.php:606
 msgid "Buyer Name"
 msgstr ""
 
-#: index.php:639
+#: index.php:616
 msgid "Buyer E-Mail"
 msgstr ""
 
-#: index.php:651
+#: index.php:625
 msgid "Yes"
 msgstr ""
 
-#: index.php:653
+#: index.php:625
 msgid "No"
 msgstr ""
 
-#: index.php:700
+#: index.php:670
 msgid "API Key"
 msgstr ""
 

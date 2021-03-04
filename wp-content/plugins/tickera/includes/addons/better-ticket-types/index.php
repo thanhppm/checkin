@@ -79,6 +79,7 @@ if (!class_exists('TC_Better_Ticket_Types')) {
 
                 $post_title = $post->post_title;
                 $post_status = $post->post_status;
+
                 /*
                  * new post data array
                  */
@@ -139,7 +140,6 @@ if (!class_exists('TC_Better_Ticket_Types')) {
                 /*
                  * Replace event ids
                  */
-
                 update_post_meta($new_post_id, apply_filters('tc_event_name_field_name', 'event_name'), $new_event_id);
             }
             
@@ -150,11 +150,13 @@ if (!class_exists('TC_Better_Ticket_Types')) {
             global $wpdb;
 
             $sql = $wpdb->prepare("SELECT meta_key, meta_value FROM $wpdb->postmeta WHERE post_id = %d", absint($id));
-            //$exclude = array_map('esc_sql', array('_edit_lock', '_edit_last'));
 
-            /*if (sizeof($exclude)) {
-                $sql .= " AND meta_key NOT IN ( '" . implode("','", $exclude) . "' )";
-            }*/
+            /*
+             * $exclude = array_map('esc_sql', array('_edit_lock', '_edit_last'));
+             * if (sizeof($exclude)) {
+             *  $sql .= " AND meta_key NOT IN ( '" . implode("','", $exclude) . "' )";
+             * }
+             */
 
             $post_meta = $wpdb->get_results($sql);
 
@@ -219,161 +221,157 @@ if (!class_exists('TC_Better_Ticket_Types')) {
             return $actions;
         }
 
-        /*
+        /**
          * Save post meta values
+         *
+         * @param $post_id
          */
+        function save_metabox_values( $post_id ) {
 
-        function save_metabox_values($post_id) {
+            if ( 'tc_tickets' == get_post_type( $post_id ) ) {
 
-            if (get_post_type($post_id) == 'tc_tickets') {
-
-                $metas = array();
-
-                foreach ($_POST as $field_name => $field_value) {
-                    if (preg_match('/_post_meta/', $field_name)) {
-                        $metas[sanitize_key(str_replace('_post_meta', '', $field_name))] = sanitize_text_field($field_value);
+                $metas = [];
+                foreach ( $_POST as $field_name => $field_value ) {
+                    if ( preg_match( '/_post_meta/', $field_name ) ) {
+                        $metas[ sanitize_key( str_replace( '_post_meta', '', $field_name ) ) ] = sanitize_text_field( $field_value );
                     }
 
-                    $metas = apply_filters('tc_ticket_type_metas', $metas);
+                    $metas = apply_filters( 'tc_ticket_type_metas', $metas );
 
-                    if (isset($metas)) {
-                        foreach ($metas as $key => $value) {
-                            update_post_meta($post_id, $key, $value);
+                    if ( isset( $metas ) ) {
+                        foreach ( $metas as $key => $value ) {
+                            update_post_meta( $post_id, $key, $value );
                         }
                     }
                 }
             }
         }
 
-        /*
+        /**
          * Enqueue scripts and styles
          */
-
         function admin_enqueue_scripts_and_styles() {
             global $post, $post_type;
-            if ($post_type == 'tc_tickets') {
-                wp_enqueue_style('tc-better-ticket-types', plugins_url('css/admin.css', __FILE__));
+            if ( 'tc_tickets' == $post_type ) {
+                wp_enqueue_style( 'tc-better-ticket-types', plugins_url( 'css/admin.css', __FILE__ ) );
             }
         }
 
-        /*
+        /**
          * Change Events post type arguments
+         *
+         * @param $args
+         * @return mixed|void
          */
-
-        function tc_ticket_type_post_type_args($args) {
+        function tc_ticket_type_post_type_args( $args ) {
             $args['show_in_menu'] = 'edit.php?post_type=tc_events';
             $args['show_ui'] = true;
             $args['has_archive'] = false;
             $args['public'] = false;
 
-            $args['supports'] = array(
-                'title',
-                'editor',
-            );
-
-            return apply_filters('tc_ticket_type_post_type_args_val', $args);
+            $args['supports'] = [ 'title', 'editor' ];
+            return apply_filters( 'tc_ticket_type_post_type_args_val', $args );
         }
 
-        /*
+        /**
          * Add table column titles
+         *
+         * @param $columns
+         * @return mixed
          */
-
-        function manage_tc_tickets_columns($columns) {
+        function manage_tc_tickets_columns( $columns ) {
             $ticket_types_columns = TC_Tickets::get_ticket_fields();
-            foreach ($ticket_types_columns as $ticket_types_column) {
-                if (isset($ticket_types_column['table_visibility']) && $ticket_types_column['table_visibility'] == true && $ticket_types_column['field_name'] !== 'post_title') {
-                    $columns[$ticket_types_column['field_name']] = $ticket_types_column['field_title'];
+            foreach ( $ticket_types_columns as $ticket_types_column ) {
+                if ( isset( $ticket_types_column['table_visibility'] ) && true == $ticket_types_column['table_visibility'] && $ticket_types_column['field_name'] !== 'post_title' ) {
+                    $columns[ $ticket_types_column['field_name'] ] = $ticket_types_column['field_title'];
                 }
             }
-            unset($columns['date']);
+            unset( $columns['date'] );
             return $columns;
         }
 
-        /*
+        /**
          * Add table column values
+         *
+         * @param $name
          */
-
         function manage_tc_tickets_posts_custom_column($name) {
+
             global $post, $tc;
+
             $ticket_types_columns = TC_Tickets::get_ticket_fields();
 
-            foreach ($ticket_types_columns as $ticket_types_column) {
-                if (isset($ticket_types_column['table_visibility']) && $ticket_types_column['table_visibility'] == true && $ticket_types_column['field_name'] !== 'post_title') {
+            foreach ( $ticket_types_columns as $ticket_types_column ) {
 
-                    if ($ticket_types_column['field_name'] == $name) {
+                if ( isset( $ticket_types_column['table_visibility'] ) && $ticket_types_column['table_visibility'] == true && $ticket_types_column['field_name'] !== 'post_title' ) {
 
-                        if (isset($ticket_types_column['post_field_type']) && $ticket_types_column['post_field_type'] == 'post_meta') {
-                            $value = get_post_meta($post->ID, $ticket_types_column['field_name'], true);
-                            $value = !empty($value) ? $value : '-';
+                    if ( $ticket_types_column['field_name'] == $name ) {
 
-                            if ($ticket_types_column['field_name'] == 'price_per_ticket') {
-                                $value = $tc->get_cart_currency_and_format($value);
-                            }
+                        if ( isset( $ticket_types_column['post_field_type'] ) && $ticket_types_column['post_field_type'] == 'post_meta' ) {
 
-                            if ($ticket_types_column['field_name'] == 'event_name') {
-                                $event = new TC_Event($value);
-                                $value = $event->details->post_title;
-                            }
+                            $value = get_post_meta( $post->ID, $ticket_types_column['field_name'], true );
+                            $value = !empty( $value ) ? $value : '-';
 
-                            if ($ticket_types_column['field_name'] == 'quantity_available') {
-                                if (empty($value) || $value == '-') {
-                                    $value = __('Unlimited', 'tc');
-                                }
-                            }
+                            switch ( $ticket_types_column['field_name'] ) {
 
-                            if ($ticket_types_column['field_name'] == 'quantity_sold') {
-                                global $wpdb;
+                                case 'price_per_ticket':
+                                    $value = $tc->get_cart_currency_and_format( $value );
+                                    break;
 
-                                $sold_count = tc_get_tickets_count_sold($post->ID);
+                                case 'event_name':
+                                    $event = new TC_Event( $value );
+                                    $value = $event->details->post_title;
+                                    break;
 
-                                if ($sold_count > 0) {
-                                    $value = $sold_count;
-                                } else {
-                                    $value = '-';
-                                }
-                            }
+                                case 'quantity_available':
+                                    $event_id = get_post_meta( $post->ID, 'event_name', true );
+                                    $event_metas = get_post_meta( $event_id );
+                                    $limit_on_event_level = ( isset( $event_metas['limit_level'] ) &&  $event_metas['limit_level'][0] ) ? true : false;
 
-                            if ($ticket_types_column['field_name'] == 'available_checkins_per_ticket') {
-                                if (empty($value) || $value == '-') {
-                                    $value = __('Unlimited', 'tc');
-                                }
-                            }
+                                    if ( $limit_on_event_level ) {
+                                        $limit_level_value = ( isset( $event_metas['limit_level_value'] ) && $event_metas['limit_level_value'][0] ) ? $event_metas['limit_level_value'][0] : __( 'Unlimited', 'tc' );
+                                        $value = $limit_level_value . '<br><a href="' . admin_url("post.php?post=". esc_attr( $event_id ) . "&action=edit#limit_level-tc-metabox-wrapper", ( is_ssl() ? 'https' : 'http' ) ) . '"><small>' . __( 'Event level', 'tc' ) . '</small></a>';
 
-                            if ($ticket_types_column['field_name'] == 'ticket_fee') {
-                                $ticket_fee_type = get_post_meta($post->ID, 'ticket_fee_type', true);
-                                if (!empty($value) && $value !== '0' && $value !== 0 && $value !== '-') {
-                                    if ($ticket_fee_type == 'fixed') {
-                                        $value = $tc->get_cart_currency_and_format($value);
                                     } else {
-                                        $value = $value . '%';
+                                        $value = ( '-' == $value ) ?  __( 'Unlimited', 'tc' ) : $value;
                                     }
-                                } else {
-                                    $value = '-';
-                                }
+                                    break;
+
+                                case 'available_checkins_per_ticket':
+                                    $value = ( '-' == $value ) ?  __( 'Unlimited', 'tc' ) : $value;
+                                    break;
+
+                                case 'quantity_sold':
+                                    $sold_count = tc_get_tickets_count_sold( $post->ID );
+                                    $value = ( $sold_count > 0 ) ? $sold_count : '-';
+                                    break;
+
+                                case 'ticket_fee':
+                                    $ticket_fee_type = get_post_meta( $post->ID, 'ticket_fee_type', true );
+
+                                    if ( !empty( $value ) && $value !== '0' && $value !== 0 && $value !== '-' )
+                                        $value = ( 'fixed' == $ticket_fee_type ) ? $tc->get_cart_currency_and_format( $value ) : $value . '%';
+                                    else
+                                        $value = '-';
+                                    break;
                             }
-
-
-                            /* if ( $ticket_types_column[ 'field_name' ] == 'ticket_fee_type' ) {
-                              $value = ucfirst( $value );
-                              } */
-
 
                             echo $value;
-                        } else if ($ticket_types_column['field_name'] == 'ticket_active') {
-                            $ticket_type_status = get_post_status($post->ID);
+
+                        } elseif ( 'ticket_active' == $ticket_types_column['field_name'] ) {
+                            $ticket_type_status = get_post_status( $post->ID );
                             $on = $ticket_type_status == 'publish' ? 'tc-on' : '';
-                            echo '<div class="tc-control ' . $on . '" ticket_id="' . esc_attr($post->ID) . '"><div class="tc-toggle"></div></div>';
-                        } elseif ($ticket_types_column['field_name'] == 'ticket_shortcode') {
+                            echo '<div class="tc-control ' . $on . '" ticket_id="' . esc_attr( $post->ID ) . '"><div class="tc-toggle"></div></div>';
+
+                        } elseif ( 'ticket_shortcode' == $ticket_types_column['field_name'] ) {
                             echo '[tc_ticket id="' . $post->ID . '"]';
-                        } else {
-//unknown column
                         }
                     }
                 }
             }
         }
 
-        function manage_edit_tc_tickets_sortable_columns($columns) {
+        function manage_edit_tc_tickets_sortable_columns( $columns ) {
             $custom = array(
                     /* 'quantity_available' => 'quantity_available',
                       'quantity_sold'		 => 'quantity_sold', */
@@ -381,10 +379,9 @@ if (!class_exists('TC_Better_Ticket_Types')) {
             return wp_parse_args($custom, $columns);
         }
 
-        /*
+        /**
          * Add control for setting an event as active or inactive
          */
-
         function post_submitbox_misc_actions() {
             global $post, $post_type;
 

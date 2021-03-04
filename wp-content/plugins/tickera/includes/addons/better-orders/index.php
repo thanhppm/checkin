@@ -219,26 +219,28 @@ if (!class_exists('TC_Better_Orders')) {
          * @param $post
          * @param $update
          */
-        function save_orders_meta($post_id, $post, $update) {
+        function save_orders_meta( $post_id, $post, $update ) {
             global $wpdb;
 
             $order_id = $post_id;
 
-            if ( !isset($_POST['order_status_change']) || get_post_type($post_id) !== 'tc_orders' ) { // Make sure the edit comes from the order details page
+            // Make sure the edit comes from the order details page
+            if ( !isset( $_POST['order_status_change'] ) || get_post_type( $post_id ) !== 'tc_orders' ) {
                 return;
             }
 
             $post_status = sanitize_key( $_POST['order_status_change'] );
             $order = new TC_Order( $order_id );
 
-            $old_post_status = isset( $_POST['original_post_status'] ) ? sanitize_key( $_POST['original_post_status'] ) : 'pending'; // $order->details->post_status;
+            $old_post_status = isset( $_POST['original_post_status'] ) ? sanitize_key( $_POST['original_post_status'] ) : 'pending';
 
             if ( 'trash' == $post_status ) {
                 $order->delete_order( false );
 
             } else {
 
-                if ( 'trash' == $old_post_status ) { // Untrash attendees & tickets only in case that order was in the trash
+                // Un-trash attendees & tickets only in case that order was in the trash
+                if ( 'trash' == $old_post_status ) {
                     $order->untrash_order();
                 }
 
@@ -257,23 +259,23 @@ if (!class_exists('TC_Better_Orders')) {
                         break;
 
                 }
+
                 $wpdb->update( $wpdb->posts, array( 'post_status' => $post_status ), array( 'ID' => $order_id ), array('%s'), array('%d') );
             }
 
-            if ( 'order_paid' == $post_status ) {
+            /**
+             * Make sure that order status wasn't order_paid after the update
+             * (so we don't send out duplicate confirmation e-mails)
+             */
 
-                if ( $post_status !== $old_post_status ) { // Make sure that order status wasn't order_paid after the update (so we don't send out duplicate confirmation e-mails)
-                    tc_order_created_email( $order->details->post_name, $post_status, false, false, false, false );
-                    $payment_info = get_post_meta( $order_id, 'tc_payment_info', true );
-                    do_action( 'tc_order_paid_change', $order_id, $post_status, '', '', $payment_info );
+            if ( 'order_paid' == $post_status && $post_status !== $old_post_status ) {
 
-                } else {
-                    // echo 'already was paid!';
-                    // exit;
-                }
+                tc_order_created_email( $order->details->post_name, $post_status, false, false, false, false );
+                $payment_info = get_post_meta( $order_id, 'tc_payment_info', true );
+                do_action( 'tc_order_paid_change', $order_id, $post_status, '', '', $payment_info );
 
-            } else {
-                // echo 'post status is not order_paid';
+            } elseif( 'order_refunded' == $post_status && $post_status !== $old_post_status ) {
+                tc_order_created_email( $order->details->post_name, $post_status );
             }
 
             // Update buyer e-mail

@@ -115,7 +115,7 @@ if ( !class_exists( 'TC_Form_Fields_API' ) ) {
 
 			ob_start();
 			?>
-			<tr valign="top">
+            <tr valign="top" <?php echo ( 'hidden' == $data[ 'type' ] ) ? 'style="display:none;"' : ''; ?>>
 				<th scope="row" class="titledesc">
 					<label for="<?php echo esc_attr( $field ); ?>"><?php echo wp_kses_post( $data[ 'title' ] ); ?></label>
 				</th>

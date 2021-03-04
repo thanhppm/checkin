@@ -27,7 +27,7 @@ echo $this->render('../common/inc-table-filter');
             </tr>
         </thead>
         <tbody><?php
-        /* @var $p Loco_mvc_Params */
+        /* @var Loco_mvc_ViewParams[] $locales */
         foreach( $locales as $p ):?> 
         <tr>
             <td>

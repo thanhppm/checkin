@@ -18826,14 +18826,14 @@ Putting 1 is equivalent to putting 0 and calling Ln() just after. Default value:
 					$imgsrc = '@'.base64_decode(substr($imgsrc, 1));
 					$type = '';
 				} else {
-					if (($imgsrc[0] === '/') AND !empty($_SERVER['DOCUMENT_ROOT']) AND ($_SERVER['DOCUMENT_ROOT'] != '/')) {
+					if ( ( $imgsrc[0] === '/' ) AND !empty( ABSPATH ) AND ( ABSPATH != '/' ) ) {
 						// fix image path
-						$findroot = strpos($imgsrc, $_SERVER['DOCUMENT_ROOT']);
+						$findroot = strpos($imgsrc, ABSPATH);
 						if (($findroot === false) OR ($findroot > 1)) {
-							if (substr($_SERVER['DOCUMENT_ROOT'], -1) == '/') {
-								$imgsrc = substr($_SERVER['DOCUMENT_ROOT'], 0, -1).$imgsrc;
+							if (substr(ABSPATH, -1) == '/') {
+								$imgsrc = substr(ABSPATH, 0, -1).$imgsrc;
 							} else {
-								$imgsrc = $_SERVER['DOCUMENT_ROOT'].$imgsrc;
+								$imgsrc = ABSPATH.$imgsrc;
 							}
 						}
 						$imgsrc = urldecode($imgsrc);

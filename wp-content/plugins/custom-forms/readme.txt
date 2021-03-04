@@ -14,8 +14,12 @@ Every piece of information collected form your clients via Custom Forms can be e
 
 == Changelog ==
 
-= 1.2.3 XX/XX/XXXX =
+= 1.2.5 =
+- Update for WordPress 5.5
+
+= 1.2.3 =
 - Better license update / license check handling
+
 
 = 1.2.2.9 =
 - Fixed an issue keep selection with custom forms CSV Export

@@ -9,7 +9,8 @@ if (!defined('ABSPATH'))
 class TC_Shortcodes extends TC {
 
     function __construct() {
-//register shortcodes
+
+        // Register Shortcodes
         add_shortcode('tc_cart', array(&$this, 'tc_cart_page'));
         add_shortcode('tc_additional_fields', array(&$this, 'tc_additional_fields'));
         add_shortcode('tc_additional_fields_edd', array(&$this, 'tc_additional_fields_edd'));
@@ -118,72 +119,83 @@ class TC_Shortcodes extends TC {
         }
     }
 
+    /**
+     * Render a link that will allow the customer to add ticket and its availability
+     *
+     * @param $atts
+     * @return string|void
+     */
     function ticket_cart_button($atts) {
         global $tc;
 
-        $tc_general_settings = get_option('tc_general_setting', false);
+        $tc_general_settings = get_option( 'tc_general_setting', false );
 
-        extract(shortcode_atts(array(
-            'id' => false,
-            'title' => __('Add to Cart', 'tc'),
-            'show_price' => false,
-            'price_position' => 'after',
-            'price_wrapper' => 'span',
-            'price_wrapper_class' => 'price',
-            'soldout_message' => __('Tickets are sold out.', 'tc'),
-            'type' => 'cart',
-            'open_method' => 'regular',
-            'quantity' => false,
-            'wrapper' => ''), $atts));
+        extract( shortcode_atts(
+                array(
+                    'id' => false,
+                    'title' => __('Add to Cart', 'tc'),
+                    'show_price' => false,
+                    'price_position' => 'after',
+                    'price_wrapper' => 'span',
+                    'price_wrapper_class' => 'price',
+                    'soldout_message' => __('Tickets are sold out.', 'tc'),
+                    'type' => 'cart',
+                    'open_method' => 'regular',
+                    'quantity' => false,
+                    'wrapper' => ''
+                ), $atts
+            )
+        );
 
         $show_price = (bool) $show_price;
         $quantity = (bool) $quantity;
-        if ($id) {
-            //do nothing, id is set
-        } else {
-            $id = -1;
-        }
 
-        if (isset($id) && TC_Ticket::is_sales_available($id)) {
+        $id = ( $id ) ? $id : -1;
+
+        if ( isset( $id ) && TC_Ticket::is_sales_available( $id ) ) {
             $ticket_type = new TC_Ticket($id, 'publish');
         }
 
-        $event_id = get_post_meta($id, 'event_name', true);
+        $event_id = get_post_meta( $id, 'event_name', true);
 
-        if (isset($ticket_type->details->ID) && get_post_status($event_id) == 'publish') {//check if ticket still exists
-            if ($show_price) {
-                $with_price_content = ' <span class="' . $price_wrapper_class . '">' . do_shortcode('[ticket_price id="' . $id . '"]') . '</span> ';
+        // Check if ticket still exists
+        if ( isset( $ticket_type->details->ID ) && 'publish' == get_post_status( $event_id ) ) {
+
+            $with_price_content = ( $show_price ) ? ' <span class="' . $price_wrapper_class . '">' . do_shortcode('[ticket_price id="' . $id . '"]') . '</span> ' : '';
+
+            if ( is_array( $tc->get_cart_cookie() ) && array_key_exists( $id, $tc->get_cart_cookie() ) ) {
+                $button = sprintf( '<' . $price_wrapper . ' class="tc_in_cart">%s <a href="%s">%s</a></' . $price_wrapper . '>', __( 'Ticket added to', 'tc' ), $tc->get_cart_slug( true ), __( 'Cart', 'tc' ) );
+
             } else {
-                $with_price_content = '';
-            }
 
-            if (is_array($tc->get_cart_cookie()) && array_key_exists($id, $tc->get_cart_cookie())) {
-                $button = sprintf('<' . $price_wrapper . ' class="tc_in_cart">%s <a href="%s">%s</a></' . $price_wrapper . '>', __('Ticket added to', 'tc'), $tc->get_cart_slug(true), __('Cart', 'tc'));
-            } else {
-                if ($ticket_type->is_ticket_exceeded_quantity_limit() === false) {
+                if ( $ticket_type->is_sold_ticket_exceeded_limit_level() === false ) {
 
-                    if (isset($tc_general_settings['force_login']) && $tc_general_settings['force_login'] == 'yes' && !is_user_logged_in()) {
+                    if ( isset( $tc_general_settings['force_login'] ) && 'yes' == $tc_general_settings['force_login'] && !is_user_logged_in() ) {
                         $button = '<form class="cart_form">'
-                                . ($price_position == 'before' ? $with_price_content : '') . '<a href="' . apply_filters('tc_force_login_url', wp_login_url(get_permalink()), get_permalink()) . '" class="add_to_cart_force_login" id="ticket_' . $id . '"><span class="title">' . $title . '</span></a>' . ($price_position == 'after' ? $with_price_content : '')
-                                . '<input type="hidden" name="ticket_id" class="ticket_id" value="' . $id . '"/>'
-                                . '</form>';
+                            . ( 'before' == $price_position ? $with_price_content : '' ) . '<a href="' . apply_filters( 'tc_force_login_url', wp_login_url( get_permalink() ), get_permalink() ) . '" class="add_to_cart_force_login" id="ticket_' . $id . '"><span class="title">' . $title . '</span></a>' . ( 'after' == $price_position ? $with_price_content : '' )
+                            . '<input type="hidden" name="ticket_id" class="ticket_id" value="' . $id . '"/>'
+                            . '</form>';
+
                     } else {
                         $button = '<form class="cart_form">'
-                                . ($quantity == true ? tc_quantity_selector($id, true) : '')
-                                . ($price_position == 'before' ? $with_price_content : '') . '<a href="#" class="add_to_cart" data-button-type="' . esc_attr($type) . '" data-open-method="' . esc_attr($open_method) . '" id="ticket_' . esc_attr($id) . '"><span class="title">' . $title . '</span></a>' . ($price_position == 'after' ? $with_price_content : '')
-                                . '<input type="hidden" name="ticket_id" class="ticket_id" value="' . esc_attr($id) . '"/>'
-                                . '</form>';
+                            . ( true == $quantity ? tc_quantity_selector( $id, true ) : '' )
+                            . ( 'before' == $price_position ? $with_price_content : '' ) . '<a href="#" class="add_to_cart" data-button-type="' . esc_attr( $type ) . '" data-open-method="' . esc_attr( $open_method ) . '" id="ticket_' . esc_attr( $id ) . '"><span class="title">' . $title . '</span></a>' . ( 'after' == $price_position ? $with_price_content : '' )
+                            . '<input type="hidden" name="ticket_id" class="ticket_id" value="' . esc_attr($id) . '"/>'
+                            . '</form>';
                     }
+
                 } else {
                     $button = '<span class="tc_tickets_sold">' . $soldout_message . '</span>';
                 }
             }
 
-            if ($id && get_post_type($id) == 'tc_tickets') {
+            if ( $id && 'tc_tickets' == get_post_type( $id ) ) {
                 return $button;
+
             } else {
                 return __('Unknown ticket ID', 'tc');
             }
+
         } else {
             return '';
         }

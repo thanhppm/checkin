@@ -10,6 +10,8 @@ if (class_exists('TC')) {
 
     class TC_Seat_Shortcodes extends TC {
 
+        var $firebase_enabled = false;
+
         function __construct() {
             add_shortcode('tc_seat_chart', array(&$this, 'tc_seat_chart'));
             add_action('wp_ajax_tc_load_seating_map', array(&$this, 'load_seating_map'));
@@ -28,15 +30,13 @@ if (class_exists('TC')) {
             }
 
             $tc_seat_charts_settings = TC_Seat_Chart::get_settings();
+            $this->firebase_enabled = isset($tc_seat_charts_settings['user_firebase_integration']) ? $tc_seat_charts_settings['user_firebase_integration'] : false;
 
-            $use_firebase_integration = isset($tc_seat_charts_settings['user_firebase_integration']) ? $tc_seat_charts_settings['user_firebase_integration'] : '0';
-
-            if ($use_firebase_integration == '1') {
+            if ( $this->firebase_enabled ) {
               if (!session_id()) {
                 @session_start();
               }
-              
-                wp_enqueue_script('tc-server-date', plugins_url('../js/ServerDate.js', __FILE__));
+
                 wp_enqueue_script('tc-firebase', 'https://www.gstatic.com/firebasejs/3.2.1/firebase.js');
                 wp_enqueue_script('tc-seat-charts-firebase', plugins_url('../js/tc-firebase.js', __FILE__), array('jquery', 'tc-firebase'), $TC_Seat_Chart->version, false);
 
@@ -73,7 +73,7 @@ if (class_exists('TC')) {
                 'tc_maximum_tickets_message' => __('Maximum number of tickets for  ', 'tcsc'),
                 'tc_minimum_tickets_message_is' => __(' is ', 'tcsc'),
                 'tc_minimum_tickets_title' => __('Minimum Tickets', 'tcsc'),
-                'tc_check_firebase' => isset($use_firebase_integration) ? $use_firebase_integration : '',
+                'tc_check_firebase' => $this->firebase_enabled,
             ));
 
             wp_enqueue_style('tc-seat-charts-jquery-ui', plugins_url('../assets/js/jquery-ui/jquery-ui.css', __FILE__));
@@ -180,6 +180,7 @@ if (class_exists('TC')) {
             $id = (int) $_POST['chart_id'];
 
             $tc_seat_charts_settings = TC_Seat_Chart::get_settings();
+            $this->firebase_enabled = isset($tc_seat_charts_settings['user_firebase_integration']) ? $tc_seat_charts_settings['user_firebase_integration'] : false;
 
             $reserved_seat_color = isset($tc_seat_charts_settings['reserved_seat_color']) ? $tc_seat_charts_settings['reserved_seat_color'] : '#DCCBCB';
             $in_cart_seat_color = isset($tc_seat_charts_settings['in_cart_seat_color']) ? $tc_seat_charts_settings['in_cart_seat_color'] : '#4187C9';
@@ -209,6 +210,8 @@ if (class_exists('TC')) {
                 <div class="tc-seating-legend">
                     <ul>
                         <?php
+
+                        $chart_ticket_id = [];
                         $global_is_sales_available = true;
 
                         // Sort Legend Items in Price ASC Order
@@ -242,7 +245,6 @@ if (class_exists('TC')) {
 						// Replace $chart_ticket_types variable with $chart_ticket_id
                         foreach ($chart_ticket_id as $ticket_type_id) {
                             $ticket_type = new TC_Ticket($ticket_type_id);
-                            $is_sales_available = true;
 
                             if (is_plugin_active('bridge-for-woocommerce/bridge-for-woocommerce.php') && is_plugin_active('woocommerce/woocommerce.php') && is_plugin_active('min-max-quantities-for-woocommerce-master/index.php')) {
                                 $tc_minimum_tickets_per_order = get_post_meta($ticket_type_id, 'minimum_allowed_quantity', true);
@@ -283,9 +285,8 @@ if (class_exists('TC')) {
                             ?></li>
                             <?php
                         }
-                        $use_firebase_integration = isset($tc_seat_charts_settings['user_firebase_integration']) ? $tc_seat_charts_settings['user_firebase_integration'] : '0';
 
-                        if ($use_firebase_integration == '1') {
+                        if ( $this->firebase_enabled ) {
                             ?>
                             <li class="tc_in_others_cart_seat_color_status" style="color:<?php echo esc_attr($in_others_cart_seat_color); ?>"><span style="background-color:<?php echo esc_attr($in_others_cart_seat_color); ?>"></span><?php _e('In Other\'s Cart', 'tcsc'); ?></li>
                         <?php } ?>
@@ -435,7 +436,7 @@ if (class_exists('TC')) {
             <?php
             TC_Seat_Chart::set_event_ticket_types_colors($id, true);
 
-            if ($use_firebase_integration == '1' ) {
+            if ( $this->firebase_enabled ) {
                 ?>
                 <script type="text/javascript">
                     tc_firebase.init(<?php echo (int) $id; ?>);

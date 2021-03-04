@@ -26,16 +26,22 @@ class Loco_admin_file_MoveController extends Loco_admin_file_BaseController {
             $this->set('hidden',$fields );
             // attempt move if valid nonce posted back
             while( $this->checkNonce($action) ){
+                $post = Loco_mvc_PostParams::get();
                 // Chosen location should be valid as a posted "dest" parameter
-                if( ! Loco_mvc_PostParams::get()->has('dest') ){
+                if( ! $post->has('dest') ){
                     Loco_error_AdminNotices::err('No destination posted');
                     break;
                 }
-                $target = new Loco_fs_LocaleFile( Loco_mvc_PostParams::get()->dest );
+                $target = new Loco_fs_LocaleFile( $post->dest );
                 $ext = $target->extension();
+                // could be a directory when we wanted the full path to the file
+                if( $target->isDirectory() ){
+                    Loco_error_AdminNotices::err('Enter the full path to the .'.$file->extension().' file, not the directory');
+                    break;
+                }
                 // primary file extension should only be permitted to change between po and pot
                 if( $ext !== $file->extension() && 'po' !== $ext && 'pot' !== $ext ){
-                    Loco_error_AdminNotices::err('Invalid file extension, *.po or *.pot only');
+                    Loco_error_AdminNotices::err('Invalid file extension, .po or .pot only');
                     break;
                 }
                 $target->normalize( loco_constant('WP_CONTENT_DIR') );
@@ -76,11 +82,11 @@ class Loco_admin_file_MoveController extends Loco_admin_file_BaseController {
                 // flash messages for display after redirect
                 try {
                     if( $count ) {
-                        Loco_data_Session::get()->flash( 'success', sprintf( _n( 'File moved', '%u files moved', $total, 'loco-translate' ), $total ) );
+                        Loco_data_Session::get()->flash( 'success', sprintf( _n( '%s file moved', '%s files moved', $total, 'loco-translate' ), $total ) );
                     }
                     if( $total > $count ){
                         $diff = $total - $count;
-                        Loco_data_Session::get()->flash( 'error', sprintf( _n( 'One file could not be moved', '%u files could not be moved', $diff, 'loco-translate' ), $diff ) );
+                        Loco_data_Session::get()->flash( 'error', sprintf( _n( '%s file could not be moved', '%s files could not be moved', $diff, 'loco-translate' ), $diff ) );
                     }
                     Loco_data_Session::close();
                 }

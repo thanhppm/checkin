@@ -1,9 +1,8 @@
 jQuery(document).ready(function ($) {
 
-
     $('body').on('keyup change keydown', '#tc_options_search_val', function (e) {
         var searched_option = $(this).val();
-        //console.log(searched_option);
+
         if (searched_option == '') {
             $(".form-table tr").show();
         } else {
@@ -20,23 +19,12 @@ jQuery(document).ready(function ($) {
                     $(this).parent().parent().hide();
                 }
             });
-           /* if ((items[i].id.match(search_key_match))) {
-
-            }*/
-            //show only those which match with the keyword
-            //hide others
         }
-        // $(this).parent().find('.quantity').val(parseInt(quantity) + 1);
     });
 
-    //$form.find( '#publish, #save-post,.save-bulk-form, [type="submit"]' ).click( function( e ) {
     jQuery(".post-type-tc_tickets #post, .post-type-tc_events #post").validate({ignore: '[id^="acf"], #us_portfolio_settings input'});
     jQuery("#tc-general-settings, #tc_ticket_type_form, #tc_discount_code_form, .tc_form_validation_required").validate({
         rules: {
-            /* field: {
-             required: true,
-             number: true
-             },*/
             field: {
                 number: true
             },
@@ -45,8 +33,6 @@ jQuery(document).ready(function ($) {
             }
         }
     });
-
-
 
     if ($('#discount_type').length && $('#discount_value').length) {
         tc_check_discount_code_type();
@@ -67,8 +53,6 @@ jQuery(document).ready(function ($) {
         }
     }
 
-    //jQuery( '#tc-general-settings' ).validate();
-
     $(document).on('change','.has_conditional', function ( ) {
         tc_conditionals_init();
     });
@@ -79,38 +63,57 @@ jQuery(document).ready(function ($) {
         });
     }
 
-    function tc_conditional(obj) {
+    /**
+     * Check if the field has a condition and execute the action based on its values.
+     *
+     * @param obj
+     */
+    function tc_conditional( obj ) {
 
-        var field_name = $(obj).attr('data-condition-field_name');
+        let field_name = $(obj).attr('data-condition-field_name'),
+            selected_value;
+
         if (!$('.' + field_name).hasClass('has_conditional')) {
             $('.' + field_name).addClass('has_conditional');
         }
 
-        var field_type = $(obj).attr('data-condition-field_type');
-        var value = $(obj).attr('data-condition-value');
-        var action = $(obj).attr('data-condition-action');
-        if (field_type == 'radio') {
-            var selected_value = $('.' + field_name + ':checked').val( );
-            //alert(selected_value);
+        let field_type = $(obj).attr('data-condition-field_type'),
+            value = $(obj).attr('data-condition-value'),
+            action = $(obj).attr('data-condition-action');
+
+        switch ( field_type ) {
+            case 'radio':
+                selected_value = $('.' + field_name + ':checked').val();
+                break;
+
+            case 'text':
+            case 'textarea':
+            case 'select':
+                selected_value = $('.' + field_name).val();
+                break;
+
+            default:
+                selected_value = '';
         }
 
-        if (field_type == 'text' || field_type == 'textarea' || field_type == 'select') {
-            var selected_value = $('.' + field_name).val( );
-        }
+        if ( value == selected_value ) {
 
-        if (value == selected_value) {
-            if (action == 'hide') {
-                $(obj).hide();
+            if ( 'hide' == action ) {
+                $(obj).hide().attr( 'disabled', true );
+                $( '#' + $(obj).attr('id') + '-error' ).remove();
+
+            } else if ( 'show' == action ) {
+                $(obj).show(200).attr( 'disabled', false );
             }
-            if (action == 'show') {
-                $(obj).show(200);
-            }
+
         } else {
-            if (action == 'hide') {
-                $(obj).show(200);
-            }
-            if (action == 'show') {
-                $(obj).hide();
+
+            if ( 'hide' == action ) {
+                $(obj).show(200).attr( 'disabled', false );
+
+            } else if ( 'show' == action ) {
+                $(obj).hide().attr( 'disabled', true );
+                $( '#' + $(obj).attr('id') + '-error' ).remove();
             }
         }
 
@@ -137,8 +140,10 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    /* Toggle Controls */
-    //tickera_page_tc_ticket_types
+    /**
+     * Toggle Controls
+     * @type {number}
+     */
     var tc_event_id = 0;
     var tc_ticket_id = 0;
     var tc_event_status = 'publish';
@@ -198,13 +203,12 @@ jQuery(document).ready(function ($) {
 
     tc_toggle.init();
 
-
     $("input.tc_active_gateways").change(function () {
-        //alert($(this).val());
         var currently_selected_gateway_name = $(this).val();
-        var checked = $(this).attr('checked');
-        if (checked == 'checked') {
+
+        if ( $(this).is(':checked') ) {
             $('#' + currently_selected_gateway_name).show(200);
+
         } else {
             $('#' + currently_selected_gateway_name).hide(200);
         }
@@ -214,13 +218,13 @@ jQuery(document).ready(function ($) {
     if (tc_vars.animated_transitions) {
         $(".tc_wrap").fadeTo(250, 1);
         $(".tc_wrap #message").delay(2000).slideUp(250);
+
     } else {
         $(".tc_wrap").fadeTo(0, 1);
     }
 
 
-    $('.tc_delete_link').click(function (event)
-    {
+    $('.tc_delete_link').click(function (event) {
         tc_delete(event);
     });
 
@@ -237,7 +241,6 @@ jQuery(document).ready(function ($) {
         }
     }
 
-
     $('.file_url_button').click(function ()
     {
         var target_url_field = $(this).prevAll(".file_url:first");
@@ -249,9 +252,10 @@ jQuery(document).ready(function ($) {
         return false;
     });
 
-
-    /* Ticket Tempaltes */
-
+    /**
+     * Ticket Tempaltes
+     * @type {any[]}
+     */
     var ticket_classes = new Array();
     var parent_id = 0;
 
@@ -259,7 +263,6 @@ jQuery(document).ready(function ($) {
     $("ul.sortables").sortable({
         connectWith: 'ul',
         forcePlaceholderSize: true,
-        //placeholder: "ui-state-highlight",
         receive: function (template, ui) {
             update_li();
             $(".rows ul li").last().addClass("last_child");
@@ -267,9 +270,7 @@ jQuery(document).ready(function ($) {
         stop: function (template, ui) {
             update_li();
         }
-    })/*.disableSelection()*/;
-
-    //$( ".sortables" ).disableSelection();
+    });
 
     function update_li() {
 
@@ -278,7 +279,8 @@ jQuery(document).ready(function ($) {
 
         $(".rows ul").each(function () {
 
-            ticket_classes.length = 0; //empty the array
+            // Empty the array
+            ticket_classes.length = 0;
 
             children_num = $(this).children('li').length;
             $(this).children('li').removeClass();
@@ -320,12 +322,10 @@ jQuery(document).ready(function ($) {
         });
     }
 
-
     if ($('#ticket_elements').length) {
         update_li();
         tc_fix_template_elements_sizes();
     }
-
 
     jQuery('.close-this').click(function (event) {
         event.preventDefault();
@@ -333,8 +333,6 @@ jQuery(document).ready(function ($) {
         update_li();
         tc_fix_template_elements_sizes();
     });
-
-
 
     function fix_chosen() {
         $(".tc_wrap select").css('width', '25em');
@@ -345,23 +343,6 @@ jQuery(document).ready(function ($) {
         $(".tc_wrap .chosen-container").css('max-width', '25em');
         $(".tc_wrap .chosen-container").css('min-width', '1em');
     }
-
-    /*$( '.order_status_change' ).on( 'change', function () {
-     var new_status = $( this ).val();
-     var order_id = $( '#order_id' ).val();
-     
-     $.post( tc_vars.ajaxUrl, { action: "change_order_status", order_id: order_id, new_status: new_status }, function ( data ) {
-     if ( data != 'error' ) {
-     $( '.tc_wrap .message_placeholder' ).html( '' );
-     $( '.tc_wrap .message_placeholder' ).append( '<div id="message" class="updated fade"><p>' + tc_vars.order_status_changed_message + '</p></div>' );
-     $( ".tc_wrap .message_placeholder" ).show( 250 );
-     $( ".tc_wrap .message_placeholder" ).delay( 2000 ).slideUp( 250 );
-     } else {
-     //current_form.html(data);//Show error message
-     }
-     $( this ).fadeTo( "fast", 1 );
-     } );
-     } );*/
 
     $('#tc_order_resend_condirmation_email').on('click', function (event) {
         event.preventDefault();
@@ -381,17 +362,16 @@ jQuery(document).ready(function ($) {
                 $('#tc_order_resend_condirmation_email').show();
                 $('#tc_resending').remove();
             } else {
-                //current_form.html(data);//Show error message
+                // Show error message
             }
             $(this).fadeTo("fast", 1);
         });
 
     });
 
-
-
-    /* PAYMENT GATEWAY IMAGE SWITCH */
-
+    /**
+     * Payment Gateway Image Switch
+     */
     jQuery(".tc_active_gateways").each(function () {
 
         if (this.checked) {
@@ -457,7 +437,6 @@ jQuery(document).ready(function ($) {
                 $(this).after( replaceWith );
                 replaceWith.focus();
 
-
                 /* Update Attendee Information */
                 $( replaceWith ).blur( function () {
 
@@ -485,11 +464,11 @@ jQuery(document).ready(function ($) {
     };
 
     /**
-     * INLINE SELECT2 EDIT
+     * INLINE CHOSEN EDIT
      * @param replaceWith
      * @param connectWith
      */
-    $.fn.inlineSelect2Edit = function (replaceWith, connectWith) {
+    $.fn.inlineChosenEdit = function (replaceWith, connectWith) {
 
         let clicked;
 
@@ -514,34 +493,34 @@ jQuery(document).ready(function ($) {
                 $.post( tc_vars.ajaxUrl, {action: 'get_ticket_type_instances', tc_ticket_instance_id: ticket_instance_id }, function(response){
                     if ( !response.error ) {
                         clicked.hide().after(replaceWith);
-                        initialize_select2(replaceWith, response);
+                        initialize_chosen(replaceWith, response);
                     } else {
                         replaceWith = '<td>' + response.error + '</td>';
                         clicked.hide().after(replaceWith);
                     }
                 });
 
-                /* Update Attendee Information */
-                $( replaceWith ).on('select2:close', function() {
+                // Update Attendee Information
+                replaceWith.on('change', function() {
 
-                    // Remove a mark of an input
+                    // Remove a mark to an input
                     clicked.removeClass('inline_clicked');
 
-                    let select2 = $(this).find(':selected');
+                    let select_chosen = $(this).find(':selected');
 
-                    if (select2.val() != "") {
-                        connectWith.val(select2.val()).change();
-                        clicked.text(select2.text());
+                    if (select_chosen.val() != "") {
+                        connectWith.val(select_chosen.val()).change();
+                        clicked.text(select_chosen.text());
                     }
 
-                    clicked.text(select2.text());
+                    clicked.text(select_chosen.text());
 
                     var ticket_id = $(this).parent('tr').find('.ID');
                     ticket_id = ticket_id.attr('data-id');
 
-                    save_attendee_info(ticket_id, $(this).prev().attr('class'), select2.val());
+                    save_attendee_info(ticket_id, $(this).prev().attr('class'), select_chosen.val());
 
-                    $(this).select2('destroy').empty().remove();
+                    $(this).chosen('destroy').empty().remove();
                     clicked.show();
                 });
             }
@@ -553,16 +532,16 @@ jQuery(document).ready(function ($) {
      * @type {jQuery|HTMLElement}
      */
     let replaceWithInput = $('<input name="temp" class="tc_temp_value" type="text" />'),
-        replaceWithOption = $('<select class="ticket_type_id_select2"></select>'),
+        replaceWithOption = $('<select class="ticket_type_id_chosen"></select>'),
         connectWith = $('input[name="hiddenField"]');
 
-    $('#order-details-tc-metabox-wrapper .order-details tr').find('td.ticket_type_id:first').inlineSelect2Edit(replaceWithOption, connectWith);
+    $('#order-details-tc-metabox-wrapper .order-details tr').find('td.ticket_type_id:first').inlineChosenEdit(replaceWithOption, connectWith);
     $('td.first_name, td.last_name, td.owner_email').inlineEdit(replaceWithInput, connectWith);
 
     /**
      * Better Order: Update Temporary fields on keyup
      */
-    $(".tc_temp_value").live('keyup', function (e) {
+    $(".tc_temp_value").on('keyup', function (e) {
         if (e.keyCode == 13) {
             $(this).blur( );
         }
@@ -570,14 +549,20 @@ jQuery(document).ready(function ($) {
     });
 
     /**
-     * Initialize Select2
+     * Initialize Chosen
      * @param elem
      * @param dataSource
      */
-    function initialize_select2(elem, dataSource) {
-        $(elem).select2({
-            data: dataSource
-        });
+    function initialize_chosen(elem, dataSource) {
+
+        for ( let i = 0;  i < dataSource.length; i++ ) {
+            elem.append( '<option value="' + dataSource[i].id + '">' + dataSource[i].text + '</option>' );
+        }
+
+        $(".order-details select").chosen( {
+            disable_search_threshold: 5,
+            allow_single_deselect: false
+        } );
     }
 
     function save_attendee_info(ticket_id, meta_name, meta_value) {
@@ -604,7 +589,8 @@ jQuery(document).ready(function ($) {
     jQuery(window).resize(function () {
         tc_page_names_width();
     });
-    // js for trash confirmation
+
+    // JS for trash confirmation
     jQuery(document).ready(function($){
         $('.post-type-tc_tickets a.submitdelete').click(function(e){
             e.preventDefault();
@@ -667,5 +653,40 @@ jQuery(document).ready(function ($) {
     }
 
     tc_page_names_width();
+
+    /**
+     * API Key - Event Category/Name Fields
+     * Dynamically Update a Chosen Fields
+     */
+    $( '#tc-event-category-field' ).chosen().change( function() {
+
+        let event_name = $( '#tc-event-name-field' ),
+            category_value = this.value;
+
+        // Clear all options
+        event_name.empty();
+
+        // Temporary Disable Event Field
+        event_name.prop( 'disabled', true ).trigger( 'chosen:updated' );
+
+        $.post( tc_vars.ajaxUrl, { action: 'change_apikey_event_category', event_term_category: this.value }, function( response ) {
+
+            if ( 'object' === typeof response ) {
+
+                // Update select name
+                let new_event_name = event_name.attr( 'name' ).split( '[' )[0];
+                $( '#tc-event-name-field' ).attr( 'name', new_event_name + '[' + category_value + ']' + '[]' );
+
+                // Insert new options
+                event_name.append('<option value="all" selected>All Events</option>');
+                $.each( response, function( index, value ) {
+                    event_name.append( '<option value=' + index + '>' + value + '</option>' );
+                });
+
+                // Enable and update event field with chosen
+                $( '#tc-event-name-field' ).prop( 'disabled', false ).trigger( 'chosen:updated' );
+            }
+        });
+    });
 });
 

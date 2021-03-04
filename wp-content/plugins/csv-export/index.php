@@ -6,7 +6,7 @@
  Description: Export attendees data in CSV file format
  Author: Tickera.com
  Author URI: http://tickera.com/
- Version: 1.2.5.6
+ Version: 1.2.6.0
  Text Domain: tccsv
  Domain Path: /languages/
  Copyright 2017 Tickera (http://tickera.com/)
@@ -29,17 +29,13 @@ if ( !function_exists( 'csv_export_fs' ) ) {
             // Include Freemius SDK.
             
             if ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera-event-ticketing-system/freemius/start.php' ) ) {
-                // Try to load SDK from parent plugin folder.
+                /* Try to load SDK from parent plugin folder. */
                 require_once dirname( dirname( __FILE__ ) ) . '/tickera-event-ticketing-system/freemius/start.php';
+            } elseif ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php' ) ) {
+                /* Try to load SDK from premium parent plugin folder. */
+                require_once dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php';
             } else {
-                
-                if ( file_exists( dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php' ) ) {
-                    // Try to load SDK from premium parent plugin folder.
-                    require_once dirname( dirname( __FILE__ ) ) . '/tickera/freemius/start.php';
-                } else {
-                    require_once dirname( __FILE__ ) . '/freemius/start.php';
-                }
-            
+                require_once dirname( __FILE__ ) . '/freemius/start.php';
             }
             
             $csv_export_fs = fs_dynamic_init( array(
@@ -70,9 +66,13 @@ if ( !function_exists( 'csv_export_fs' ) ) {
     }
 
 }
+/**
+ * Check if the parent's init SDK method exists.
+ *
+ * @return bool
+ */
 function csv_export_fs_is_parent_active_and_loaded()
 {
-    // Check if the parent's init SDK method exists.
     return function_exists( 'tets_fs' );
 }
 
@@ -97,9 +97,12 @@ function csv_export_fs_init()
 {
     
     if ( csv_export_fs_is_parent_active_and_loaded() ) {
+        // Parent is active, add your init code here.
         // Init Freemius.
         csv_export_fs();
-        // Parent is active, add your init code here.
+        if ( !csv_export_fs()->can_use_premium_code() ) {
+            return;
+        }
     } else {
         // Parent is inactive, add your error handling here.
     }
@@ -122,13 +125,11 @@ if ( csv_export_fs_is_parent_active_and_loaded() ) {
 
 }
 
-if ( !csv_export_fs()->can_use_premium_code() ) {
-    return;
-}
 if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
     class TC_Export_Csv_Mix
     {
-        var  $version = '1.2.5.6' ;
+        var  $version = '1.2.6.0' ;
+        var  $tc_version_required = '3.4.7.8' ;
         var  $title = 'CSV Export' ;
         var  $name = 'tc_export_csv_mix' ;
         var  $dir_name = 'csv-export' ;
@@ -139,44 +140,31 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
         {
             $this->init_vars();
             global  $tc, $post_type, $post ;
-            add_action( $tc->name . '_add_menu_items_after_ticket_templates', array( $this, 'add_admin_menu_csv_export_to_tc' ) );
+            add_action( 'admin_notices', array( &$this, 'admin_notices' ) );
+            add_action( 'tc_add_menu_items_after_ticket_templates', array( $this, 'add_admin_menu_csv_export_to_tc' ) );
             add_filter( 'tc_admin_capabilities', array( $this, 'append_capabilities' ) );
             add_action( 'plugins_loaded', array( &$this, 'localization' ), 9 );
-            if ( isset( $_GET['page'] ) && $_GET['page'] == 'tc_export_csv_mix' && isset( $_GET['post_type'] ) && $_GET['post_type'] == 'tc_events' ) {
+            if ( isset( $_GET['page'] ) && 'tc_export_csv_mix' == $_GET['page'] && isset( $_GET['post_type'] ) && 'tc_events' == $_GET['post_type'] ) {
                 add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_scripts' ) );
             }
             add_action( 'wp_ajax_tc_export_attendee_list', array( &$this, 'tc_export_attendee_list' ) );
             add_action( 'wp_ajax_tc_export_csv', array( &$this, 'tc_export' ) );
-            add_action( 'wp_ajax_tc_export_csv_dummy', array( &$this, 'tc_export_csv_dummy' ) );
-            
-            if ( apply_filters( 'tc_bridge_for_woocommerce_is_active', false ) == false ) {
-                //check bridge is active or not
-                add_action( 'wp_ajax_tc_get_ticket_type', array( &$this, 'tc_get_ticket_type' ) );
-                //using ajax get ticket type
-                add_action( 'wp_ajax_tc_get_ticket_type_change', array( &$this, 'tc_get_ticket_type_change' ) );
-                //using ajax get ticket type
-            } else {
-                add_action( 'wp_ajax_tc_get_ticket_type', array( &$this, 'woo_tc_get_ticket_type' ) );
-                //using ajax get ticket type
-                add_action( 'wp_ajax_tc_get_ticket_type_change', array( &$this, 'woo_get_ticket_type_change' ) );
-                //using ajax get ticket type
-            }
-            
+            add_action( 'wp_ajax_tc_get_ticket_type', array( &$this, 'tc_get_ticket_type' ) );
             add_action( 'wp_ajax_tc_keep_selection', array( &$this, 'tc_keep_selection' ) );
-            //keep selection using ajax
+            // Keep selection using ajax
         }
         
-        /*
-         **Keep selection attendee csv export
+        /**
+         * Keep selection attendee csv export
          */
         function tc_keep_selection()
         {
-            $formdata = $_POST['from_data'];
             
-            if ( $formdata == 'uncheck' ) {
+            if ( 'uncheck' == $_POST['from_data'] ) {
                 delete_option( 'tc_atteende_keep_selection' );
             } else {
-                foreach ( $formdata as $key => $value ) {
+                $attendee_field = [];
+                foreach ( $_POST['from_data'] as $key => $value ) {
                     $attendee_field['remember_setting'][$value['name']] = $value['value'];
                 }
                 update_option( 'tc_atteende_keep_selection', serialize( $attendee_field ), $autoload = null );
@@ -184,184 +172,60 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
         
         }
         
-        /*
-         **on page load get ticket type
+        /**
+         * On page load get ticket type
          */
         function tc_get_ticket_type()
         {
             
             if ( isset( $_POST ) ) {
+                $event_name = ( class_exists( 'TC_WooCommerce_Bridge' ) ? '_event_name' : 'event_name' );
+                $post_type = ( class_exists( 'TC_WooCommerce_Bridge' ) ? 'product' : 'tc_tickets' );
                 $event_id = (int) $_POST['id'];
-                $ticket_type = new WP_Query( array(
-                    'post_type'              => 'tc_tickets',
+                $ticket_type = get_posts( array(
+                    'posts_per_page'         => -1,
+                    'post_type'              => $post_type,
                     'post_status'            => 'publish',
-                    'meta_key'               => 'event_name',
+                    'meta_key'               => $event_name,
                     'meta_value'             => $event_id,
                     'update_post_term_cache' => false,
                     'update_post_meta_cache' => false,
                     'cache_results'          => false,
-                    'fields'                 => array( 'ID' ),
+                    'fields'                 => 'ids',
+                    'order'                  => 'DESC',
                     'orderby'                => 'ID',
                 ) );
-                $i = 0;
-                while ( $ticket_type->have_posts() ) {
-                    $ticket_type->the_post();
-                    $response[]['ticket_id'] = get_the_ID();
-                    $response[]['ticket_type'] = get_the_title();
-                    $i++;
-                    $response['count'] = $i;
+                $response = [];
+                foreach ( $ticket_type as $ticket_type_id ) {
+                    $response['ticket_types']['TC' . $ticket_type_id] = get_the_title( $ticket_type_id );
+                    // Marking 'TC' to avoid auto json sort in the frontend
                 }
-                $settings = get_option( 'tc_atteende_keep_selection' );
-                
-                if ( $settings != '' ) {
-                    $resp['success'] = 'success';
-                    $resp['data'] = $i;
-                    echo  json_encode( $resp ) ;
-                } else {
-                    echo  json_encode( $response ) ;
-                }
-                
-                wp_reset_postdata();
-                clearstatcache();
-                die;
-            }
-        
-        }
-        
-        /*
-         **on page load woo get ticket type
-         */
-        function woo_tc_get_ticket_type()
-        {
-            
-            if ( isset( $_POST ) ) {
-                $event_id = (int) $_POST['id'];
-                $ticket_type = new WP_Query( array(
-                    'post_type'              => 'product',
-                    'post_status'            => 'publish',
-                    'meta_key'               => '_event_name',
-                    'meta_value'             => $event_id,
-                    'update_post_term_cache' => false,
-                    'update_post_meta_cache' => false,
-                    'cache_results'          => false,
-                    'fields'                 => array( 'ID' ),
-                    'orderby'                => 'ID',
-                ) );
-                $i = 0;
-                while ( $ticket_type->have_posts() ) {
-                    $ticket_type->the_post();
-                    $response[]['ticket_id'] = get_the_ID();
-                    $response[]['ticket_type'] = get_the_title();
-                    $i++;
-                    $response['count'] = $i;
-                }
-                $settings = get_option( 'tc_atteende_keep_selection' );
-                
-                if ( $settings != '' ) {
-                    $resp['success'] = 'success';
-                    $resp['data'] = $i;
-                    echo  json_encode( $resp ) ;
-                } else {
-                    echo  json_encode( $response ) ;
-                }
-                
-                wp_reset_postdata();
-                clearstatcache();
-                die;
-            }
-        
-        }
-        
-        /**
-         * on click get ticket type
-         */
-        function tc_get_ticket_type_change()
-        {
-            
-            if ( isset( $_POST ) ) {
-                $event_id = (int) $_POST['id'];
-                $ticket_type = new WP_Query( array(
-                    'post_type'              => 'tc_tickets',
-                    'post_status'            => 'publish',
-                    'meta_key'               => 'event_name',
-                    'meta_value'             => $event_id,
-                    'update_post_term_cache' => false,
-                    'update_post_meta_cache' => false,
-                    'cache_results'          => false,
-                    'fields'                 => array( 'ID' ),
-                    'orderby'                => 'ID',
-                ) );
-                $i = 0;
-                while ( $ticket_type->have_posts() ) {
-                    $ticket_type->the_post();
-                    $response[]['ticket_id'] = get_the_ID();
-                    $response[]['ticket_type'] = get_the_title();
-                    $i++;
-                    $response['count'] = $i;
-                }
+                $response['error'] = ( !$response ? true : false );
                 wp_send_json( $response );
-                wp_reset_postdata();
-                clearstatcache();
-                die;
             }
         
         }
         
         /**
-         * on click get woo ticket type
-         */
-        function woo_get_ticket_type_change()
-        {
-            
-            if ( isset( $_POST ) ) {
-                $event_id = (int) $_POST['id'];
-                $ticket_type = new WP_Query( array(
-                    'post_type'              => 'product',
-                    'post_status'            => 'publish',
-                    'meta_key'               => '_event_name',
-                    'meta_value'             => $event_id,
-                    'update_post_term_cache' => false,
-                    'update_post_meta_cache' => false,
-                    'cache_results'          => false,
-                    'fields'                 => array( 'ID' ),
-                    'orderby'                => 'ID',
-                ) );
-                $i = 0;
-                while ( $ticket_type->have_posts() ) {
-                    $ticket_type->the_post();
-                    $response[]['ticket_id'] = get_the_ID();
-                    $response[]['ticket_type'] = get_the_title();
-                    $i++;
-                    $response['count'] = $i;
-                }
-                echo  json_encode( $response ) ;
-                wp_reset_postdata();
-                clearstatcache();
-                die;
-            }
-        
-        }
-        
-        function tc_export_csv_dummy()
-        {
-        }
-        
-        /*
-         ** append menu capabilities
+         * Append menu capabilities.
+         * Add additional capabilities to staff and admins
+         *
+         * @param $capabilities
+         * @return mixed
          */
         function append_capabilities( $capabilities )
         {
-            //Add additional capabilities to staff and admins
             $capabilities['manage_' . $this->name . '_cap'] = 1;
             return $capabilities;
         }
         
-        /*
-         ** add admin csv menu
+        /**
+         * Add admin csv menu.
+         * Add additional menu item under Tickera admin menu
+         *
          */
         function add_admin_menu_csv_export_to_tc()
         {
-            //Add additional menu item under Tickera admin menu
             global  $first_tc_menu_handler ;
             $handler = 'csv_export';
             add_submenu_page(
@@ -376,64 +240,56 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
             do_action( $this->name . '_add_menu_items_after_' . $handler );
         }
         
-        //Plugin localization function
+        /**
+         * Plugin localization function
+         */
         function localization()
         {
-            // Load up the localization file if we're using WordPress in a different language
-            // Place it in this plugin's "languages" folder and name it "tccsv-[value in wp-config].mo"
+            /*
+             * Load up the localization file if we're using WordPress in a different language
+             * Place it in this plugin's "languages" folder and name it "tccsv-[value in wp-config].mo"
+             */
             
-            if ( $this->location == 'mu-plugins' ) {
+            if ( 'mu-plugins' == $this->location ) {
                 load_muplugin_textdomain( 'tccsv', 'languages/' );
-            } else {
-                
-                if ( $this->location == 'subfolder-plugins' ) {
-                    //load_plugin_textdomain( 'tccsv', false, $this->plugin_dir . '/languages/' );
-                    load_plugin_textdomain( 'tccsv', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
-                } else {
-                    
-                    if ( $this->location == 'plugins' ) {
-                        load_plugin_textdomain( 'tccsv', false, 'languages/' );
-                    } else {
-                    }
-                
-                }
-            
+            } elseif ( 'subfolder-plugins' == $this->location ) {
+                load_plugin_textdomain( 'tccsv', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+            } elseif ( 'plugins' == $this->location ) {
+                load_plugin_textdomain( 'tccsv', false, 'languages/' );
             }
             
             $temp_locales = explode( '_', get_locale() );
             $this->language = ( $temp_locales[0] ? $temp_locales[0] : 'en' );
         }
         
+        /**
+         * Initialize plugin variables
+         */
         function init_vars()
         {
-            //setup proper directories
+            // Setup proper directories
             
             if ( defined( 'WP_PLUGIN_URL' ) && defined( 'WP_PLUGIN_DIR' ) && file_exists( WP_PLUGIN_DIR . '/' . $this->dir_name . '/' . basename( __FILE__ ) ) ) {
                 $this->location = 'subfolder-plugins';
                 $this->plugin_dir = WP_PLUGIN_DIR . '/' . $this->dir_name . '/';
                 $this->plugin_url = plugins_url( '/', __FILE__ );
+            } elseif ( defined( 'WP_PLUGIN_URL' ) && defined( 'WP_PLUGIN_DIR' ) && file_exists( WP_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
+                $this->location = 'plugins';
+                $this->plugin_dir = WP_PLUGIN_DIR . '/';
+                $this->plugin_url = plugins_url( '/', __FILE__ );
+            } elseif ( is_multisite() && defined( 'WPMU_PLUGIN_URL' ) && defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
+                $this->location = 'mu-plugins';
+                $this->plugin_dir = WPMU_PLUGIN_DIR;
+                $this->plugin_url = WPMU_PLUGIN_URL;
             } else {
-                
-                if ( defined( 'WP_PLUGIN_URL' ) && defined( 'WP_PLUGIN_DIR' ) && file_exists( WP_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
-                    $this->location = 'plugins';
-                    $this->plugin_dir = WP_PLUGIN_DIR . '/';
-                    $this->plugin_url = plugins_url( '/', __FILE__ );
-                } else {
-                    
-                    if ( is_multisite() && defined( 'WPMU_PLUGIN_URL' ) && defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
-                        $this->location = 'mu-plugins';
-                        $this->plugin_dir = WPMU_PLUGIN_DIR;
-                        $this->plugin_url = WPMU_PLUGIN_URL;
-                    } else {
-                        wp_die( sprintf( __( 'There was an issue determining where %s is installed. Please reinstall it.', 'tccsv' ), $this->title ) );
-                    }
-                
-                }
-            
+                wp_die( sprintf( __( 'There was an issue determining where %s is installed. Please reinstall it.', 'tccsv' ), $this->title ) );
             }
         
         }
         
+        /**
+         * Include CSS and JS Files
+         */
         function enqueue_scripts()
         {
             wp_enqueue_style( $this->name . '-jquery-ui', '//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css' );
@@ -449,14 +305,83 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
             $admin_url = strtok( admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ), '?' );
             wp_localize_script( $this->name . '-admin', 'tc_csv_vars', array(
                 'ajaxUrl'             => $admin_url,
+                'select_all'          => __( 'All', 'tccsv' ),
                 'ticket_type_message' => __( 'There are no ticket type for this event', 'tccsv' ),
                 'attendee_list_error' => __( 'There are no exporting data', 'tccsv' ),
             ) );
         }
         
+        /**
+         * Validate required Tickera version
+         */
+        function admin_notices()
+        {
+            global  $tc ;
+            if ( current_user_can( 'manage_options' ) ) {
+                
+                if ( isset( $tc->version ) && version_compare( $tc->version, $this->tc_version_required, '<' ) ) {
+                    ?>
+                    <div class="notice notice-error">
+                        <p><?php 
+                    printf(
+                        __( '%s add-on requires at least %s version of %s plugin. Your current version of %s is %s. Please update it.', 'tc' ),
+                        $this->title,
+                        $this->tc_version_required,
+                        $tc->title,
+                        $tc->title,
+                        $tc->version
+                    );
+                    ?></p>
+                    </div>
+                    <?php 
+                }
+            
+            }
+        }
+        
+        /**
+         * Check Session Status and Start
+         */
+        function tc_session_start()
+        {
+            
+            if ( version_compare( PHP_VERSION, '7.0.0', '>=' ) ) {
+                if ( function_exists( 'session_status' ) && session_status() == PHP_SESSION_NONE ) {
+                    session_start( [
+                        'cache_limiter'  => 'private_no_expire',
+                        'read_and_close' => false,
+                    ] );
+                }
+            } elseif ( version_compare( PHP_VERSION, '5.4.0', '>=' ) && version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+                
+                if ( function_exists( 'session_status' ) && session_status() == PHP_SESSION_NONE ) {
+                    session_cache_limiter( 'private_no_expire' );
+                    session_start();
+                }
+            
+            } else {
+                
+                if ( !session_id() ) {
+                    if ( version_compare( PHP_VERSION, '4.0.0', '>=' ) ) {
+                        session_cache_limiter( 'private_no_expire' );
+                    }
+                    session_start();
+                }
+            
+            }
+        
+        }
+        
+        /**
+         * Create virtual CSV.
+         * CSV will be processed via Method tc_export
+         *
+         * @param array $array
+         * @return false|string|null
+         */
         function array2csv( array $array )
         {
-            if ( count( $array ) == 0 ) {
+            if ( 0 == count( $array ) ) {
                 return null;
             }
             ob_start();
@@ -478,15 +403,14 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
         }
         
         /**
-         * Process export attendee list
+         * Collect and prepare attendees data.
+         * Collection will be used in Method tc_export
          */
         function tc_export_attendee_list()
         {
             global  $wpdb ;
             error_reporting( E_ERROR );
-            if ( !session_id() ) {
-                session_start();
-            }
+            self::tc_session_start();
             $time_start = microtime( true );
             $order_status = $_POST['tc_limit_order_type'];
             ini_set( 'max_input_time', 3600 * 3 );
@@ -534,7 +458,7 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
                 'orderby'                => 'ID',
             ) );
             
-            if ( $page == 1 ) {
+            if ( 1 == $page ) {
                 unset( $_SESSION['tc_csv_array'] );
                 $tc_csv_array = array();
                 $_SESSION['tc_csv_array'] = $tc_csv_array;
@@ -609,7 +533,7 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
                         'order_cancelled' => 'Cancelled',
                         'order_refunded'  => 'Refunded',
                     );
-                    $order_st = ( isset( $order_status_values[$order->details->post_status] ) ? __( $tc_order_status_values[$order->details->post_status], 'tccsv' ) : '' );
+                    $order_st = ( isset( $tc_order_status_values[$order->details->post_status] ) ? __( $tc_order_status_values[$order->details->post_status], 'tccsv' ) : '' );
                     $order_st = apply_filters(
                         'tc_order_status_title',
                         $order_st,
@@ -644,6 +568,25 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
                     }
                     
                     do_action( 'tc_export_csv_after_order_total_once', ( isset( $_POST ) ? $_POST : '' ) );
+                    // Collect Ticket Order Total Values
+                    $tc_cart_info = get_post_meta( $order->id, 'tc_cart_info', true );
+                    $ticket_type_id = $instance->details->ticket_type_id;
+                    $owner_totals_column = [
+                        'col_ticket_subtotal',
+                        'col_ticket_discount',
+                        'col_ticket_fee',
+                        'col_ticket_tax',
+                        'col_ticket_total'
+                    ];
+                    foreach ( $owner_totals_column as $column_key ) {
+                        $meta_name = str_replace( 'col_', '', $column_key );
+                        $column_name = str_replace( '_', ' ', $meta_name );
+                        $column_value = ( isset( $tc_cart_info['owner_data'] ) && isset( $tc_cart_info['owner_data'][$meta_name . '_post_meta'] ) ? $tc_cart_info['owner_data'][$meta_name . '_post_meta'][$ticket_type_id][0] : '' );
+                        ${$meta_name} = ( isset( $_POST[$column_key] ) ? array(
+                            __( ucwords( $column_name ), 'tccsv' ) => $column_value,
+                        ) : [] );
+                        do_action( 'tc_export_csv_after_' . $meta_name, ( isset( $_POST ) ? $_POST : '' ) );
+                    }
                     // Check to see if ticket id is checked
                     $tc_ticket_id_array = ( isset( $_POST['col_ticket_id'] ) ? array(
                         __( 'Ticket Code', 'tccsv' ) => $instance->details->ticket_code,
@@ -785,8 +728,8 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
                     
                     if ( isset( $_POST['col_order_price'] ) ) {
                         
-                        if ( apply_filters( 'tc_bridge_for_woocommerce_is_active', false ) == false ) {
-                            //check bridge is active or not
+                        if ( false == apply_filters( 'tc_bridge_for_woocommerce_is_active', false ) ) {
+                            // Check bridge is active or not
                             $tc_order_price = get_post_meta( $instance->details->ID, 'ticket_subtotal', true );
                             $tc_order_price_array = array(
                                 __( 'Price', 'tccsv' ) => $tc_order_price,
@@ -815,6 +758,11 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
                         $tc_order_status_array,
                         $tc_order_total_array,
                         $tc_order_total_once_array,
+                        @$ticket_subtotal,
+                        @$ticket_discount,
+                        @$ticket_fee,
+                        @$ticket_tax,
+                        @$ticket_total,
                         $tc_discount_array,
                         $tc_ticket_id_array,
                         $tc_ticket_type_instance_id,
@@ -844,21 +792,19 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
             $response = array(
                 'exported'       => $this->set_max( ceil( $exported / ($query->found_posts / 100) ) ),
                 'page'           => $page + 1,
-                'done'           => false,
+                'done'           => ( $exported >= $query->found_posts ? true : false ),
                 'execution_time' => $execution_time,
                 'found_posts'    => $query->found_posts,
             );
-            if ( $exported >= $query->found_posts ) {
-                $response['done'] = true;
-            }
-            wp_send_json_success( $response );
+            wp_send_json( $response );
         }
         
+        /**
+         * Process CSV Export and force download onto the browser
+         */
         function tc_export()
         {
-            if ( !session_id() ) {
-                session_start();
-            }
+            self::tc_session_start();
             
             if ( defined( 'TC_DEBUG' ) ) {
                 error_reporting( E_ALL );
@@ -868,27 +814,34 @@ if ( !class_exists( 'TC_Export_Csv_Mix' ) ) {
             }
             
             $this->download_send_headers( $_GET['document_title'] . ".csv" );
-            echo  $this->array2csv( $_SESSION['tc_csv_array'] ) ;
+            if ( isset( $_SESSION['tc_csv_array'] ) ) {
+                echo  $this->array2csv( $_SESSION['tc_csv_array'] ) ;
+            }
             exit;
         }
         
+        /**
+         * Initialise download headers
+         *
+         * @param $filename
+         */
         function download_send_headers( $filename )
         {
-            // disable caching
+            // Disable caching
             
             if ( !empty($_GET['document_title']) ) {
                 $now = gmdate( "D, d M Y H:i:s" );
                 header( "Expires: Tue, 03 Jul 2001 06:00:00 GMT" );
                 header( "Cache-Control: max-age=0, no-cache, must-revalidate, proxy-revalidate" );
                 header( "Last-Modified: {$now} GMT" );
-                // force download
+                // Force download
                 header( "Content-Type: application/force-download" );
                 header( "Content-Type: application/octet-stream" );
                 header( "Content-Type: application/download" );
-                // disposition / encoding on response body
+                // Disposition / Encoding on response body
                 header( "Content-Disposition: attachment;filename={$filename}" );
                 header( "Content-Transfer-Encoding: binary" );
-                //unset( $_POST );
+                // Unset( $_POST );
             }
         
         }

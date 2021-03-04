@@ -137,6 +137,8 @@ class Loco_mvc_AdminRouter extends Loco_hooks_Hookable {
                 Loco_error_AdminNotices::add($e);
             }
         }
+        // WP emoji replacement doesn't inherit .wp-exclude-emoji so we'd have to add it to hundreds of elements.
+        remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 
         return $this->ctrl;
     }
@@ -192,8 +194,9 @@ class Loco_mvc_AdminRouter extends Loco_hooks_Hookable {
             '{type}-debug' => 'bundle_Debug',
             'lang-view' => 'bundle_Locale',
             // file initialization
-            '{type}-msginit'   => 'init_InitPo',
-            '{type}-xgettext'  => 'init_InitPot',
+            '{type}-msginit' => 'init_InitPo',
+            '{type}-xgettext' => 'init_InitPot',
+            '{type}-upload' => 'init_Upload',
             // file resource views
             '{type}-file-view' => 'file_View',
             '{type}-file-edit' => 'file_Edit',

@@ -7,7 +7,7 @@
 }
 
 table.tbl_authorizenet {
-    /*margin-top: 0px;*/
+    margin-top: 0px;
     /*margin-bottom: 0px;*/
 }
 
@@ -58,11 +58,14 @@ table.tbl_authorizenet input {
     border-radius: 3px;
 }
 
+#authorizenet-aim #tc_payment_confirm,
 table.tbl_authorizenet input {
     width: 100%;
 }
 
-.select2-results__options li {
-    margin: 0;
-    padding-left: 1em;
+#authorize-billing-country,
+#authorize-billing-state {
+    display: block;
+    width: 100%;
+    max-width: 100%;
 }

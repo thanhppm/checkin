@@ -36,7 +36,9 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
      */
     protected static function dropOptions(){
         global $wpdb;
-        $query = $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE '%s' OR option_name LIKE '%s'", array('loco_%','_%_loco_%') );
+        
+        $args = array('loco_%','_%_loco_%','%_auto_update_%');
+        $query = $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE '%s' OR option_name LIKE '%s' OR option_name LIKE '%s';", $args );
         if( $results = $wpdb->get_results($query,ARRAY_N) ){
             foreach( $results as $row ){
                 list( $option_name ) = $row;
@@ -54,6 +56,7 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
         Loco_data_Settings::clear();
         Loco_data_Session::destroy();
         Loco_data_RecentItems::destroy();
+        Loco_data_Preferences::clear();
         self::dropOptions();
         // start with default permissions as if fresh install
         remove_role('translator');
@@ -69,6 +72,7 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
         Loco_data_Settings::clear();
         Loco_data_Session::destroy();
         Loco_data_RecentItems::destroy();
+        Loco_data_Preferences::clear();
         wp_cache_flush();
         self::dropOptions();
     }
@@ -89,6 +93,8 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
         $this->enable_locale('en_US');
         $this->assertSame( 'en_US', get_locale(), 'Ensure test site is English to start');
         $this->assertSame( 'en_US', get_user_locale(),'Ensure test site is English to start');
+        // Any enqueued scripts should be destroyed
+        unset($GLOBALS['wp_scripts']);
         // ensure test themes are registered and WordPress's cache is valid
         register_theme_directory( LOCO_TEST_DATA_ROOT.'/themes' );
         $sniff = get_theme_roots();
@@ -121,7 +127,7 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
         $this->enable_network();
     }
 
-    
+
     /**
      * {@inheritdoc}
      */
@@ -437,11 +443,13 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
 
 
     /**
+     * @param int
+     * @param string
      * @return string location
      */
     public function assertRedirected( $status = 302, $message = 'Failed to redirect' ){
         $raw = $this->redirect;
-        $this->assertInternalType('array', $raw, $message );
+        $this->assertIsArray( $raw, $message );
         $this->assertSame( $status, $raw[1], $message );
         return $raw[0];
     } 
@@ -449,18 +457,21 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
 
     /**
      * Set $_POST
+     * @param string[]
      * @return void
      */
     public function setPostArray( array $post ){
         $_POST = $post;
         $_REQUEST = array_merge( $_GET, $_POST, $_COOKIE );
         $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES = array();
         Loco_mvc_PostParams::destroy();
     }
 
 
     /**
      * Augment $_POST
+     * @param string[]
      * @return void
      */
     public function addPostArray( array $post ){
@@ -470,21 +481,47 @@ abstract class Loco_test_WordPressTestCase extends WP_UnitTestCase {
 
     /**
      * Set $_GET
+     * @param string[]
      * @return void
      */
     public function setGetArray( array $get ){
         $_GET = $get;
         $_REQUEST = array_merge( $_GET, $_POST, $_COOKIE );
         $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_FILES = array();
     }
 
 
     /**
      * Augment $_GET
+     * @param string[]
      * @return void
      */
     public function addGetArray( array $get ){
         $this->setGetArray( $get + $_GET );
     }
+    
+    
+    /**
+     * @param string _FILES key
+     * @param string real file on local system that would be uploaded
+     */
+    public function addFileUpload( $key, $path ){
+        if( 'POST' !== $_SERVER['REQUEST_METHOD'] ){
+            throw new LogicException('Set POST method before adding to files collection');
+        }
+        $src = file_get_contents($path);
+        $tmp = tempnam(LOCO_TEST_DATA_ROOT.'/tmp','phpunit');
+        $len = file_put_contents( $tmp, $src);
+        if( $len !== strlen($src) ){
+            throw new Exception('Bad file params');
+        }
+        $_FILES[$key] = array (
+            'error' => 0,
+            'tmp_name' => $tmp,
+            'name' => basename($path),
+        );
+    }
+    
 
 }

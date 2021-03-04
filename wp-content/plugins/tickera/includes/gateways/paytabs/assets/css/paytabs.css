@@ -85,6 +85,13 @@ table#tbl_paytabs input {
     width: 100%;
 }
 
+#paytabs-billing-country-code,
+#paytabs-billing-region {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+}
+
 #paytabs_errors {
     font-size: 18px;
     color: red;
@@ -103,11 +110,6 @@ table#tbl_paytabs input {
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 5px;
-}
-
-.select2-results__options li {
-    margin: 0;
-    padding-left: 1em;
 }
 
 .hidden_iframe.open {

@@ -116,7 +116,10 @@ jQuery(document).ready(function ($) {
      */
 
     $('body').on('mousewheel DOMMouseScroll', '.tc-wrapper', function (e) {
-        e.preventDefault();
+
+        // Returns an error on browsers that supports passive event listener
+        // Solution: Disable PreventDefault()
+        // e.preventDefault();
 
         if (e.type == 'DOMMouseScroll') {//Firefox
             scroll = e.originalEvent.detail * (40 * -1);

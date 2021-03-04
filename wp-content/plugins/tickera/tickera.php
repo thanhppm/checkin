@@ -6,7 +6,7 @@
 * Description: Simple event ticketing system
 * Author: Tickera.com
 * Author URI: https://tickera.com/
-* Version: 3.4.7.1
+* Version: 3.4.7.8
 * Text Domain: tc
 * Domain Path: /languages/
 * @fs_premium_only /includes/gateways/authorizenet-aim/, /includes/gateways/beanstream/, /includes/gateways/braintree/, /includes/gateways/netbanx/, /includes/gateways/paymill/, /includes/gateways/paypal-pro/, /includes/gateways/pin/, /includes/gateways/simplify/, /includes/gateways/stripe/, /includes/gateways/paytabs/, /includes/gateways/authorizenet-aim.php, /includes/gateways/beanstream.php, /includes/gateways/braintree-3ds2.php, /includes/gateways/braintree.php, /includes/gateways/ipay88.php, /includes/gateways/komoju.php, /includes/gateways/netbanx.php, /includes/gateways/paygate.php, /includes/gateways/paymill.php, /includes/gateways/paypal-pro.php, /includes/gateways/paypal-standard.php, /includes/gateways/paytabs.php, /includes/gateways/payu-latam.php, /includes/gateways/payumoney.php, /includes/gateways/pin.php, /includes/gateways/simplify.php, /includes/gateways/stripe.php, /includes/gateways/stripe-elements-3ds.php, /includes/gateways/voguepay.php
@@ -20,7 +20,7 @@ if ( !defined( 'ABSPATH' ) ) {
 if ( !class_exists( 'TC' ) ) {
     class TC
     {
-        var  $version = '3.4.7.1' ;
+        var  $version = '3.4.7.8' ;
         var  $title = 'Tickera' ;
         var  $name = 'tc' ;
         var  $dir_name = 'tickera' ;
@@ -112,37 +112,36 @@ if ( !class_exists( 'TC' ) ) {
             $this->title = apply_filters( 'tc_plugin_title', $this->title );
             $this->name = apply_filters( 'tc_plugin_name', $this->name );
             $this->plugin_dir = apply_filters( 'tc_plugin_dir', $this->plugin_dir );
-            //admin css and scripts
+            // Admin css and scripts
             add_action( 'admin_enqueue_scripts', array( &$this, 'admin_header' ) );
-            add_action( 'wp_enqueue_scripts', array( &$this, 'wp_header' ) );
-            //Add plugin admin menu
+            // Add plugin admin menu
             add_action( 'admin_menu', array( &$this, 'add_admin_menu' ) );
-            //Add plugin newtork admin menu
+            // Add plugin newtork admin menu
             add_action( 'network_admin_menu', array( &$this, 'add_network_admin_menu' ) );
-            //Add plugin Settings link
+            // Add plugin Settings link
             add_filter(
                 'plugin_action_links_' . plugin_basename( __FILE__ ),
                 array( &$this, 'plugin_action_link' ),
                 10,
                 2
             );
-            //localize the plugin
+            // Localize the plugin
             add_action( 'plugins_loaded', array( &$this, 'localization' ), 9 );
-            //load add-ons
+            // Load add-ons
             add_action( 'plugins_loaded', array( &$this, 'load_addons' ) );
-            //Payment gateway returns
+            // Payment gateway returns
             add_action( 'pre_get_posts', array( &$this, 'handle_gateway_returns' ), 1 );
-            //Add additional rewrite rules
+            // Add additional rewrite rules
             add_filter( 'rewrite_rules_array', array( &$this, 'add_rewrite_rules' ) );
-            //Add additional query vars
+            // Add additional query vars
             add_filter( 'query_vars', array( $this, 'filter_query_vars' ) );
-            //Parse requests
+            // Parse requests
             add_action( 'parse_request', array( $this, 'action_parse_request' ) );
             // Create virtual pages
             require_once $this->plugin_dir . 'includes/classes/class.virtualpage.php';
             // Include Visual Composer shortcode
-            //require_once( $this->plugin_dir . 'includes/classes/class.visual_composer_shortcodes.php' );
-            //Register post types
+            // require_once( $this->plugin_dir . 'includes/classes/class.visual_composer_shortcodes.php' );
+            // Register post types
             add_action( 'init', array( &$this, 'register_custom_posts' ), 0 );
             add_action( 'admin_init', array( &$this, 'generate_ticket_preview' ), 11 );
             add_action( 'init', array( &$this, 'checkin_api' ), 0 );
@@ -161,6 +160,7 @@ if ( !class_exists( 'TC' ) ) {
             add_action( 'wp_ajax_change_order_status', array( &$this, 'change_order_status_ajax' ) );
             add_action( 'wp_ajax_change_event_status', array( &$this, 'change_event_status' ) );
             add_action( 'wp_ajax_change_ticket_status', array( &$this, 'change_ticket_status' ) );
+            add_action( 'wp_ajax_change_apikey_event_category', array( &$this, 'change_apikey_event_category' ) );
             add_action( 'wp_ajax_save_attendee_info', array( &$this, 'save_attendee_info' ) );
             add_action( 'wp_ajax_tc_remove_order_session_data', array( &$this, 'ajax_remove_order_session_data' ) );
             add_action( 'wp_ajax_nopriv_tc_remove_order_session_data', array( &$this, 'ajax_remove_order_session_data' ) );
@@ -204,7 +204,7 @@ if ( !class_exists( 'TC' ) ) {
                 2
             );
             add_filter( "comments_template", array( &$this, 'no_comments_template' ) );
-            //load cart widget
+            // Load cart widget
             require_once $this->plugin_dir . 'includes/widgets/cart-widget.php';
             require_once $this->plugin_dir . 'includes/widgets/upcoming-events-widget.php';
             add_action( 'admin_init', array( &$this, 'generate_pdf_ticket' ), 0 );
@@ -229,7 +229,7 @@ if ( !class_exists( 'TC' ) ) {
                 10,
                 1
             );
-            //Update permissions if new version of the plugin is installed / updated
+            // Update permissions if new version of the plugin is installed / updated
             /* if ( is_admin() ) {
                      $current_version = get_option( 'tc_version', false );
                
@@ -763,7 +763,7 @@ if ( !class_exists( 'TC' ) ) {
             }
             
             if ( $front ) {
-                $query->set( 'post_type', 'tc_events' );
+                $query->set( 'post_type', array( 'tc_events', '' ) );
                 $query->set( 'page_id', '' );
                 // Set properties to match an archive
                 $query->is_page = 0;
@@ -878,7 +878,7 @@ if ( !class_exists( 'TC' ) ) {
             foreach ( $tc_tickets_instances as $tickets ) {
                 $tc_ticket_type_id = (int) get_post_meta( $tickets->ID, 'ticket_type_id', true );
                 $tc_ticket_discount[$tc_ticket_type_id][] = (int) get_post_meta( $tickets->ID, 'ticket_discount', true );
-                $cart_contents[$tc_ticket_type_id] = $cart_contents[$tc_ticket_type_id] + 1;
+                $cart_contents[$tc_ticket_type_id] = @$cart_contents[$tc_ticket_type_id] + 1;
                 $tc_ticket_type_first_name = get_post_meta( $tickets->ID, 'first_name', true );
                 $tc_ticket_type_last_name = get_post_meta( $tickets->ID, 'last_name', true );
                 $tc_ticket_type_email = get_post_meta( $tickets->ID, 'owner_email', true );
@@ -936,6 +936,13 @@ if ( !class_exists( 'TC' ) ) {
         function tc_get_ticket_type_instances()
         {
             $ticket_instance_id = ( isset( $_POST['tc_ticket_instance_id'] ) ? (int) $_POST['tc_ticket_instance_id'] : '' );
+            // Action is not allowed on paid orders
+            $order_id = wp_get_post_parent_id( $ticket_instance_id );
+            if ( 'order_paid' == get_post_status( $order_id ) ) {
+                wp_send_json( [
+                    'error' => __( 'Action is not allowed on paid orders.', 'tc' ),
+                ] );
+            }
             $args = array(
                 'posts_per_page' => -1,
                 'order'          => 'ASC',
@@ -945,20 +952,23 @@ if ( !class_exists( 'TC' ) ) {
             // Filter by Seating Charts
             
             if ( metadata_exists( 'post', $ticket_instance_id, 'chart_id' ) ) {
-                // Temporary Disabled
-                // $chart_id = get_post_meta($ticket_instance_id,'chart_id', true);
-                // $ticket_type_ids = get_post_meta($chart_id,'tc_ticket_types', true);
-                // $args['post__in'] = explode(',',$ticket_type_ids);
+                /*
+                 * Temporary Disabled
+                 * $chart_id = get_post_meta($ticket_instance_id,'chart_id', true);
+                 * $ticket_type_ids = get_post_meta($chart_id,'tc_ticket_types', true);
+                 * $args['post__in'] = explode(',',$ticket_type_ids);
+                 */
                 $response = array(
                     'error' => __( 'Seating chart update is currently not allowed.', 'tc' ),
                 );
                 wp_send_json( $response );
-                // Filter by Events
             } else {
+                /* Filter by Events */
                 $args['meta_key'] = 'event_name';
                 $args['meta_value'] = get_post_meta( $ticket_instance_id, 'event_id', true );
             }
             
+            // Place the current ticket type at the very first line of the selection field
             $ticket_type_id = get_post_meta( $ticket_instance_id, 'ticket_type_id', true );
             $collection = [ [
                 'id'   => $ticket_type_id,
@@ -967,8 +977,14 @@ if ( !class_exists( 'TC' ) ) {
             foreach ( get_posts( $args ) as $key => $val ) {
                 
                 if ( $val->ID != $ticket_type_id ) {
-                    $collection[$key + 1]['id'] = $val->ID;
-                    $collection[$key + 1]['text'] = $val->post_title;
+                    // Validate Ticket type availability
+                    $ticket = new TC_Ticket( $val->ID );
+                    
+                    if ( !$ticket->is_sold_ticket_exceeded_limit_level() ) {
+                        $collection[$key + 1]['id'] = $val->ID;
+                        $collection[$key + 1]['text'] = $val->post_title;
+                    }
+                
                 }
             
             }
@@ -1305,10 +1321,7 @@ if ( !class_exists( 'TC' ) ) {
                     update_post_meta( $post_id, 'tc_ticket_owner_name_element_cell_alignment', 'center' );
                     update_post_meta( $post_id, 'tc_ticket_owner_name_element_top_padding', '3' );
                     update_post_meta( $post_id, 'tc_ticket_owner_name_element_bottom_padding', '3' );
-                    // update_post_meta( $post_id, 'tc_ticket_position_image_element_cell_alignment', 'left' );
-                    // update_post_meta( $post_id, 'tc_ticket_position_image_element_top_padding', '0' );
-                    // update_post_meta( $post_id, 'tc_ticket_position_image_element_bottom_padding', '3' );
-                    update_post_meta( $post_id, 'rows_4', 'tc_event_location_element', 'tc_ticket_position_image' );
+                    update_post_meta( $post_id, 'rows_4', 'tc_event_location_element' );
                     update_post_meta( $post_id, 'rows_5', 'tc_ticket_owner_name_element' );
                     update_post_meta( $post_id, 'rows_6', 'tc_ticket_description_element' );
                     update_post_meta( $post_id, 'rows_7', 'tc_ticket_qr_code_element' );
@@ -2515,10 +2528,18 @@ if ( !class_exists( 'TC' ) ) {
         /**
          * Update Cart Contents
          * This includes discount code, empty cart and proceed checkout
+         *
+         * @global array $required_fields_error_count  Error Codes
+         *
+         * Error Code 100: Required tickets' minimum quantity per order.
+         * Error Code 101: Required tickets' maximums quantity per order.
+         * Error Code 102: Not enough ticket quantity left.
+         * Error Code 103: No item quantity added in cart.
+         * Error Code 104: Maximum number of ticket purchases has been reached.
          */
         function update_cart()
         {
-            global  $tc_cart_errors, $cart_error_number ;
+            global  $tc_cart_errors, $cart_error_number, $tc_cart_tickets_error_codes ;
             $cart_error_number = 0;
             $required_fields_error_count = 0;
             $valid_cart_actions = array(
@@ -2532,94 +2553,109 @@ if ( !class_exists( 'TC' ) ) {
                 $discount = new TC_Discounts();
                 $discount->discounted_cart_total( $_SESSION['cart_subtotal_pre'] );
                 $cart = array();
-                $ticket_type_count = 0;
-                $ticket_quantity = $_POST['ticket_quantity'];
+                $updated_cart_contents = [];
+                $tc_cart_errors .= '<ul>';
                 
                 if ( in_array( $_POST['cart_action'], array( 'proceed_to_checkout', 'update_cart' ) ) ) {
-                    $tc_cart_errors .= '<ul>';
-                    foreach ( $_POST['ticket_cart_id'] as $ticket_id ) {
-                        $ticket = new TC_Ticket( $ticket_id );
+                    $qty_count_per_event = [];
+                    // Restructure POST data for tickets_cart_ids
+                    foreach ( $_POST['ticket_cart_id'] as $key => $ticket_type_id ) {
+                        $updated_cart_contents[$ticket_type_id] = $_POST['ticket_quantity'][$key];
+                    }
+                    foreach ( $updated_cart_contents as $ticket_type_id => $qty_count ) {
+                        $ticket = new TC_Ticket( $ticket_type_id );
                         
-                        if ( $ticket_quantity[$ticket_type_count] <= 0 ) {
-                            unset( $cart[$ticket_id] );
+                        if ( $qty_count <= 0 ) {
+                            unset( $cart[$ticket_type_id] );
                             // Remove from cart
+                            $tc_cart_tickets_error_codes[$ticket_type_id]['errors'][] = 103;
                         } else {
+                            // Check if seating chart plugin is active
                             $tc_is_seatings_active = apply_filters( 'is_seatings_chart_addon_active', is_plugin_active( 'seating-charts/seating-charts.php' ) );
-                            if ( $ticket->details->min_tickets_per_order != 0 && $ticket->details->min_tickets_per_order !== '' ) {
+                            // If cart item doesn't meet the minimum qty per order, assign minimum value as quantity
+                            
+                            if ( $ticket->details->min_tickets_per_order && $qty_count < $ticket->details->min_tickets_per_order ) {
+                                // Do not include when seating chart is active
                                 
-                                if ( $ticket_quantity[$ticket_type_count] < $ticket->details->min_tickets_per_order ) {
-                                    
-                                    if ( !$tc_is_seatings_active ) {
-                                        $cart[$ticket_id] = (int) $ticket->details->min_tickets_per_order;
-                                        $ticket_quantity[$ticket_type_count] = (int) $ticket->details->min_tickets_per_order;
-                                    }
-                                    
-                                    $tc_cart_errors .= '<li>' . sprintf( __( 'Minimum order quantity for "%s" is %d', 'tc' ), $ticket->details->post_title, $ticket->details->min_tickets_per_order ) . '</li>';
-                                    $cart_error_number++;
+                                if ( !$tc_is_seatings_active ) {
+                                    $cart[$ticket_type_id] = (int) $ticket->details->min_tickets_per_order;
+                                    $qty_count = (int) $ticket->details->min_tickets_per_order;
                                 }
-                            
-                            }
-                            if ( $ticket->details->max_tickets_per_order != 0 && $ticket->details->max_tickets_per_order !== '' ) {
                                 
-                                if ( $ticket_quantity[$ticket_type_count] > $ticket->details->max_tickets_per_order ) {
-                                    
-                                    if ( !$tc_is_seatings_active ) {
-                                        $cart[$ticket_id] = (int) $ticket->details->max_tickets_per_order;
-                                        $ticket_quantity[$ticket_type_count] = (int) $ticket->details->max_tickets_per_order;
-                                    }
-                                    
-                                    $tc_cart_errors .= '<li>' . sprintf( __( 'Maximum order quantity for "%s" is %d', 'tc' ), $ticket->details->post_title, $ticket->details->max_tickets_per_order ) . '</li>';
-                                    $cart_error_number++;
-                                }
-                            
+                                $tc_cart_errors .= '<li>' . sprintf( __( 'Minimum order quantity for "%s" is %d', 'tc' ), $ticket->details->post_title, $ticket->details->min_tickets_per_order ) . '</li>';
+                                $cart_error_number++;
+                                $tc_cart_tickets_error_codes[$ticket_type_id]['errors'][] = 100;
                             }
-                            $quantity_left = $ticket->get_tickets_quantity_left();
                             
-                            if ( $quantity_left >= $ticket_quantity[$ticket_type_count] ) {
-                                $cart[$ticket_id] = (int) $ticket_quantity[$ticket_type_count];
+                            // If cart item doesn't meet the maximum qty per order, assign maximum value as quantity
+                            
+                            if ( $ticket->details->max_tickets_per_order && $qty_count > $ticket->details->max_tickets_per_order ) {
+                                // Do not include when seating chart is active
+                                
+                                if ( !$tc_is_seatings_active ) {
+                                    $cart[$ticket_type_id] = (int) $ticket->details->max_tickets_per_order;
+                                    $qty_count = (int) $ticket->details->max_tickets_per_order;
+                                }
+                                
+                                $tc_cart_errors .= '<li>' . sprintf( __( 'Maximum order quantity for "%s" is %d', 'tc' ), $ticket->details->post_title, $ticket->details->max_tickets_per_order ) . '</li>';
+                                $cart_error_number++;
+                                $tc_cart_tickets_error_codes[$ticket_type_id]['errors'][] = 101;
+                            }
+                            
+                            // Retrieve Event Objects
+                            $event_id = get_post_meta( $ticket_type_id, 'event_name', true );
+                            $event_metas = get_post_meta( $event_id );
+                            $limit_on_event_level = ( isset( $event_metas['limit_level'] ) && $event_metas['limit_level'][0] ? true : false );
+                            // Limit Quantity by Event Level
+                            
+                            if ( $limit_on_event_level ) {
+                                // Count all committed ticket quantity per event
+                                $qty_count_per_event[$event_id] = @$qty_count_per_event[$event_id] + $qty_count;
+                                $limit_level_value = ( isset( $event_metas['limit_level_value'] ) ? $event_metas['limit_level_value'][0] : 0 );
+                                $event_ticket_sold_count = tc_get_event_tickets_count_sold( $event_id );
+                                $quantity_left = ( $limit_level_value ? (int) $limit_level_value - (int) $event_ticket_sold_count : 9999 );
+                                // Retrieve the remaining available quantity
+                                if ( $qty_count_per_event[$event_id] >= $quantity_left ) {
+                                    $quantity_left = $qty_count - ($qty_count_per_event[$event_id] - $quantity_left);
+                                }
                             } else {
-                                
-                                if ( $quantity_left > 0 ) {
-                                    $tc_cart_errors .= '<li>' . sprintf(
-                                        __( 'Only %d "%s" %s left', 'tc' ),
-                                        $quantity_left,
-                                        $ticket->details->post_title,
-                                        ( $quantity_left > 1 ? __( 'tickets', 'tc' ) : __( 'ticket', 'tc' ) )
-                                    ) . '</li>';
-                                    $cart_error_number++;
-                                } else {
-                                    $tc_cart_errors .= '<li>' . sprintf( __( '"%s" tickets are sold out', 'tc' ), $ticket->details->post_title ) . '</li>';
-                                    $cart_error_number++;
-                                }
-                                
-                                $cart[$ticket_id] = (int) $quantity_left;
+                                // Limit Quantity by Ticket Type Level (Default)
+                                // Retrieve the remaining quantity of a ticket
+                                $quantity_left = $ticket->get_tickets_quantity_left();
+                            }
+                            
+                            
+                            if ( $quantity_left >= $qty_count ) {
+                                $cart[$ticket_type_id] = (int) $qty_count;
+                            } else {
+                                $tc_cart_errors .= ( $quantity_left > 0 ? '<li>' . sprintf(
+                                    __( 'Only %d "%s" %s left', 'tc' ),
+                                    $quantity_left,
+                                    $ticket->details->post_title,
+                                    ( $quantity_left > 1 ? __( 'tickets', 'tc' ) : __( 'ticket', 'tc' ) )
+                                ) . '</li>' : '<li>' . sprintf( __( '"%s" tickets are sold out', 'tc' ), $ticket->details->post_title ) . '</li>' );
+                                $cart_error_number++;
+                                $cart[$ticket_type_id] = (int) $quantity_left;
+                                $tc_cart_tickets_error_codes[$ticket_type_id]['errors'][] = 102;
                             }
                             
                             // Limit user purchases when Force Login is active
                             $tc_general_settings = get_option( 'tc_general_setting', false );
                             $force_login = ( isset( $tc_general_settings['force_login'] ) ? $tc_general_settings['force_login'] : 'no' );
-                            $user_purchased_count = tc_get_tickets_user_purchased_count( get_current_user_id(), $ticket_id );
+                            $user_purchased_count = tc_get_tickets_user_purchased_count( get_current_user_id(), $ticket_type_id );
                             
-                            if ( 'yes' == $force_login && isset( $ticket->details->max_tickets_per_user ) && $ticket->details->max_tickets_per_user && $user_purchased_count + $ticket_quantity[$ticket_type_count] > $ticket->details->max_tickets_per_user ) {
+                            if ( 'yes' == $force_login && isset( $ticket->details->max_tickets_per_user ) && $ticket->details->max_tickets_per_user && $user_purchased_count + $qty_count > $ticket->details->max_tickets_per_user ) {
                                 $tc_cart_errors .= '<li>' . sprintf( __( '"%s" You have reached the maximum number of purchases of this ticket', 'tc' ), $ticket->details->post_title ) . '</li>';
                                 $cart_error_number++;
+                                $tc_cart_tickets_error_codes[$ticket_type_id]['errors'][] = 104;
                             }
                         
                         }
                         
-                        $ticket_type_count++;
+                        $tc_cart_errors = apply_filters( 'tc_add_cart_errors', $tc_cart_errors, $ticket );
                     }
-                    $tc_cart_errors = apply_filters( 'tc_add_cart_errors', $tc_cart_errors, $ticket );
                     $cart_error_number = apply_filters( 'tc_cart_error_number', $cart_error_number );
-                    $tc_cart_errors .= '</ul>';
-                    add_filter(
-                        'tc_cart_errors',
-                        array( &$this, 'tc_cart_errors' ),
-                        10,
-                        1
-                    );
                     $this->update_cart_cookie( $cart );
-                    $cart_contents = $this->get_cart_cookie();
                     $discount = new TC_Discounts();
                     $discount->discounted_cart_total();
                     if ( empty($cart) ) {
@@ -3249,7 +3285,6 @@ if ( !class_exists( 'TC' ) ) {
                 'paypal-pro.php',
                 'paypal-standard.php',
                 'paytabs.php',
-                'paytabs-paypage.php',
                 'payu-latam.php',
                 'payumoney.php',
                 'pin.php',
@@ -3570,6 +3605,7 @@ if ( !class_exists( 'TC' ) ) {
         function get_events_creators( $cart_contents )
         {
             $event_ids = $this->get_cart_events( $cart_contents );
+            $promoter_ids = [];
             foreach ( $event_ids as $event_id ) {
                 $event = new TC_Event( $event_id );
                 $promoter_ids[] = $event->details->post_author;
@@ -3794,6 +3830,40 @@ if ( !class_exists( 'TC' ) ) {
         
         }
         
+        /**
+         * Update Event Field Options based on selected Event Category
+         * Page: Tickera > Settings > API Access
+         */
+        function change_apikey_event_category()
+        {
+            
+            if ( isset( $_POST['event_term_category'] ) ) {
+                $event_ids = [];
+                $current_term_category = $_POST['event_term_category'];
+                $wp_events_search = new TC_Events_Search( '', '', -1 );
+                foreach ( $wp_events_search->get_results() as $event ) {
+                    $event_name = get_the_title( $event->ID );
+                    $event_terms = get_the_terms( $event->ID, 'event_category' );
+                    
+                    if ( 'all' == $current_term_category ) {
+                        $event_ids[$event->ID] = $event_name;
+                    } else {
+                        foreach ( (array) $event_terms as &$term ) {
+                            
+                            if ( isset( $term->term_id ) && $term->term_id == $current_term_category ) {
+                                $event_ids[$event->ID] = $event_name;
+                                break;
+                            }
+                        
+                        }
+                    }
+                
+                }
+                wp_send_json( $event_ids );
+            }
+        
+        }
+        
         function change_ticket_status()
         {
             
@@ -3975,19 +4045,26 @@ if ( !class_exists( 'TC' ) ) {
         {
             ob_start();
             do_action( 'tc_remove_order_session_data_ajax' );
-            unset( $_SESSION['tc_discount_code'] );
-            unset( $_SESSION['discounted_total'] );
-            unset( $_SESSION['tc_payment_method'] );
-            unset( $_SESSION['cart_info'] );
-            unset( $_SESSION['tc_order'] );
-            unset( $_SESSION['tc_payment_info'] );
-            unset( $_SESSION['cart_subtotal_pre'] );
-            unset( $_SESSION['tc_total_fees'] );
-            unset( $_SESSION['discount_value_total'] );
-            unset( $_SESSION['tc_cart_subtotal'] );
-            unset( $_SESSION['tc_cart_total'] );
-            unset( $_SESSION['tc_tax_value'] );
-            unset( $_SESSION['tc_gateway_error'] );
+            $_sessions = [
+                'tc_discount_code',
+                'discounted_total',
+                'tc_payment_method',
+                'cart_info',
+                'tc_order',
+                'tc_payment_info',
+                'cart_subtotal_pre',
+                'tc_total_fees',
+                'discount_value_total',
+                'tc_cart_subtotal',
+                'tc_cart_total',
+                'tc_tax_value',
+                'tc_gateway_error'
+            ];
+            foreach ( $_sessions as $_session ) {
+                if ( isset( $_SESSION[$_session] ) ) {
+                    unset( $_SESSION[$_session] );
+                }
+            }
             @setcookie(
                 'tc_cart_' . COOKIEHASH,
                 null,
@@ -4721,31 +4798,45 @@ if ( !class_exists( 'TC' ) ) {
         
         }
         
+        /**
+         * Get the current post type
+         *
+         * @return string|null
+         */
         function get_current_post_type()
         {
             global  $post, $typenow, $current_screen ;
-            //we have a post so we can just get the post type from that
             
-            if ( $post && $post->post_type ) {
+            if ( $post && $post->post_type && isset( $_REQUEST['post_type'] ) && $_REQUEST['post_type'] == $post->post_type ) {
+                /*
+                 * We have a post so we can just get the post type from that.
+                 * In case post type is messed up. We included additional condition to validate with request
+                 */
                 return $post->post_type;
             } elseif ( $typenow ) {
+                // Check the global $typenow - set in admin.php
                 return $typenow;
             } elseif ( $current_screen && $current_screen->post_type ) {
+                // Check the global $current_screen object - set in sceen.php
                 return $current_screen->post_type;
             } elseif ( isset( $_REQUEST['post_type'] ) ) {
+                // Lastly check the post_type querystring
                 return sanitize_key( $_REQUEST['post_type'] );
+            } else {
+                // We do not know the post type!
+                return null;
             }
-            
-            //we do not know the post type!
-            return null;
+        
         }
         
+        /**
+         * Additional logic to before loading css/js files
+         *
+         * @return bool
+         */
         function in_admin_pages_require_admin_styles()
         {
             $post_type = $this->get_current_post_type();
-            /* if (is_null($post_type)) {
-                 return true;
-               } */
             $post_types_require_admin_styles = array(
                 'tc_forms',
                 'tc_form_fields',
@@ -4762,13 +4853,7 @@ if ( !class_exists( 'TC' ) ) {
                 'product',
                 'product_variation'
             );
-            
-            if ( isset( $_GET['page'] ) ) {
-                $tc_get_page = $_GET['page'];
-            } else {
-                $tc_get_page = '';
-            }
-            
+            $tc_get_page = ( isset( $_GET['page'] ) ? $_GET['page'] : '' );
             $tc_pages_array = apply_filters( 'tc_pages_array', array( 'tc_ticket_templates' ) );
             
             if ( in_array( $post_type, $post_types_require_admin_styles ) || in_array( $tc_get_page, $tc_pages_array ) ) {
@@ -4780,40 +4865,12 @@ if ( !class_exists( 'TC' ) ) {
         }
         
         /**
-         * Load CSS and JS in Visitors view
-         */
-        function wp_header()
-        {
-            global  $post ;
-            
-            if ( isset( $post ) && isset( $post->post_content ) ) {
-                $content = $post->post_content;
-                // Write the begining of the shortcode
-                $shortcode = '[tc_seat_chart';
-                $check = strpos( $content, $shortcode );
-                
-                if ( get_post_type() !== 'tc_seat_charts' && $check === false ) {
-                    wp_enqueue_style(
-                        $this->name . '-admin-select2',
-                        $this->plugin_url . 'css/select2.min.css',
-                        array(),
-                        $this->version
-                    );
-                    wp_enqueue_script( $this->name . 'admin-select2', $this->plugin_url . 'js/select2.min.js' );
-                    wp_enqueue_script( $this->name . 'admin-select2-full', $this->plugin_url . 'js/select2.full.min.js' );
-                }
-            
-            }
-        
-        }
-        
-        /**
          *  Load CSS and JS in Admin pages
          */
         function admin_header()
         {
             global  $wp_version, $post_type ;
-            /* menu icon */
+            // Menu Icon
             
             if ( $wp_version >= 3.8 ) {
                 wp_register_style( 'tc-admin-menu-icon', $this->plugin_url . 'css/admin-icon.css' );
@@ -4823,12 +4880,6 @@ if ( !class_exists( 'TC' ) ) {
             wp_enqueue_style(
                 $this->name . '-admin',
                 $this->plugin_url . 'css/admin.css',
-                array(),
-                $this->version
-            );
-            wp_enqueue_style(
-                $this->name . '-admin-select2',
-                $this->plugin_url . 'css/select2.min.css',
                 array(),
                 $this->version
             );
@@ -4883,8 +4934,17 @@ if ( !class_exists( 'TC' ) ) {
                 wp_enqueue_style( 'wp-color-picker' );
             }
             
+            $allowed_post_types = [
+                'tc_events',
+                'tc_tickets',
+                'tc_speakers',
+                'shop_order',
+                'tc_orders',
+                'product',
+                'tc_seat_charts'
+            ];
             
-            if ( isset( $post_type ) && $post_type == 'tc_events' || $post_type == 'tc_tickets' || $post_type == 'tc_speakers' || $post_type == 'shop_order' || $post_type == 'tc_orders' || $post_type == 'product' || $post_type == 'tc_seat_charts' || isset( $_REQUEST['post_type'] ) && $_REQUEST['post_type'] == 'tc_events' || isset( $_REQUEST['page'] ) && preg_match( "/tc_/", $_REQUEST['page'] ) ) {
+            if ( isset( $post_type ) && in_array( $post_type, $allowed_post_types ) || isset( $_REQUEST['post_type'] ) && 'tc_events' == $_REQUEST['post_type'] || isset( $_REQUEST['page'] ) && preg_match( "/tc_/", $_REQUEST['page'] ) ) {
                 wp_enqueue_script(
                     'tc-jquery-admin-validate',
                     $this->plugin_url . 'js/jquery.validate.min.js',
@@ -4915,12 +4975,6 @@ if ( !class_exists( 'TC' ) ) {
                     false,
                     false
                 );
-                
-                if ( get_post_type() !== 'tc_seat_charts' ) {
-                    wp_enqueue_script( $this->name . 'admin-select2', $this->plugin_url . 'js/select2.min.js' );
-                    wp_enqueue_script( $this->name . 'admin-select2-full', $this->plugin_url . 'js/select2.full.min.js' );
-                }
-                
                 wp_localize_script( $this->name . '-admin', 'tc_vars', array(
                     'ajaxUrl'                                    => apply_filters( 'tc_ajaxurl', admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ) ),
                     'animated_transitions'                       => apply_filters( 'tc_animated_transitions', true ),
@@ -4948,7 +5002,7 @@ if ( !class_exists( 'TC' ) ) {
                 $this->version
             );
             
-            if ( isset( $_GET['page'] ) && $_GET['page'] == 'tc_settings' ) {
+            if ( isset( $_GET['page'] ) && 'tc_settings' == $_GET['page'] ) {
                 wp_enqueue_script(
                     'tc-sticky',
                     $this->plugin_url . 'js/jquery.sticky.js',
@@ -4956,11 +5010,11 @@ if ( !class_exists( 'TC' ) ) {
                     $this->version
                 );
                 wp_localize_script( $this->name . '-admin', 'tc_vars', array(
-                    'tc_check_page' => __( $_GET['page'] ),
+                    'ajaxUrl'       => apply_filters( 'tc_ajaxurl', admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ) ),
+                    'tc_check_page' => sanitize_text_field( $_GET['page'] ),
                 ) );
             }
-            
-            //}
+        
         }
     
     }

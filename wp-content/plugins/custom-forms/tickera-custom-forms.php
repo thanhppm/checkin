@@ -6,7 +6,7 @@
  Description: Add custom forms for buyer and attendees
  Author: Tickera.com
  Author URI: http://tickera.com/
- Version: 1.2.3
+ Version: 1.2.5
  Text Domain: cf
  Domain Path: /languages/
 
@@ -106,13 +106,16 @@ function custom_forms_fs_init()
 {
     
     if ( custom_forms_fs_is_parent_active_and_loaded() ) {
+        // Parent is active, add your init code here.
         // Init Freemius.
         custom_forms_fs();
         custom_forms_fs()->add_filter( 'connect_url', 'custom_forms_fs_settings_url' );
         custom_forms_fs()->add_filter( 'after_skip_url', 'custom_forms_fs_settings_url' );
         custom_forms_fs()->add_filter( 'after_connect_url', 'custom_forms_fs_settings_url' );
         custom_forms_fs()->add_filter( 'after_pending_connect_url', 'custom_forms_fs_settings_url' );
-        // Parent is active, add your init code here.
+        if ( !custom_forms_fs()->can_use_premium_code() ) {
+            return;
+        }
     } else {
         // Parent is inactive, add your error handling here.
     }
@@ -135,9 +138,6 @@ if ( custom_forms_fs_is_parent_active_and_loaded() ) {
 
 }
 
-if ( !custom_forms_fs()->can_use_premium_code() ) {
-    return;
-}
 if ( !class_exists( 'TC_Custom_Fields' ) ) {
     class TC_Custom_Fields
     {

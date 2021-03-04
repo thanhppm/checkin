@@ -145,13 +145,13 @@
 * [#541](https://github.com/stripe/stripe-php/pull/541) Add support for the `WebhookEndpoint` resource
 
 ## 6.19.5 - 2018-10-17
-* [#539](https://github.com/stripe/stripe-php/pull/539) Fix methods on `\Stripe\PaymentIntent` to properly pass arguments to the API.
+* [#539](https://github.com/stripe/stripe-php/pull/539) Fix methods on `\TCStripe\PaymentIntent` to properly pass arguments to the API.
 
 ## 6.19.4 - 2018-10-11
-* [#534](https://github.com/stripe/stripe-php/pull/534) Fix PSR-4 autoloading for `\Stripe\FileUpload` class alias
+* [#534](https://github.com/stripe/stripe-php/pull/534) Fix PSR-4 autoloading for `\TCStripe\FileUpload` class alias
 
 ## 6.19.3 - 2018-10-09
-* [#530](https://github.com/stripe/stripe-php/pull/530) Add constants for `flow` (`FLOW_*`), `status` (`STATUS_*`) and `usage` (`USAGE_*`) on `\Stripe\Source`
+* [#530](https://github.com/stripe/stripe-php/pull/530) Add constants for `flow` (`FLOW_*`), `status` (`STATUS_*`) and `usage` (`USAGE_*`) on `\TCStripe\Source`
 
 ## 6.19.2 - 2018-10-08
 * [#531](https://github.com/stripe/stripe-php/pull/531) Store HTTP response headers in case-insensitive array
@@ -163,7 +163,7 @@
 * [#523](https://github.com/stripe/stripe-php/pull/523) Add support for Stripe Terminal
 
 ## 6.18.0 - 2018-09-24
-* [#520](https://github.com/stripe/stripe-php/pull/520) Rename `\Stripe\FileUpload` to `\Stripe\File`
+* [#520](https://github.com/stripe/stripe-php/pull/520) Rename `\TCStripe\FileUpload` to `\TCStripe\File`
 
 ## 6.17.2 - 2018-09-18
 * [#522](https://github.com/stripe/stripe-php/pull/522) Fix warning when adding a new additional owner to an existing array
@@ -184,16 +184,16 @@
 * [#505](https://github.com/stripe/stripe-php/pull/505) Add support for file links
 
 ## 6.13.0 - 2018-07-31
-* [#502](https://github.com/stripe/stripe-php/pull/502) Add `isDeleted()` method to `\Stripe\StripeObject`
+* [#502](https://github.com/stripe/stripe-php/pull/502) Add `isDeleted()` method to `\TCStripe\StripeObject`
 
 ## 6.12.0 - 2018-07-28
-* [#501](https://github.com/stripe/stripe-php/pull/501) Add support for scheduled query runs (`\Stripe\Sigma\ScheduledQueryRun`) for Sigma
+* [#501](https://github.com/stripe/stripe-php/pull/501) Add support for scheduled query runs (`\TCStripe\Sigma\ScheduledQueryRun`) for Sigma
 
 ## 6.11.0 - 2018-07-26
 * [#500](https://github.com/stripe/stripe-php/pull/500) Add support for Stripe Issuing
 
 ## 6.10.4 - 2018-07-19
-* [#498](https://github.com/stripe/stripe-php/pull/498) Internal improvements to the `\Stripe\ApiResource.classUrl()` method
+* [#498](https://github.com/stripe/stripe-php/pull/498) Internal improvements to the `\TCStripe\ApiResource.classUrl()` method
 
 ## 6.10.3 - 2018-07-16
 * [#497](https://github.com/stripe/stripe-php/pull/497) Use HTTP/2 only for HTTPS requests
@@ -202,7 +202,7 @@
 * [#494](https://github.com/stripe/stripe-php/pull/494) Enable HTTP/2 support
 
 ## 6.10.1 - 2018-07-10
-* [#493](https://github.com/stripe/stripe-php/pull/493) Add PHPDoc for `auto_advance` on `\Stripe\Invoice`
+* [#493](https://github.com/stripe/stripe-php/pull/493) Add PHPDoc for `auto_advance` on `\TCStripe\Invoice`
 
 ## 6.10.0 - 2018-06-28
 * [#488](https://github.com/stripe/stripe-php/pull/488) Add support for `$appPartnerId` to `Stripe::setAppInfo()`
@@ -217,16 +217,16 @@
 * [#472](https://github.com/stripe/stripe-php/pull/472) Added phpDoc for `ApiRequestor` and others, especially regarding thrown errors
 
 ## 6.8.0 - 2018-06-13
-* [#481](https://github.com/stripe/stripe-php/pull/481) Add new `\Stripe\Discount` and `\Stripe\OrderItem` classes, add more PHPDoc describing object attributes
+* [#481](https://github.com/stripe/stripe-php/pull/481) Add new `\TCStripe\Discount` and `\TCStripe\OrderItem` classes, add more PHPDoc describing object attributes
 
 ## 6.7.4 - 2018-05-29
 * [#480](https://github.com/stripe/stripe-php/pull/480) PHPDoc changes for API version 2018-05-21 and the addition of the new `CHARGE_EXPIRED` event type
 
 ## 6.7.3 - 2018-05-28
-* [#479](https://github.com/stripe/stripe-php/pull/479) Fix unnecessary traits on `\Stripe\InvoiceLineItem`
+* [#479](https://github.com/stripe/stripe-php/pull/479) Fix unnecessary traits on `\TCStripe\InvoiceLineItem`
 
 ## 6.7.2 - 2018-05-28
-* [#471](https://github.com/stripe/stripe-php/pull/471) Add `OBJECT_NAME` constant to all API resource classes, add `\Stripe\InvoiceLineItem` class
+* [#471](https://github.com/stripe/stripe-php/pull/471) Add `OBJECT_NAME` constant to all API resource classes, add `\TCStripe\InvoiceLineItem` class
 
 ## 6.7.1 - 2018-05-13
 * [#468](https://github.com/stripe/stripe-php/pull/468) Update fields in PHP docs for accuracy
@@ -241,27 +241,27 @@
 * [#461](https://github.com/stripe/stripe-php/pull/461) Don't zero keys on non-`metadata` subobjects
 
 ## 6.4.2 - 2018-03-17
-* [#458](https://github.com/stripe/stripe-php/pull/458) Add PHPDoc for `account` on `\Stripe\Event`
+* [#458](https://github.com/stripe/stripe-php/pull/458) Add PHPDoc for `account` on `\TCStripe\Event`
 
 ## 6.4.1 - 2018-03-02
 * [#455](https://github.com/stripe/stripe-php/pull/455) Fix namespaces in PHPDoc
 * [#456](https://github.com/stripe/stripe-php/pull/456) Fix namespaces for some exceptions
 
 ## 6.4.0 - 2018-02-28
-* [#453](https://github.com/stripe/stripe-php/pull/453) Add constants for `reason` (`REASON_*`) and `status` (`STATUS_*`) on `\Stripe\Dispute`
+* [#453](https://github.com/stripe/stripe-php/pull/453) Add constants for `reason` (`REASON_*`) and `status` (`STATUS_*`) on `\TCStripe\Dispute`
 
 ## 6.3.2 - 2018-02-27
-* [#452](https://github.com/stripe/stripe-php/pull/452) Add PHPDoc for `amount_paid` and `amount_remaining` on `\Stripe\Invoice`
+* [#452](https://github.com/stripe/stripe-php/pull/452) Add PHPDoc for `amount_paid` and `amount_remaining` on `\TCStripe\Invoice`
 
 ## 6.3.1 - 2018-02-26
-* [#443](https://github.com/stripe/stripe-php/pull/443) Add event types as constants to `\Stripe\Event` class
+* [#443](https://github.com/stripe/stripe-php/pull/443) Add event types as constants to `\TCStripe\Event` class
 
 ## 6.3.0 - 2018-02-23
 * [#450](https://github.com/stripe/stripe-php/pull/450) Add support for `code` attribute on all Stripe exceptions
 
 ## 6.2.0 - 2018-02-21
 * [#440](https://github.com/stripe/stripe-php/pull/440) Add support for topups
-* [#442](https://github.com/stripe/stripe-php/pull/442) Fix PHPDoc for `\Stripe\Error\SignatureVerification`
+* [#442](https://github.com/stripe/stripe-php/pull/442) Fix PHPDoc for `\TCStripe\Error\SignatureVerification`
 
 ## 6.1.0 - 2018-02-12
 * [#435](https://github.com/stripe/stripe-php/pull/435) Fix header persistence on `Collection` objects
@@ -270,9 +270,9 @@
 ## 6.0.0 - 2018-02-07
 Major version release. List of backwards incompatible changes to watch out for:
 + The minimum PHP version is now 5.4.0. If you're using PHP 5.3 or older, consider upgrading to a more recent version.
-* `\Stripe\AttachedObject` no longer exists. Attributes that used to be instances of `\Stripe\AttachedObject` (such as `metadata`) are now instances of `\Stripe\StripeObject`.
-+ Attributes that used to be PHP arrays (such as `legal_entity->additional_owners` on `\Stripe\Account` instances) are now instances of `\Stripe\StripeObject`, except when they are empty. `\Stripe\StripeObject` has array semantics so this should not be an issue unless you are actively checking types.
-* `\Stripe\Collection` now derives from `\Stripe\StripeObject` rather than from `\Stripe\ApiResource`.
+* `\TCStripe\AttachedObject` no longer exists. Attributes that used to be instances of `\TCStripe\AttachedObject` (such as `metadata`) are now instances of `\TCStripe\StripeObject`.
++ Attributes that used to be PHP arrays (such as `legal_entity->additional_owners` on `\TCStripe\Account` instances) are now instances of `\TCStripe\StripeObject`, except when they are empty. `\TCStripe\StripeObject` has array semantics so this should not be an issue unless you are actively checking types.
+* `\TCStripe\Collection` now derives from `\TCStripe\StripeObject` rather than from `\TCStripe\ApiResource`.
 
 Pull requests included in this release:
 * [#410](https://github.com/stripe/stripe-php/pull/410) Drop support for PHP 5.3
@@ -371,7 +371,7 @@ Pull requests included in this release:
 * Allow nested field `payout_schedule` to be updated
 
 ## 4.8.0 - 2017-04-20
-* Add `\Stripe\Stripe::setLogger()` to support an external PSR-3 compatible logger
+* Add `\TCStripe\Stripe::setLogger()` to support an external PSR-3 compatible logger
 
 ## 4.7.0 - 2017-04-10
 * Add support for payouts and recipient transfers
@@ -516,7 +516,7 @@ Pull requests included in this release:
 * Add support for manage account deletion
 
 ## 3.0.0 - 2015-07-28
-* Rename `\Stripe\Object` to `\Stripe\StripeObject` (PHP 7 compatibility)
+* Rename `\TCStripe\Object` to `\TCStripe\StripeObject` (PHP 7 compatibility)
 * Rename `getCode` and `getParam` in exceptions to `getStripeCode` and `getStripeParam`
 * Add support for calling `json_encode` on Stripe objects in PHP 5.4+
 * Start supporting/testing PHP 7

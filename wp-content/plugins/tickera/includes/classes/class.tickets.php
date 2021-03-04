@@ -136,16 +136,6 @@ if ( !class_exists( 'TC_Tickets' ) ) {
 					'number'			 => true,
 				),
 				array(
-					'field_name'		 => 'absent_per_ticket',
-					'field_title'		 => __( 'Số người vắng mặt ở loại vé này', 'tc' ),
-					'placeholder'		 => __( 'Unlimited', 'tc' ),
-					'field_type'		 => 'text',
-					'tooltip'			 => __( 'Quantity absent attendees of this ticket type', 'tc' ),
-					'table_visibility'	 => true,
-					'post_field_type'	 => 'post_meta',
-					'number'			 => true,
-				),
-				array(
 					'field_name'		 => 'ticket_template',
 					'field_title'		 => __( 'Ticket Template', 'tc' ),
 					'field_type'		 => 'function',

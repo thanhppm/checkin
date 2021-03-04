@@ -23,15 +23,9 @@ let authorizeBillingFields = [
 /**
  *  Initialize Country and Region Fields
  */
-jQuery('#authorize-billing-country').select2({
-    width: '100%',
-    placeholder: "",
-    data: authorizenet.country_data,
-});
-jQuery('#authorize-billing-state').select2({
-    width: '100%',
-    placeholder: "",
-});
+for ( let i = 0;  i < authorizenet.country_data.length; i++ ) {
+    jQuery('#authorize-billing-country').append( '<option value="' + authorizenet.country_data[i].id + '">' + authorizenet.country_data[i].text + '</option>' );
+}
 
 /**
  * Update regions based on selected country
@@ -40,25 +34,24 @@ jQuery(document).on('change', '#authorize-billing-country', function() {
 
     let selected_country = jQuery(this).val();
 
-    jQuery.post(tc_ajax.ajaxUrl, { action: "collect_regions_ajax", selected_country: selected_country },
-        function (response) {
-            if ( response ) {
-                // Rebuild Region field
-                jQuery('#authorize-billing-state').empty();
-                jQuery('#authorize-billing-state').select2({
-                    width: '100%',
-                    placeholder: "",
-                    data: response
-                })
+    // Make sure to empty field before process
+    jQuery('#authorize-billing-state').empty();
+    jQuery('#authorize-billing-stateregion').attr('disabled', true);
+
+    jQuery( authorizenet.region_data ).each( function( index, elem ) {
+        if ( elem.countryShortCode == selected_country ) {
+            for ( let i = 0;  i < elem.regions.length; i++ ) {
+                jQuery('#authorize-billing-state').append( '<option value="' + elem.regions[i].name + '">' + elem.regions[i].name + ' | ' + elem.regions[i].shortCode + '</option>' );
             }
+            jQuery('#authorize-billing-state').attr('disabled', false);
         }
-    );
+    });
 });
 
 /**
  * Trigger Validation on Submit Payment
  */
-jQuery(document).on('click', '#authorizenet-api .tc_payment_confirm', function(event) {
+jQuery(document).on('click', '#authorizenet-aim .tc_payment_confirm', function(event) {
     let billingIsValid = validateAuthorizeBillingFields();
     if (!billingIsValid) {
         event.preventDefault();

@@ -185,8 +185,8 @@ class Loco_api_WordPressFileSystem {
      */
     private function authorize( Loco_fs_File $file ){
         // may already have authorized successfully
-        if( $fs = $this->fs ){
-            $file->getWriteContext()->connect( $fs, false );
+        if( $this->fs instanceof WP_Filesystem_Base ){
+            $file->getWriteContext()->connect( $this->fs, false );
             return true;
         }
         
@@ -231,6 +231,7 @@ class Loco_api_WordPressFileSystem {
             $type = FS_METHOD;
             // forcing direct access means request_filesystem_credentials will never give us a form :( 
             if( 'direct' === $type ){
+                Loco_error_AdminNotices::debug('Cannot connect remotely when FS_METHOD is "direct"');
                 return false;
             }
         }
@@ -286,8 +287,11 @@ class Loco_api_WordPressFileSystem {
             request_filesystem_credentials( '', $type, $error, $context, $extra );
         }
 
-        // now have unauthorized remote connection
+        // should now have unauthorized remote connection form
         $this->form = (string) $buffer->close();
+        if( '' === $this->form ){
+            Loco_error_AdminNotices::debug('Unknown error capturing output from request_filesystem_credentials');
+        }
         return false;
     }
 
@@ -365,7 +369,7 @@ class Loco_api_WordPressFileSystem {
 
 
     /**
-     * Check if a file is safe from WordPress automatic updates
+     * Check if a file is subject to WordPress automatic updates
      * @param Loco_fs_File
      * @return bool
      */
@@ -374,14 +378,32 @@ class Loco_api_WordPressFileSystem {
         if( $this->isAutoUpdateDenied() ){
             return false;
         }
-        if( apply_filters( 'automatic_updater_disabled', loco_constant('AUTOMATIC_UPDATER_DISABLED') ) ) {
-            return false;
-        }
-        // Auto-updates aren't denied, so ascertain location "type" and run through the same filters as should_update()
-        if( $type = $file->getUpdateType() ){
-            // TODO provide a useful context for the update offer passed to filters
-            // WordPress updater will have taken this from remote API data which we don't have here. 
+        // Auto-updates aren't denied, so ascertain location "type" and run through the same filters as WP_Automatic_Updater::should_update()
+        $type = $file->getUpdateType();
+        if( '' !== $type ){
+            // Since 5.5.0: "{type}_s_auto_update_enabled" filters auto-update status for themes and plugins
+            // admins must also enable auto-updates on plugins and themes individually, but not checking that here. 
+            if( function_exists('wp_is_auto_update_enabled_for_type') && ('plugin'===$type||'theme'===$type) ){
+                $enabled = (bool) apply_filters( "{$type}s_auto_update_enabled", true );
+                if( $enabled ){
+                    // resolve given file to plugin/theme handle so we can check if it's been enabled
+                    $bundle = Loco_package_Bundle::fromFile($file);
+                    if( $bundle instanceof Loco_package_Bundle ){
+                        $handle = $bundle->getHandle();
+                        $option = (array) get_site_option( "auto_update_{$type}s", array() );
+                        // var_dump( compact('handle','option') );
+                        if( ! in_array($handle,$option,true) ){
+                            $enabled = false;
+                        }
+                    }
+                }
+                return $enabled;
+            }
+            // WordPress updater will have {item} from remote API data which we don't have here.
             $item = new stdClass;
+            $item->new_files = false;
+            $item->autoupdate = true;
+            $item->disable_autoupdate = false;
             return apply_filters( 'auto_update_'.$type, true, $item );
         }
         // else safe (not auto-updatable)

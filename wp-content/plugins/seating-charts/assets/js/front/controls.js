@@ -194,6 +194,7 @@ jQuery(document).ready(function ($) {
                 }
 
                 $(this).css({'background-color': tc_seat_color});
+                $(this).css({'color': tc_seat_color});
 
             })
         },
